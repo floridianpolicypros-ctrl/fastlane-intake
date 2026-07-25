@@ -1,0 +1,3 @@
+name = "fastlane-intake"
+main = "dist/worker.js"
+compatibility_date = "2025-01-01"

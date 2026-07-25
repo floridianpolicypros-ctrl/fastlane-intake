@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/webp;base64,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">
+<meta name="theme-color" content="#FFC81E">
+<title>Student Enrollment — Fast Lane Traffic School</title>
+<style>
+  :root{--brand:#14243b;--gold:#FFC81E;--orange:#FF8A2D;--red:#E03127;--teal:#0E9AA7;--green:#128a3f;--bg:#eef3fb;--card:#fff;--line:#e4e9f2;--muted:#6b7a90;--ok:#128a3f;--sunset:linear-gradient(135deg,#FFC81E 0%,#FF8A2D 52%,#E03127 100%)}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1c2733;line-height:1.5;background:#eef2f7}
+  header.top{position:relative;background:linear-gradient(135deg,#17273f 0%,#0f1a2b 100%);border-bottom:3px solid var(--gold)}
+  header .inner{position:relative;max-width:1080px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;gap:16px}
+  .brandlogo{height:72px;width:72px;flex:none;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.12),0 4px 12px rgba(0,0,0,.25)}
+  header h1{margin:0;font-size:21px;color:#fff;font-weight:800;letter-spacing:-.2px}
+  header p{margin:3px 0 0;font-size:12.5px;color:#aeb9c9;font-weight:500}
+  .headright{margin-left:auto;display:flex;flex-direction:column;gap:7px;align-items:flex-end}
+  .badge{background:rgba(255,255,255,.08);color:#f2f5fa;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 13px;font-size:12px;font-weight:600;white-space:nowrap}
+  .badge.gold{background:rgba(255,200,30,.14);color:#ffd84d;border-color:rgba(255,200,30,.4)}
+  @media(max-width:640px){.headright{display:none}.brandlogo{height:56px;width:56px}header h1{font-size:18px}}
+  .wrap{max-width:1080px;margin:0 auto;padding:18px 20px 60px}
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}.side{position:static!important}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 4px 18px rgba(20,40,80,.06)}
+  .card h2{margin:0 0 4px;font-size:16.5px;color:var(--brand);display:flex;align-items:center;gap:10px;font-weight:800}
+  .num{display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;background:var(--brand);color:#fff;border-radius:8px;font-size:13px;flex:none;font-weight:800}
+  .card .sub{margin:0 0 14px;font-size:12.5px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .field.full{grid-column:1/-1}
+  @media(max-width:560px){.grid,.grid3{grid-template-columns:1fr}}
+  label{display:block;font-size:12.5px;font-weight:600;margin-bottom:4px;color:#33455c}
+  .opt{font-weight:400;color:var(--muted)}.req{color:var(--red)}
+  input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;font-size:16px;font-family:inherit;background:#fff}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(20,36,59,.13)}
+  input.err,select.err{border-color:var(--red);background:#fff5f5}
+  textarea{min-height:60px;resize:vertical}
+  .flash{animation:fl 1.1s ease}@keyframes fl{0%{background:#d5f5e0}100%{background:#fff}}
+  .uploads{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){.uploads{grid-template-columns:1fr}}
+  .drop{position:relative;border:1.5px dashed #c3ccd8;border-radius:12px;padding:14px;text-align:center;cursor:pointer;background:#fafcff;display:block}
+  .drop.reqd{border-color:var(--red);background:#fffafa}
+  .drop:hover,.drop.dragover{border-color:var(--red);background:#fff3f2;border-style:solid}
+  .drop.done{border-color:var(--ok);background:#f2fbf5;border-style:solid}
+  .drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .drop .ico{font-size:24px}.drop .t{font-weight:700;font-size:13px;margin-top:3px}.drop .d{font-size:11.5px;color:var(--muted)}
+  .drop .status{font-size:11.5px;color:var(--ok);font-weight:700;margin-top:3px;min-height:14px}
+  .note{background:#fff7dd;border:1px solid var(--gold);border-radius:10px;padding:10px 12px;font-size:12.5px;color:#5c4600;margin-top:12px}
+  .warn{background:#fff0ef;border:1px solid var(--red);border-radius:10px;padding:12px 14px;font-size:13px;color:#8c1c15;margin-top:12px;font-weight:600}
+  .hidden{display:none!important}
+  .side{position:sticky;top:16px}
+  .sum-row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:3px 0;border-bottom:1px dashed #eef2f7}
+  .sum-row b{color:#4a5a6e;font-weight:600}
+  .sum-group{margin-top:10px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--red);font-weight:800}
+  .hint{font-size:11.5px;color:var(--muted)}
+  .bar{height:7px;background:#e7ecf2;border-radius:99px;overflow:hidden;margin:6px 0 12px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--orange));width:0;transition:.3s}
+  .price{background:#f4faf6;border:1px solid #cbe6d3;border-radius:12px;padding:14px;margin-top:12px;font-size:13px}
+  .price .amt{font-size:25px;font-weight:800;color:var(--ok)}
+  .submit{background:var(--brand);color:#fff;border:none;border-radius:11px;padding:15px 18px;font-size:16px;font-weight:800;width:100%;cursor:pointer;margin-top:6px;box-shadow:0 4px 14px rgba(20,36,59,.22);transition:filter .15s,transform .05s}
+  .submit:hover{filter:brightness(1.12)}.submit:active{transform:translateY(1px)}
+  .submit:disabled{background:#dde4ec;color:#93a2b4;cursor:not-allowed;box-shadow:none}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:#22364d;color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:99;max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .consent{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:#33455c;margin-top:10px}
+  .consent input{width:auto;margin-top:2px;flex:none}
+  .feebox{background:#fff7dd;border:1px solid var(--gold);border-radius:10px;padding:12px 14px;font-size:13px;color:#5c4600;margin-top:10px}
+  .linkrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  @media(max-width:560px){.linkrow{grid-template-columns:1fr}}
+  .extlink{display:flex;gap:10px;align-items:flex-start;text-decoration:none;color:#1c2733;border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:#fafcff;font-size:13px}
+  .extlink:hover{border-color:var(--red);background:#fff5f4}
+  .extlink .ei{font-size:18px;flex:none}
+  .extlink .es{font-size:11.5px;color:var(--muted);font-weight:400}
+  .insbox{border:1px solid #b6d9e3;background:#f2fafc;border-radius:12px;padding:14px;margin-top:4px}
+  .insbox h3{margin:0 0 4px;font-size:14px;color:#12657d}
+  .paylogos{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0 2px}
+  .paylogos span{font-size:11px;font-weight:700;letter-spacing:.3px;border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:#fff;color:#33455c;white-space:nowrap}
+  .paylogos .visa{color:#1a1f71}.paylogos .mc{color:#eb001b}.paylogos .amex{color:#006fcf}.paylogos .disc{color:#ff6000}
+  .paylogos .apay{color:#000}.paylogos .gpay{color:#4285f4}.paylogos .cash{color:#00c244}
+  .done-panel{text-align:center;padding:40px 20px}
+  .done-panel .big{font-size:44px}
+  .done-panel h2{justify-content:center;font-size:22px;margin:10px 0}
+</style>
+</head>
+<body>
+<header class="top"><div class="inner">
+  <img class="brandlogo" src="data:image/webp;base64,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" alt="Fast Lane Traffic School — Palm Beach County">
+  <div><h1>Student Enrollment &amp; Intake</h1><p>Fast Lane Traffic School &middot; Palm Beach County, Florida</p></div>
+  <div class="headright"><div class="badge gold">&#10004; Florida State-Approved</div><div class="badge">Takes ~5 minutes</div></div>
+</div></header>
+
+<div class="wrap"><div class="layout">
+  <form id="quoteForm" autocomplete="on" novalidate>
+
+    <!-- ============ UPLOADS ============ -->
+    <section class="card">
+      <h2><span class="num">&#9733;</span> Snap a photo &mdash; we read it for you</h2>
+      <p class="sub">Take a picture or upload your documents. We'll read them and fill this form in automatically. Your <strong>ticket</strong> and <strong>driver license</strong> are required.</p>
+      <div class="uploads">
+        <label class="drop reqd" data-tile="citation"><div class="ico">&#128220;</div><div class="t">Traffic Ticket (UTC) <span class="req">*</span></div><div class="d">All four corners visible</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="citation" capture="environment"></label>
+
+        <label class="drop reqd" data-tile="dl"><div class="ico">&#127991;&#65039;</div><div class="t">Driver License &mdash; FRONT <span class="req">*</span></div><div class="d">Required. This is what the state matches</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="dl" capture="environment"></label>
+
+        <label class="drop"><div class="ico">&#127974;</div><div class="t">Court notice / clerk receipt</div><div class="d">If the clerk already processed your ticket</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="courtNotice" capture="environment"></label>
+
+        <label class="drop" id="tileCourtOrder"><div class="ico">&#9878;&#65039;</div><div class="t">Court order / judge's order</div><div class="d">Required for 12-hr ADI &amp; court-ordered classes</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="courtOrder" capture="environment"></label>
+
+        <label class="drop"><div class="ico">&#128721;</div><div class="t">Suspension / reinstatement notice</div><div class="d">If your license is suspended</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="suspensionNotice" capture="environment"></label>
+
+        <label class="drop"><div class="ico">&#128206;</div><div class="t">Other / second ticket</div><div class="d">Anything else &mdash; we'll read it &amp; add it</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="misc" capture="environment"></label>
+      </div>
+      <div class="note" id="aiNote"><strong>Smart auto-fill is ON.</strong> Upload your ticket and license &mdash; fields flash green as they fill. Check everything before you submit; we don't guess.</div>
+
+      <div class="nocit">
+        <label class="consent" style="margin-top:14px"><input type="checkbox" id="noCitation" name="noCitation">
+          <span><strong>I don't have my ticket.</strong> Lost it, never got a copy, or can't read it &mdash; look it up for me.</span></label>
+        <div class="hidden" id="noCitationBlock">
+          <div class="feebox">
+            <div><strong>Court records / case search &mdash; $17.50</strong></div>
+            <div style="margin-top:5px">We'll pull your citation directly from the clerk of court. To do that we <strong>must know which county issued it</strong> &mdash; each county's records are separate, and we can't search statewide.</div>
+          </div>
+          <div class="grid" style="margin-top:12px">
+            <div class="field"><label>County that issued the ticket <span class="req">*</span></label>
+              <select name="searchCounty" id="searchCounty">
+                <option value="">Select the county…</option>
+                <option>Palm Beach</option><option>Broward</option><option>Miami-Dade</option><option>Martin</option><option>St. Lucie</option><option>Indian River</option><option>Okeechobee</option><option>Hendry</option><option>Glades</option><option>Other Florida county</option>
+              </select>
+              <p class="hint">Not sure? It's the county where you were pulled over.</p></div>
+            <div class="field"><label>Roughly when were you cited? <span class="req">*</span></label>
+              <input type="month" name="searchApproxDate" id="searchApproxDate">
+              <p class="hint">Month and year is enough to find it.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="linkrow">
+        <a class="extlink" href="https://mydmvportal.flhsmv.gov/home/en/publicweb/dlcheck" target="_blank" rel="noopener noreferrer">
+          <span class="ei">&#128269;</span><span><strong>Check your license status</strong><br><span class="es">Official FLHSMV &mdash; confirm your license is valid before you enroll</span></span></a>
+        <a class="extlink" href="faq.html" target="_blank" rel="noopener">
+          <span class="ei">&#10067;</span><span><strong>How many times can I elect school?</strong><br><span class="es">Florida's 12-month and 5-lifetime limits, explained</span></span></a>
+      </div>
+    </section>
+
+    <!-- ============ COURSE ============ -->
+    <section class="card">
+      <h2><span class="num">1</span> Which course do you need?</h2>
+      <div class="grid">
+        <div class="field full"><label>Course type <span class="req">*</span></label>
+          <select name="courseType" id="courseType" required>
+            <option value="">Select your course…</option>
+            <option>BDI — 4-Hour Basic Driver Improvement</option>
+            <option>TLSAE — 4-Hour First Time Driver</option>
+            <option>8-Hour Driver Course</option>
+            <option>ADI — 12-Hour Advanced Driver Improvement</option>
+            <option>Youthful Offender — 4-Hour</option>
+            <option>Class E Knowledge Test (DMV)</option>
+            <option>Mature Driver (Insurance Discount) — Age 55+</option>
+            <option>Not sure — please advise</option>
+          </select></div>
+        <div class="field full"><label>Reason for attending <span class="req">*</span></label>
+          <select name="reasonAttending" id="reasonAttending" required>
+            <option value="">Select…</option>
+            <option>Election — points / adjudication withheld</option>
+            <option>Court ordered</option>
+            <option>Insurance discount</option>
+            <option>Voluntary</option>
+            <option>Suspension / reinstatement</option>
+            <option>First-time driver (getting my permit or license)</option>
+          </select></div>
+        <div class="field"><label>Delivery method</label>
+          <select name="deliveryMethod"><option>Classroom (in person)</option></select>
+          <p class="hint">All courses are in-person right now &mdash; online coming soon.</p></div>
+        <div class="field"><label>Preferred language</label>
+          <select name="language"><option>English</option><option>Spanish / Español</option><option>Haitian Creole / Kreyòl</option><option>Other</option></select></div>
+      </div>
+      <div class="note hidden" id="tlsaeNote"><strong>First-time drivers:</strong> licensing is usually a two-part process &mdash; this 4-hour TLSAE (Drug &amp; Alcohol) course first, then the <strong>Class E Knowledge Test</strong> (the DMV written test). Need both? Select Class E as a second enrollment, or tell us in the notes and we'll set up the bundle.</div>
+      <div class="note hidden" id="adiNote"><strong>12-Hour ADI</strong> is typically for a suspended/revoked license, Habitual Traffic Offender status, a hardship license, or a court order &mdash; there's usually <strong>no traffic ticket</strong>. Upload your <strong>court order</strong> or <strong>suspension/reinstatement notice</strong> above instead. No citation needed.</div>
+      <div class="note hidden" id="matureNote"><strong>Mature Driver Insurance Discount</strong> is for Florida drivers <strong>age 55 and older</strong>. On completion you get a certificate for your insurer &mdash; the discount typically lasts about 3 years (amount is set by each carrier). No ticket needed. Want us to shop that discounted rate for you too? Check the insurance-quote box below.</div>
+      <div class="warn hidden" id="courtOrderWarn">A <strong>court order</strong> is required for this course. Please upload it above &mdash; we can't enroll you without it.</div>
+    </section>
+
+    <!-- ============ IDENTITY ============ -->
+    <section class="card">
+      <h2><span class="num">2</span> Your information</h2>
+      <p class="sub">Enter your name <strong>exactly</strong> as it appears on your driver license. The state rejects certificates when the name doesn't match.</p>
+      <div class="grid3">
+        <div class="field"><label>First name <span class="req">*</span></label><input name="firstName" required></div>
+        <div class="field"><label>Middle name / initial <span class="opt">(optional)</span></label><input name="middleName"></div>
+        <div class="field"><label>Last name <span class="req">*</span></label><input name="lastName" required></div>
+      </div>
+      <div class="grid3" style="margin-top:12px">
+        <div class="field"><label>Suffix <span class="opt">(optional)</span></label>
+          <select name="suffix"><option value=""></option><option>Jr</option><option>Sr</option><option>II</option><option>III</option><option>IV</option></select></div>
+        <div class="field"><label>Date of birth <span class="req">*</span></label><input type="date" name="dob" id="dob" required></div>
+        <div class="field"><label>Sex</label><select name="sex"><option value=""></option><option>M</option><option>F</option><option>X</option></select></div>
+      </div>
+      <div class="grid3" style="margin-top:12px">
+        <div class="field"><label>Driver license number <span class="req">*</span></label><input name="dlNumber" required placeholder="No spaces or dashes"></div>
+        <div class="field"><label>License state <span class="req">*</span></label><input name="dlState" value="FL" required maxlength="2" style="text-transform:uppercase"></div>
+        <div class="field"><label>License class</label><select name="dlClass"><option value=""></option><option>E</option><option>A (CDL)</option><option>B (CDL)</option><option>C (CDL)</option><option>Learner Permit</option></select></div>
+      </div>
+      <div class="grid3" style="margin-top:12px">
+        <div class="field"><label>License expiration</label><input type="date" name="dlExpiration"></div>
+        <div class="field"><label>Height <span class="opt">(e.g. 5-10)</span></label><input name="height" placeholder="5-10"></div>
+        <div class="field"><label>Last 4 of SSN <span class="req">*</span></label><input name="ssnLast4" required maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="1234"></div>
+      </div>
+      <p class="hint" style="margin-top:6px">The state requires the last 4 of your SSN (or Alien/ITIN number) to verify course completion. No full SSN is ever collected.</p>
+
+      <div class="grid" style="margin-top:14px">
+        <div class="field full"><label>Street address <span class="req">*</span></label><input name="street" required></div>
+        <div class="field"><label>City <span class="req">*</span></label><input name="city" required></div>
+        <div class="field"><label>State <span class="req">*</span></label><input name="state" value="FL" required maxlength="2" style="text-transform:uppercase"></div>
+        <div class="field"><label>ZIP <span class="req">*</span></label><input name="zip" required inputmode="numeric" maxlength="10"></div>
+        <div class="field"><label>Mobile phone <span class="req">*</span></label><input type="tel" name="phone" required placeholder="561-555-0123"></div>
+        <div class="field full"><label>Email <span class="req">*</span></label><input type="email" name="email" required placeholder="Your certificate is emailed here"></div>
+      </div>
+
+      <div class="hidden" id="minorBlock">
+        <div class="warn" style="margin-bottom:12px">You're under 18 &mdash; a parent or guardian must be listed.</div>
+        <div class="grid">
+          <div class="field"><label>Parent / guardian name <span class="req">*</span></label><input name="parentName"></div>
+          <div class="field"><label>Parent / guardian phone <span class="req">*</span></label><input type="tel" name="parentPhone"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CITATION ============ -->
+    <section class="card" id="citationCard">
+      <h2><span class="num">3</span> Your ticket</h2>
+      <p class="sub">Most of this fills in automatically from your ticket photo. Double-check it.</p>
+      <div class="grid">
+        <div class="field"><label>Citation / UTC number <span class="req">*</span></label><input name="citationNumber" placeholder="No spaces or dashes">
+          <p class="hint">The <strong>ticket number</strong> &mdash; on your citation, usually top-right, often starting with a letter.</p></div>
+        <div class="field"><label>Case / docket number <span class="opt">(if you have it)</span></label><input name="caseNumber" placeholder="No spaces or dashes">
+          <p class="hint">A <strong>separate</strong> number the clerk of court assigns once your ticket is processed. Leave blank if you don't have it.</p></div>
+        <div class="field"><label>Violation date <span class="req">*</span></label><input type="date" name="violationDate"></div>
+        <div class="field"><label>Statute / violation code <span class="req">*</span></label><input name="statuteCode" placeholder="e.g. 316.187"></div>
+        <div class="field"><label>County of the COURT <span class="req">*</span></label>
+          <select name="citationCounty">
+            <option value="">Select county…</option>
+            <option>Palm Beach</option><option>Broward</option><option>Miami-Dade</option><option>Martin</option><option>St. Lucie</option><option>Indian River</option><option>Okeechobee</option><option>Hendry</option><option>Glades</option><option>Other Florida county</option>
+          </select>
+          <p class="hint">This is the county that issued the ticket &mdash; not where you live.</p></div>
+        <div class="field"><label>Issuing agency</label><input name="issuingAgency" placeholder="e.g. FHP, PBSO, Boca Raton PD"></div>
+        <div class="field full"><label>What were you cited for? <span class="req">*</span></label><input name="violationDescription" id="violationDescription" placeholder="e.g. Unlawful speed 62/45"></div>
+      </div>
+
+      <div class="grid hidden" id="speedBlock" style="margin-top:12px">
+        <div class="field"><label>Speed alleged (mph)</label><input name="speedAlleged" inputmode="numeric"></div>
+        <div class="field"><label>Posted limit (mph)</label><input name="speedPosted" inputmode="numeric"></div>
+      </div>
+
+      <div class="grid3" style="margin-top:12px">
+        <div class="field"><label>Crash involved? <span class="opt">(optional)</span></label><select name="crashInvolved" id="crashInvolved"><option value="">Select…</option><option>No</option><option>Yes</option></select></div>
+        <div class="field"><label>CDL holder at time? <span class="req">*</span></label><select name="cdlHolder" id="cdlHolder"><option value="">Select…</option><option>No</option><option>Yes</option></select></div>
+        <div class="field"><label>Commercial vehicle? <span class="req">*</span></label><select name="commercialVehicle" id="commercialVehicle"><option value="">Select…</option><option>No</option><option>Yes</option></select></div>
+      </div>
+
+      <div class="grid" style="margin-top:12px">
+        <div class="field"><label>Court due date / election deadline</label><input type="date" name="courtDueDate">
+          <p class="hint">Usually 30 days from the ticket date.</p></div>
+        <div class="field"><label>Have you paid the clerk yet? <span class="req">*</span></label>
+          <select name="courtPaymentStatus"><option value="">Select…</option><option>Not paid yet</option><option>Paid — elected school</option><option>Paid — not sure what I elected</option><option>Don't know</option></select></div>
+      </div>
+
+      <div class="grid" style="margin-top:12px">
+        <div class="field full"><label>Have you taken a BDI course before? <span class="req">*</span></label>
+          <select name="priorBdi" id="priorBdi"><option value="">Select…</option><option>No, never</option><option>Yes — within the last 12 months</option><option>Yes — 1 to 3 times before</option><option>Yes — 4 or 5 times before</option><option>Not sure</option></select>
+          <p class="hint">Florida law caps election at <strong>once every 12 months</strong> and <strong>5 times per lifetime</strong> (§318.14(9)). <a href="faq.html" target="_blank" rel="noopener">How do I check how many I've used?</a></p></div>
+      </div>
+
+      <div class="warn hidden" id="eligWarn"></div>
+    </section>
+
+    <!-- ============ NOTES ============ -->
+    <section class="card">
+      <h2><span class="num">4</span> Anything else we should know?</h2>
+      <div class="field full"><label>Notes <span class="opt">(optional)</span></label><textarea name="notes" placeholder="Second ticket, deadline coming up fast, suspension, name changed recently, etc."></textarea></div>
+
+      <div class="feebox hidden" id="eFileBox">
+        <label class="consent" style="margin:0"><input type="checkbox" name="eFileCert" id="eFileCert">
+          <span><strong>e-File my completion certificate with the clerk &mdash; +$21.50.</strong> <span class="opt">Optional. We electronically file your certificate with the clerk of court and you get an email verification. Recommended if your ticket was already processed by the clerk.</span></span></label>
+      </div>
+
+      <div class="feebox" id="recordBox" style="border-color:#b6d9e3;background:#f2fafc">
+        <label class="consent" style="margin:0"><input type="checkbox" name="wantsRecord" id="wantsRecord">
+          <span><strong>Add my 7-year Florida driving record &mdash; +$24.95.</strong> <span class="opt">Optional. Handy if your license was suspended, you're a CDL holder, or you're unsure of prior course use. We pull it from the FL DHSMV and email you the official PDF. By checking this, I authorize Fast Lane Traffic School to obtain my Florida driving record from the DHSMV on my behalf.</span></span></label>
+      </div>
+
+      <div class="insbox">
+        <h3>&#128663; While you're here &mdash; want to lower your car insurance?</h3>
+        <p class="hint" style="margin:0 0 8px">A ticket usually raises your rate at renewal. Our sister company, <strong>Floridian Policy Pros</strong>, shops Florida carriers and can quote you before that happens.</p>
+        <label class="consent"><input type="checkbox" name="wantsInsuranceQuote" id="wantsInsuranceQuote">
+          <span>Yes &mdash; send me an auto insurance quote. <span class="opt">Free, no obligation. We'll pass along the info you already entered so you don't retype it.</span></span></label>
+        <div class="hidden" id="insDetail">
+          <div class="grid" style="margin-top:10px">
+            <div class="field"><label>Current insurance carrier <span class="opt">(optional)</span></label><input name="currentCarrier" placeholder="e.g. Geico, Progressive, none"></div>
+            <div class="field"><label>How many vehicles? <span class="opt">(optional)</span></label>
+              <select name="vehicleCount"><option value=""></option><option>1</option><option>2</option><option>3</option><option>4+</option></select></div>
+          </div>
+          <p class="hint" style="margin-top:8px">After you submit, we'll open the quote form with your name, date of birth, license and address already filled in.</p>
+        </div>
+      </div>
+      <label class="consent"><input type="checkbox" name="consentAccuracy" id="consentAccuracy" required>
+        <span>I confirm my name, date of birth, and driver license number above match my Florida driver license <strong>exactly</strong>. I understand the state will reject my certificate if they don't. <span class="req">*</span></span></label>
+      <label class="consent"><input type="checkbox" name="consentContact" id="consentContact" required>
+        <span>I authorize Fast Lane Traffic School to contact me by email, phone, and text about my enrollment, and to submit my completion to the Florida DHSMV. <span class="req">*</span></span></label>
+    </section>
+
+    <div class="price hidden" id="priceBox">
+      <div>Course fee &mdash; <strong id="priceCourse"></strong></div>
+      <div class="amt" id="priceAmt"></div>
+      <div class="hint" id="priceNote">You'll be taken to a secure Stripe checkout after you submit.</div>
+    </div>
+
+    <button type="submit" class="submit" id="submitBtn">Submit &amp; continue to payment &rarr;</button>
+    <div class="paylogos">
+      <span class="visa">VISA</span><span class="mc">Mastercard</span><span class="amex">AMEX</span><span class="disc">Discover</span><span class="apay">&#63743;&nbsp;Pay</span><span class="gpay">G&nbsp;Pay</span><span class="cash">Cash&nbsp;App</span>
+    </div>
+    <p class="hint" style="text-align:center;margin-top:6px">&#128274; Secure checkout powered by Stripe</p>
+    <p class="hint" style="text-align:center;margin-top:6px">Fast Lane Traffic School &middot; westpalmbeachtrafficschool@gmail.com</p>
+  </form>
+
+  <aside class="side"><div class="card">
+    <h2>Your enrollment</h2>
+    <div class="hint" id="pct">0% complete</div><div class="bar"><i id="barFill"></i></div>
+    <div id="sumBody"><p class="hint">Fill the form and your summary builds here.</p></div>
+  </div></aside>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==========================================================================
+   CONFIG — EDIT THESE FOUR THINGS AFTER DEPLOY
+   ========================================================================== */
+const CONFIG = {
+  recipient:    "westpalmbeachtrafficschool@gmail.com",
+  aiEndpoint:   "https://fastlane-reader.floridianpolicypros.workers.dev",
+  submitEndpoint: "https://fastlane-submit.floridianpolicypros.workers.dev",
+  insuranceQuoteUrl: "https://fpp-quote.floridianpolicypros.workers.dev/auto",
+  // Stripe Payment Link for the court records / case search. Charged in addition to the course.
+  courtSearchLink: { url:"https://buy.stripe.com/9B600j3w35uO8Ys8uw5Ne0b", price:"$17.50" },
+  // Optional clerk e-file of the completion certificate. Only offered for BDI & 8-hr.
+  eFileLink: { url:"https://buy.stripe.com/6oU5kD8Qng9s0rW9yA5Ne09", price:"$21.50" },
+  // Optional 7-year FL driving-record pull (you pull it from MyDMV Portal, ~3 min, and email the PDF).
+  // Create a Stripe Payment Link for this and paste the url; leave "" and we'll flag it to email a link.
+  recordLink: { url:"https://buy.stripe.com/aFa28r9Ur1ey3E82685Ne0e", price:"$24.95" },
+  // Live Stripe Payment Links per course. price shows on the form; Stripe collects the real amount.
+  stripeLinks: {
+    "BDI — 4-Hour Basic Driver Improvement":        { url:"https://buy.stripe.com/6oUeVd9Ur6ySgqUh125Ne06", price:"$100.00" },
+    "TLSAE — 4-Hour First Time Driver":             { url:"https://buy.stripe.com/aFa6oH4A72iC0rW9yA5Ne03", price:"$100.00" },
+    "8-Hour Driver Course":                         { url:"https://buy.stripe.com/dRmfZh6If6yS7Uo2685Ne05", price:"$150.00" },
+    "ADI — 12-Hour Advanced Driver Improvement":    { url:"https://buy.stripe.com/fZu00j6Ife1kb6AcKM5Ne04", price:"$180.00" },
+    "Class E Knowledge Test (DMV)":                 { url:"https://buy.stripe.com/4gM00j6If4qK0rW1245Ne07", price:"$45.00" },
+    "Youthful Offender — 4-Hour":                   { url:"https://buy.stripe.com/bJedR9c2z6yScaE1245Ne0c", price:"$100.00" },
+    "Mature Driver (Insurance Discount) — Age 55+": { url:"https://buy.stripe.com/cNi14n5EbbTc4Ich125Ne0d", price:"$55.00" },
+    "Not sure — please advise":                     { url:"", price:"We'll confirm your price by email" }
+  }
+};
+
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const form=$("#quoteForm");
+function val(n){const el=form.elements[n];return el?(el.value||"").trim():"";}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),3500);}
+
+/* ---------- conditionals ---------- */
+function age(){const d=val("dob");if(!d)return null;const b=new Date(d),n=new Date();let a=n.getFullYear()-b.getFullYear();const m=n.getMonth()-b.getMonth();if(m<0||(m===0&&n.getDate()<b.getDate()))a--;return a;}
+function isFirstTime(){const c=val("courseType");return c.startsWith("TLSAE")||c.startsWith("Class E")||val("reasonAttending").startsWith("First-time");}
+function isADI(){return val("courseType").startsWith("ADI");}
+function needsCourtOrder(){return isADI()||val("reasonAttending")==="Court ordered";}
+
+/* ADI (12-hr) is for suspension/revocation, Habitual Traffic Offender, hardship,
+   or a court order — there is usually NO citation. So the citation is only
+   required for ticket-based courses (BDI, 8-hr) that weren't court-ordered. */
+function courseNeedsCitation(){
+  const c=val("courseType");
+  if(isFirstTime()||isADI())return false;
+  if(c.startsWith("Mature Driver"))return false;   // insurance-discount course, no ticket
+  const r=val("reasonAttending");
+  if(r==="Court ordered"||r==="Suspension / reinstatement")return false;
+  return true;
+}
+
+function noCitation(){const c=$("#noCitation");return !!(c&&c.checked);}
+/* e-File certificate add-on: only meaningful for the ticket-based BDI & 8-hr courses. */
+function eFileEligible(){const c=val("courseType");return c.startsWith("BDI")||c.startsWith("8-Hour");}
+function eFileWanted(){const b=$("#eFileCert");return eFileEligible()&&!!(b&&b.checked);}
+function recordWanted(){const b=$("#wantsRecord");return !!(b&&b.checked);}
+
+function syncConditionals(){
+  const needsCit=courseNeedsCitation();
+  $("#citationCard").classList.toggle("hidden", !needsCit);
+  // The lost-ticket "court search" path only applies to ticket-based courses.
+  const nocitBlock=document.querySelector(".nocit"); if(nocitBlock) nocitBlock.classList.toggle("hidden", !needsCit);
+  // Two-part first-time note (TLSAE then Class E DMV test)
+  const tlsaeNote=$("#tlsaeNote"); if(tlsaeNote) tlsaeNote.classList.toggle("hidden", !val("courseType").startsWith("TLSAE"));
+  const adiNote=$("#adiNote"); if(adiNote) adiNote.classList.toggle("hidden", !isADI());
+  const matureNote=$("#matureNote"); if(matureNote) matureNote.classList.toggle("hidden", !val("courseType").startsWith("Mature Driver"));
+  const a=age(); $("#minorBlock").classList.toggle("hidden", !(a!==null&&a<18));
+  $("#courtOrderWarn").classList.toggle("hidden", !(needsCourtOrder() && !uploaded.courtOrder));
+  const d=(val("violationDescription")+" "+val("statuteCode")).toLowerCase();
+  $("#speedBlock").classList.toggle("hidden", !/speed|mph|316\.183|316\.187|316\.189/.test(d));
+  $("#noCitationBlock").classList.toggle("hidden", !(needsCit&&noCitation()));
+  $("#insDetail").classList.toggle("hidden", !$("#wantsInsuranceQuote").checked);
+  $("#eFileBox").classList.toggle("hidden", !eFileEligible());
+  // the "no ticket" tile requirement and the citation fields relax when we're searching for it
+  const citTile=document.querySelector('[data-tile="citation"]');
+  if(citTile) citTile.classList.toggle("reqd", needsCit && !noCitation() && !uploaded.citation);
+  checkEligibility();
+  priceBox();
+}
+
+/* ---------- BDI eligibility gate ---------- */
+const INELIGIBLE=[
+  {re:/\bdui\b|driving under the influence|\bd\.u\.i\b|impaired|316\.193/i, why:"DUI-related charges (§316.193) are not BDI-eligible."},
+  {re:/reckless|316\.192/i, why:"Reckless driving (§316.192) is not BDI-eligible."},
+  {re:/racing|drag race|316\.191/i, why:"Racing on a highway (§316.191) is not BDI-eligible."},
+  {re:/leaving the scene|hit and run|fleeing|elud|316\.027|316\.061|316\.062|316\.1935/i, why:"Leaving the scene / fleeing charges are not BDI-eligible."},
+  {re:/red light camera|316\.0083/i, why:"Red-light camera notices (§316.0083) carry no points — traffic school usually does not apply."},
+  {re:/no valid license|driving while license|dwls|suspended license|unlicensed|322\.34|322\.03/i, why:"License-status charges use a different election (§318.14(10)) — limited to 3 per lifetime, and it requires proof of compliance, not a course. We need to review this one."},
+  {re:/manslaughter|serious bodily|homicide|782\.071|316\.027/i, why:"This is a criminal traffic charge and needs court review."},
+  {re:/passing.*school bus|316\.172/i, why:"Passing a stopped school bus (§316.172) is not eligible for election."},
+  {re:/expired|no insurance|no proof|equipment|seat ?belt|window tint|316\.646|320\.07|316\.614|320\.0605/i, why:"This looks like a non-moving or proof-of-compliance violation — it carries no points, so a BDI course usually isn't what you need. We'll confirm before charging you."}
+];
+function checkEligibility(){
+  const box=$("#eligWarn"); const msgs=[];
+  if(isFirstTime()){box.classList.add("hidden");return true;}
+  const txt=val("violationDescription")+" "+val("statuteCode");
+  INELIGIBLE.forEach(r=>{if(r.re.test(txt))msgs.push(r.why);});
+
+  /* §318.14(9): speeding IS electable — unless the driver exceeded the posted
+     limit by 30 mph or more. Compute it rather than guessing. */
+  const alleged=parseInt(val("speedAlleged"),10), posted=parseInt(val("speedPosted"),10);
+  if(!isNaN(alleged)&&!isNaN(posted)){
+    const over=alleged-posted;
+    if(over>=30)msgs.push("You were cited at "+over+" mph over the posted limit. Florida law (§318.14(9)) bars electing traffic school at 30 mph or more over — this requires a court appearance.");
+  } else if(/speed|mph/i.test(txt) && !val("speedAlleged")){
+    msgs.push("Please enter your alleged and posted speeds above — election is barred at 30+ mph over the limit, so we need the numbers to confirm you qualify.");
+  }
+
+  if(val("cdlHolder")==="Yes")msgs.push("CDL and commercial learner permit holders cannot elect traffic school (§318.14(9)). Court-ordered enrollment only.");
+  if(val("commercialVehicle")==="Yes")msgs.push("Violations committed in a commercial vehicle are excluded from election — we need to review.");
+  if(val("priorBdi")==="Yes — within the last 12 months")msgs.push("Florida bars a second election within 12 months of your last one (§318.14(9)). We'll verify against your driving record before enrolling you.");
+  if(val("priorBdi")==="Yes — 4 or 5 times before")msgs.push("Florida caps BDI elections at 5 per lifetime (§318.14(9)). We'll verify your remaining elections before enrolling you.");
+  if(val("crashInvolved")==="Yes")msgs.push("A crash was involved — election eligibility depends on the specific charge. We'll review.");
+  if(msgs.length){
+    box.innerHTML="<strong>⚠️ Needs review before enrollment</strong><ul style='margin:8px 0 0 18px;font-weight:500'>"+msgs.map(m=>"<li>"+m+"</li>").join("")+"</ul><div style='margin-top:8px;font-weight:500'>You can still submit — we'll review your documents and call you before charging anything.</div>";
+    box.classList.remove("hidden"); return false;
+  }
+  box.classList.add("hidden"); return true;
+}
+
+/* ---------- price ---------- */
+function priceBox(){
+  const c=val("courseType"), info=CONFIG.stripeLinks[c];
+  const box=$("#priceBox");
+  if(!c||!info){box.classList.add("hidden");return;}
+  box.classList.remove("hidden");
+  $("#priceCourse").textContent=c;
+  const addonBits=[];
+  if(courseNeedsCitation()&&noCitation())addonBits.push("+ "+CONFIG.courtSearchLink.price+" court search");
+  if(eFileWanted())addonBits.push("+ "+CONFIG.eFileLink.price+" e-file");
+  if(recordWanted())addonBits.push("+ "+CONFIG.recordLink.price+" 7-yr record");
+  $("#priceAmt").innerHTML = (info.price||"") +
+    (addonBits.length?' <span style="font-size:14px;font-weight:600;color:#5c4600">'+addonBits.join(" ")+'</span>':"");
+  const blocked=!checkEligibility();
+  const extra=addonBits.length;
+  $("#priceNote").textContent = blocked
+    ? "We'll review your case first and send you a payment link — you will not be charged yet."
+    : (info.url
+        ? (extra ? "You'll check out for the course first, then the add-on"+(extra>1?"s":"")+" — separate charges."
+               : "You'll be taken to a secure Stripe checkout after you submit.")
+        : "We'll email you a secure payment link after we review your documents.");
+  $("#submitBtn").textContent = (info.url && !blocked) ? "Submit & continue to payment →" : "Submit my enrollment →";
+}
+
+/* ---------- AI document prefill ---------- */
+function fileToBase64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(f);});}
+const DOC_LABELS={citation:"Traffic ticket",dl:"Driver license",courtNotice:"Court notice",courtOrder:"Court order",suspensionNotice:"Suspension notice",misc:"Other document"};
+const uploaded={};        // key -> filename
+const uploadedData={};    // key -> {name, type, b64}
+
+$$('input[type=file][data-doc]').forEach(inp=>{inp.addEventListener("change",async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const key=inp.dataset.doc, drop=inp.closest(".drop"), st=drop.querySelector("[data-status]");
+  if(f.size>12*1024*1024){st.textContent="⚠️ Too large (max 12MB)";toast("That file is over 12MB — try a photo instead of a scan.");return;}
+  uploaded[key]=f.name;
+  st.textContent="Reading…";
+  let b64="";
+  try{ b64=await fileToBase64(f); uploadedData[key]={name:f.name,type:f.type||"image/jpeg",b64}; }catch(_){}
+  try{
+    const res=await fetch(CONFIG.aiEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({docType:key,mimeType:f.type,dataBase64:b64})});
+    const data=await res.json();
+    const n=applyExtracted(data.fields||{});
+    st.textContent = n>0 ? ("✓ Filled "+n+" field"+(n>1?"s":"")) : "✓ Attached";
+    drop.classList.add("done"); drop.classList.remove("reqd");
+    if(n>0) toast("✨ Filled "+n+" field"+(n>1?"s":"")+" from your "+(DOC_LABELS[key]||"document"));
+    else if(key==="citation"||key==="dl") toast("Attached, but we couldn't read it clearly. Please fill those fields in yourself — or re-shoot in better light.");
+  }catch(err){
+    st.textContent="✓ Attached (couldn't auto-read)"; drop.classList.add("done"); drop.classList.remove("reqd");
+  }
+  syncConditionals(); buildSummary();
+});});
+
+function setField(name,value){
+  const el=form.elements[name]; if(!el||value==null||value==="")return false;
+  if(name==="dlNumber"||name==="caseNumber"||name==="citationNumber") value=String(value).replace(/[\s-]/g,"").toUpperCase();
+  if(el.tagName==="SELECT"){
+    let m=null;
+    for(const o of el.options){const ov=o.value.toLowerCase(),ot=o.text.toLowerCase(),v=String(value).toLowerCase();
+      if(ov===v||ot===v||(v&&ot.includes(v)&&v.length>3)){m=o.value;break;}}
+    if(m!=null&&!el.value)el.value=m; else return false;
+  } else { if(el.value)return false; el.value=value; }
+  el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),1100); return true;
+}
+function applyExtracted(f){let n=0;for(const k in f){if(setField(k,f[k]))n++;} syncConditionals(); buildSummary(); return n;}
+
+/* ---------- drag & drop ---------- */
+$$('.drop').forEach(function(d){
+  d.addEventListener('dragover',e=>{e.preventDefault();d.classList.add('dragover');});
+  d.addEventListener('dragleave',()=>d.classList.remove('dragover'));
+  d.addEventListener('drop',function(e){e.preventDefault();d.classList.remove('dragover');
+    const inp=d.querySelector('input[type=file]');
+    if(inp&&e.dataTransfer&&e.dataTransfer.files.length){
+      try{const dt=new DataTransfer();dt.items.add(e.dataTransfer.files[0]);inp.files=dt.files;}catch(_){}
+      inp.dispatchEvent(new Event('change',{bubbles:true}));}});
+});
+
+/* ---------- summary ---------- */
+function r(k,v){return v?`<div class="sum-row"><b>${k}</b><span>${String(v).replace(/</g,"&lt;")}</span></div>`:"";}
+function g(t){return `<div class="sum-group">${t}</div>`;}
+function fullName(){return [val("firstName"),val("middleName"),val("lastName"),val("suffix")].filter(Boolean).join(" ");}
+
+const REQ_BASE=["courseType","reasonAttending","firstName","lastName","dob","dlNumber","dlState","ssnLast4","street","city","state","zip","phone","email"];
+const REQ_CIT=["citationNumber","violationDate","citationCounty","statuteCode","violationDescription","cdlHolder","commercialVehicle","courtPaymentStatus","priorBdi"];
+// When we're searching the court for them, we can't require the ticket details —
+// but we absolutely require the county and rough date, or the search can't happen.
+const REQ_SEARCH=["searchCounty","searchApproxDate","cdlHolder","commercialVehicle","priorBdi"];
+function requiredFields(){
+  if(!courseNeedsCitation())return REQ_BASE.slice();
+  return REQ_BASE.concat(noCitation()?REQ_SEARCH:REQ_CIT);
+}
+
+function buildSummary(){
+  let h="";
+  h+=g("Course"); h+=r("Course",val("courseType")); h+=r("Reason",val("reasonAttending")); h+=r("Format",val("deliveryMethod"));
+  h+=g("Student"); h+=r("Name",fullName()); h+=r("DOB",val("dob")); h+=r("License",val("dlNumber")?val("dlNumber")+" ("+val("dlState")+")":""); h+=r("Phone",val("phone")); h+=r("Email",val("email"));
+  if(courseNeedsCitation()&&noCitation()){h+=g("Court search — $17.50"); h+=r("County",val("searchCounty")||"⚠️ required"); h+=r("Approx. date",val("searchApproxDate"));}
+  else if(courseNeedsCitation()){h+=g("Ticket"); h+=r("Citation #",val("citationNumber")); h+=r("Date",val("violationDate")); h+=r("County",val("citationCounty")); h+=r("Violation",val("violationDescription")); h+=r("Due date",val("courtDueDate"));}
+  const addons=[];
+  if(eFileWanted())addons.push(["e-File certificate (+$21.50)","✓ requested"]);
+  if(recordWanted())addons.push(["7-year driving record (+$24.95)","✓ requested"]);
+  if($("#wantsInsuranceQuote")&&$("#wantsInsuranceQuote").checked)addons.push(["Auto insurance quote","✓ requested"]);
+  if(addons.length){h+=g("Add-ons"); addons.forEach(a=>{h+=r(a[0],a[1]);});}
+  const ups=Object.keys(uploaded);
+  if(ups.length){h+=g("Documents ("+ups.length+")"); ups.forEach(k=>{h+=r(DOC_LABELS[k]||k,"✓");});}
+  $("#sumBody").innerHTML=h||`<p class="hint">Fill the form and your summary builds here.</p>`;
+  const req=requiredFields(), done=req.filter(f=>val(f)).length;
+  const p=Math.round(done/req.length*100);
+  $("#pct").textContent=p+"% complete — "+done+" of "+req.length+" required fields";
+  $("#barFill").style.width=p+"%";
+}
+
+function textSummary(){
+  const L=[],line=(k,v)=>{if(v)L.push(k+": "+v)},S=t=>{L.push("");L.push("=== "+t+" ===")};
+  L.push("FAST LANE TRAFFIC SCHOOL — NEW STUDENT ENROLLMENT");
+  L.push("Submitted: "+new Date().toLocaleString());
+  S("ENROLLMENT"); line("Course type",val("courseType")); line("Reason for attending",val("reasonAttending")); line("Delivery",val("deliveryMethod")); line("Language",val("language"));
+  S("IDENTITY  (source of truth = driver license)");
+  line("Last name",val("lastName")); line("First name",val("firstName")); line("Middle",val("middleName")); line("Suffix",val("suffix"));
+  line("DOB",val("dob")); line("Sex",val("sex")); line("Height",val("height"));
+  line("DL number",val("dlNumber")); line("DL state",val("dlState")); line("DL class",val("dlClass")); line("DL expiration",val("dlExpiration"));
+  line("SSN last 4",val("ssnLast4"));
+  line("Address",[val("street"),val("city"),val("state"),val("zip")].filter(Boolean).join(", "));
+  line("Phone",val("phone")); line("Email",val("email"));
+  if(val("parentName")){line("Parent/guardian",val("parentName")); line("Parent phone",val("parentPhone"));}
+  if(courseNeedsCitation() && noCitation()){
+    S("*** COURT RECORDS / CASE SEARCH REQUESTED — $17.50 ***");
+    L.push("Student does not have their citation.");
+    line("SEARCH COUNTY",val("searchCounty"));
+    line("Approx. citation date",val("searchApproxDate"));
+    line("Court search fee","$17.50 — billed separately from the course");
+    line("CDL holder",val("cdlHolder")); line("Commercial vehicle",val("commercialVehicle")); line("Prior BDI",val("priorBdi"));
+  }
+  if(needsCourtOrder()){ S("COURT-ORDERED / NO CITATION"); line("Reason",val("reasonAttending")); line("Court order uploaded", uploaded.courtOrder?"Yes":"[ASK STUDENT]"); }
+  if(courseNeedsCitation() && !noCitation()){
+    S("CITATION");
+    line("Citation / UTC #",val("citationNumber")); line("Violation date",val("violationDate")); line("Court county",val("citationCounty"));
+    line("Issuing agency",val("issuingAgency")); line("Case / docket #",val("caseNumber"));
+    line("Statute / code",val("statuteCode")); line("Violation",val("violationDescription"));
+    line("Speed alleged / posted",[val("speedAlleged"),val("speedPosted")].filter(Boolean).join(" / "));
+    line("Crash involved",val("crashInvolved")); line("CDL holder",val("cdlHolder")); line("Commercial vehicle",val("commercialVehicle"));
+    line("Court due date",val("courtDueDate")); line("Court payment status",val("courtPaymentStatus")); line("Prior BDI",val("priorBdi"));
+  }
+  if(eFileWanted()){ S("*** e-FILE CERTIFICATE ADD-ON — $21.50 ***"); L.push("Student requested clerk e-file of the completion certificate. Bill separately."); }
+  if(recordWanted()){ S("*** 7-YEAR DRIVING RECORD ADD-ON — $24.95 ***"); L.push("Student authorized and requested their 7-year FL driving record. Pull it from the MyDMV Portal and email the PDF."+(CONFIG.recordLink.url?"":" NOTE: no Stripe link set yet — send them a payment link.")); }
+  const w=$("#eligWarn");
+  if(!w.classList.contains("hidden")){S("*** ELIGIBILITY — NEEDS REVIEW ***"); L.push(w.innerText.replace(/^⚠️ /,""));}
+  if($("#wantsInsuranceQuote")&&$("#wantsInsuranceQuote").checked){
+    S("*** WANTS AUTO INSURANCE QUOTE — Floridian Policy Pros ***");
+    line("Current carrier",val("currentCarrier")||"[ASK STUDENT]");
+    line("Vehicles",val("vehicleCount")||"[ASK STUDENT]");
+    L.push("Student was handed off to the auto quote form with name/DOB/DL/address prefilled.");
+  }
+  if(val("notes")){S("NOTES"); L.push(val("notes"));}
+  S("DOCUMENTS ATTACHED");
+  const ups=Object.keys(uploaded);
+  L.push(ups.length?ups.map(k=>"• "+(DOC_LABELS[k]||k)+": "+uploaded[k]).join("\n"):"None uploaded.");
+  const missing=requiredFields().filter(f=>!val(f));
+  if(missing.length){S("MISSING INFO — ASK STUDENT"); L.push(missing.join(", "));}
+  return L.join("\n");
+}
+
+/* ---------- submit ---------- */
+form.addEventListener("change",()=>{syncConditionals();buildSummary();});
+form.addEventListener("input",()=>{buildSummary();});
+$("#courseType").addEventListener("change",syncConditionals);
+$("#reasonAttending").addEventListener("change",syncConditionals);
+$("#dob").addEventListener("change",syncConditionals);
+$("#violationDescription").addEventListener("input",syncConditionals);
+$("#noCitation").addEventListener("change",()=>{syncConditionals();buildSummary();});
+$("#wantsInsuranceQuote").addEventListener("change",()=>{syncConditionals();buildSummary();});
+$("#eFileCert").addEventListener("change",()=>{syncConditionals();buildSummary();});
+$("#wantsRecord").addEventListener("change",()=>{syncConditionals();buildSummary();});
+["speedAlleged","speedPosted"].forEach(n=>{const el=form.elements[n];if(el)el.addEventListener("input",syncConditionals);});
+
+function scrollTo_(el){try{if(el&&el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"center"});}catch(_){}}
+function validate(){
+  $$(".err").forEach(e=>e.classList.remove("err"));
+  const missing=requiredFields().filter(f=>!val(f));
+  missing.forEach(f=>{const el=form.elements[f];if(el)el.classList.add("err");});
+  let firstBad=missing[0];
+  if(!$("#consentAccuracy").checked||!$("#consentContact").checked){toast("Please check both confirmation boxes at the bottom.");scrollTo_($("#consentAccuracy"));return false;}
+  if(!uploaded.citation && !isFirstTime() && !noCitation()){toast("Please upload a photo of your ticket — or check \"I don't have my ticket\" and we'll look it up.");window.scrollTo({top:0,behavior:"smooth"});return false;}
+  if(noCitation() && !val("searchCounty")){toast("We need the county that issued the ticket — we can't search Florida's courts statewide.");scrollTo_($("#searchCounty"));return false;}
+  if(!uploaded.dl){toast("Please upload the front of your driver license — this is what the state matches your certificate to.");window.scrollTo({top:0,behavior:"smooth"});return false;}
+  if(needsCourtOrder() && !uploaded.courtOrder){toast("This course requires a court order. Please upload it.");window.scrollTo({top:0,behavior:"smooth"});return false;}
+  if(missing.length){toast("Missing "+missing.length+" required field"+(missing.length>1?"s":"")+" — highlighted in red.");scrollTo_(form.elements[firstBad]);return false;}
+  return true;
+}
+
+form.addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(!validate())return;
+  const btn=$("#submitBtn"); btn.disabled=true; const orig=btn.textContent; btn.textContent="Sending…";
+
+  const payload={
+    student:fullName(), email:val("email"), phone:val("phone"),
+    course:val("courseType"), citation:val("citationNumber"),
+    eligibilityFlag: !$("#eligWarn").classList.contains("hidden"),
+    courtSearch: noCitation() ? {county:val("searchCounty"), approxDate:val("searchApproxDate"), fee:"17.50"} : null,
+    eFileCert: eFileWanted(),
+    wantsRecord: recordWanted(),
+    wantsInsurance: !!($("#wantsInsuranceQuote")&&$("#wantsInsuranceQuote").checked),
+    summary:textSummary(),
+    files:Object.keys(uploadedData).map(k=>({key:k,label:DOC_LABELS[k]||k,name:uploadedData[k].name,type:uploadedData[k].type,data:uploadedData[k].b64}))
+  };
+
+  let sent=false;
+  try{
+    const res=await fetch(CONFIG.submitEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    sent=res.ok;
+  }catch(_){ sent=false; }
+
+  if(!sent){
+    btn.disabled=false; btn.textContent=orig;
+    toast("We couldn't send automatically — opening your email app instead. Please attach your photos.");
+    window.location.href="mailto:"+CONFIG.recipient+"?subject="+encodeURIComponent("Enrollment — "+fullName())+"&body="+encodeURIComponent(textSummary());
+    return;
+  }
+
+  const info=CONFIG.stripeLinks[val("courseType")]||{};
+  const blocked=payload.eligibilityFlag;
+
+  if(blocked || !info.url){ showDone(blocked); return; }
+
+  // Build the list of charges: course first, then any add-ons the student chose.
+  const charges=[{label:"Course — "+val("courseType"), url:info.url, price:info.price}];
+  if(noCitation() && CONFIG.courtSearchLink.url)
+    charges.push({label:"Court records / case search", url:CONFIG.courtSearchLink.url, price:CONFIG.courtSearchLink.price});
+  if(eFileWanted() && CONFIG.eFileLink.url)
+    charges.push({label:"e-File certificate with clerk", url:CONFIG.eFileLink.url, price:CONFIG.eFileLink.price});
+  if(recordWanted() && CONFIG.recordLink.url)
+    charges.push({label:"7-year driving record", url:CONFIG.recordLink.url, price:CONFIG.recordLink.price});
+
+  if(charges.length>1){ showCheckout(charges); return; }
+  window.location.href=stripeUrl(info.url);
+});
+
+function stripeUrl(base){
+  const sep=base.includes("?")?"&":"?";
+  return base+sep+"prefilled_email="+encodeURIComponent(val("email"))
+    +"&client_reference_id="+encodeURIComponent((val("lastName")+"-"+val("dlNumber")).replace(/[^A-Za-z0-9-]/g,"").slice(0,190));
+}
+
+/* Multiple charges can't be chained into one redirect — so we show a numbered
+   button per charge and let the student complete them in order (each new tab). */
+function showCheckout(charges){
+  const btns=charges.map((c,i)=>{
+    const bg = i===0 ? "" : 'background:#e7ecf2;color:#33455c;';
+    return '<a class="submit" style="display:block;text-align:center;text-decoration:none;margin-bottom:10px;'+bg+'" target="_blank" rel="noopener" href="'+
+      stripeUrl(c.url)+'">'+(i+1)+' · '+esc_(c.label)+' — '+esc_(c.price)+' →</a>';
+  }).join("");
+  document.querySelector(".layout").innerHTML=
+    '<div class="card done-panel" style="grid-column:1/-1">'+
+    '<div class="big">✅</div><h2>Got it — '+charges.length+' quick payments</h2>'+
+    '<p style="max-width:540px;margin:0 auto 20px;color:#4a5a6e">Your enrollment and documents are in. There '+
+    (charges.length===2?'are 2 separate charges':'are '+charges.length+' separate charges')+' — please complete each below.</p>'+
+    '<div style="max-width:380px;margin:0 auto;text-align:left">'+btns+'</div>'+
+    insBlock()+
+    '<p class="hint" style="margin-top:20px">Questions? westpalmbeachtrafficschool@gmail.com</p></div>';
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function esc_(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
+
+/* Hand the student off to the Floridian Policy Pros auto quote form with what
+   we already know, so they don't retype it. */
+function insUrl(){
+  const p=new URLSearchParams({
+    firstName:val("firstName"), lastName:val("lastName"), dob:val("dob"),
+    dlNumber:val("dlNumber"), dlState:val("dlState"), email:val("email"), phone:val("phone"),
+    address:[val("street"),val("city"),val("state"),val("zip")].filter(Boolean).join(", "),
+    currentCarrier:val("currentCarrier"), source:"fastlane"
+  });
+  return CONFIG.insuranceQuoteUrl+"?"+p.toString();
+}
+function insBlock(){
+  if(!$("#wantsInsuranceQuote")||!$("#wantsInsuranceQuote").checked)return "";
+  return '<div class="insbox" style="max-width:440px;margin:22px auto 0;text-align:left">'+
+    '<h3>🚗 Your insurance quote</h3>'+
+    '<p class="hint" style="margin:0 0 10px">We\'ve carried over your name, date of birth, license and address. Add your vehicles and Carlos will shop it.</p>'+
+    '<a class="submit" style="display:block;text-align:center;text-decoration:none;background:#12657d;color:#fff" target="_blank" rel="noopener" href="'+esc_(insUrl())+'">Finish my auto quote →</a></div>';
+}
+
+function showDone(blocked){
+  document.querySelector(".layout").innerHTML=
+    '<div class="card done-panel" style="grid-column:1/-1">'+
+    '<div class="big">✅</div><h2>We got everything — thank you.</h2>'+
+    '<p style="max-width:520px;margin:0 auto;color:#4a5a6e">'+
+    (blocked
+      ? 'Your case needs a quick review before we enroll you. <strong>We have not charged you anything.</strong> We\'ll call or email you within one business day at '+esc_(val("phone"))+'.'
+      : 'Your enrollment and documents were sent to Fast Lane Traffic School. We\'ll email you a secure payment link and your course access at <strong>'+esc_(val("email"))+'</strong> shortly.')+
+    '</p>'+insBlock()+
+    '<p class="hint" style="margin-top:18px">Questions? westpalmbeachtrafficschool@gmail.com</p></div>';
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+syncConditionals(); buildSummary();
+</script>
+</body>
+</html>
