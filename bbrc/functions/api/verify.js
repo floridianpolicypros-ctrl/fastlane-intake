@@ -6,7 +6,7 @@ export async function onRequestPost(context) {
   if (provider !== "pbso") return j({ ok:false, error:"No automatic lookup for this jail yet" });
   const lastName = clean(b.lastName), firstName = clean(b.firstName);
   if (!lastName) return j({ ok:false, error:"lastName required" });
-  try { return j({ ok:true, source:"PBSO Booking Blotter", ...(await pbso(lastName, firstName, Number(b.days)||45)) }); }
+  try { return j({ ok:true, source:"PBSO Booking Blotter", ...(await pbso(lastName, firstName, Number(b.days)||45, !!b.debug)) }); }
   catch(e) { return j({ ok:false, source:"PBSO Booking Blotter", error:String(e&&e.message||e) }); }
 }
 export const onRequestOptions = () => new Response(null,{headers:{ "Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type" }});
@@ -16,14 +16,19 @@ const money = v => Number(String(v).replace(/[^0-9.]/g,""))||0;
 const pad = n => String(n).padStart(2,"0");
 const mdy = d => pad(d.getMonth()+1)+"/"+pad(d.getDate())+"/"+d.getFullYear();
 
-async function pbso(lastName, firstName, days) {
+async function pbso(lastName, firstName, days, debug) {
   const base = "https://www3.pbso.org/blotter/";
   const g = await fetch(base+"index.cfm", { headers:{ "user-agent":UA, accept:"text/html" } });
   if (!g.ok) throw new Error("Blotter form unreachable ("+g.status+")");
   const html = await g.text();
-  let cookies = "";
-  try { const all = g.headers.getAll ? g.headers.getAll("set-cookie") : []; cookies = all.map(c=>c.split(";")[0]).join("; "); } catch(_) {}
-  if (!cookies) { const c = g.headers.get("set-cookie"); if (c) cookies = c.split(";")[0]; }
+  // Cookie harvest. In the Workers runtime the correct API is getSetCookie();
+  // getAll() does not exist there, which is why the handshake was silently
+  // dropping the session and every search came back with zero rows.
+  let jar = [];
+  try { if (typeof g.headers.getSetCookie === "function") jar = g.headers.getSetCookie() || []; } catch(_) {}
+  if (!jar.length) { try { if (typeof g.headers.getAll === "function") jar = g.headers.getAll("set-cookie") || []; } catch(_) {} }
+  if (!jar.length) { const c = g.headers.get("set-cookie"); if (c) jar = c.split(/,(?=[^;,]+=)/); }
+  const cookies = jar.map(c => String(c).split(";")[0].trim()).filter(Boolean).join("; ");
 
   const hidden = {};
   const re = /<input[^>]*type=["']?hidden["']?[^>]*>/gi; let m;
@@ -46,7 +51,20 @@ async function pbso(lastName, firstName, days) {
               ...(cookies?{cookie:cookies}:{}) },
     body: form.toString() });
   if (!r.ok) throw new Error("Search failed ("+r.status+")");
-  return parse(strip(await r.text()));
+  const text = strip(await r.text());
+  const out = parse(text);
+  // Diagnostics so a zero-result run can be told apart from a broken handshake
+  // without having to guess. Only returned when the caller asks for it.
+  if (debug) {
+    out.debug = {
+      cookiesSent: cookies || "(none)",
+      hiddenFields: hidden,
+      dateRange: mdy(start) + " - " + mdy(end),
+      responseChars: text.length,
+      responseHead: text.slice(0, 1200)
+    };
+  }
+  return out;
 }
 function strip(h){ return h
   .replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ")
