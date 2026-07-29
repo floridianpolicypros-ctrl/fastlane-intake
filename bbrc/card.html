@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Credit Card Authorization — Bail Bond Release Center of the Palm Beaches</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{--brand:#243a6b;--gold:#c9a24b;--bg:#eef3f9;--card:#fff;--line:#dbe4ef;--muted:#6b7a90;--ok:#1a7f43}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#1c2733;line-height:1.45}
+  header.top{background:linear-gradient(120deg,#fff,#fbfdff);border-bottom:3px solid var(--gold)}
+  header .inner{max-width:900px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:16px}
+  .brandlogo{height:60px}
+  header h1{margin:0;font-size:19px;color:var(--brand)}
+  header p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+  .headright{margin-left:auto;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+  .langtog{display:inline-flex;border:1px solid #cfe0f5;border-radius:999px;overflow:hidden}
+  .langtog button{border:none;background:#fff;color:var(--brand);font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer}
+  .langtog button.active{background:var(--brand);color:#fff}
+  .wrap{max-width:900px;margin:0 auto;padding:18px 20px 60px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  .card h2{margin:0 0 4px;font-size:16px;color:var(--brand);display:flex;align-items:center;gap:9px}
+  .num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;background:var(--brand);color:#fff;border-radius:50%;font-size:13px;flex:none}
+  .card .sub{margin:0 0 14px;font-size:12.5px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field.full{grid-column:1/-1}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-size:12.5px;font-weight:600;margin-bottom:4px;color:#33455c}
+  .opt{font-weight:400;color:var(--muted)}.req{color:#c0392b}
+  input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;font-size:14px;font-family:inherit;background:#fff}
+  input:focus,select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(39,75,115,.12)}
+  input[readonly]{background:#f3f6fb;color:#33455c;font-weight:700}
+  .flash{animation:fl 1s ease}@keyframes fl{0%{background:#d5f5e0}100%{background:#fff}}
+  .uploads{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:560px){.uploads{grid-template-columns:1fr}}
+  .drop{position:relative;border:1.5px dashed #b9c9de;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fafcff;display:block}
+  .drop:hover,.drop.dragover{border-color:var(--brand);background:#eaf3ff;border-style:solid}
+  .drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .drop .ico{font-size:22px}.drop .t{font-weight:700;font-size:12px;margin-top:3px}.drop .status{font-size:11px;color:var(--ok);font-weight:600;min-height:13px}
+  .thumb{margin-top:6px;max-height:90px;border-radius:8px;display:none}
+  .premium{background:#f2f8f2;border:1px solid #cfe8d4;border-radius:10px;padding:12px;margin-top:8px;font-size:13px;color:#1a5e34}
+  .premium b{font-size:20px}
+  .warn{background:#fff6ed;border:1px solid #f2d5b3;border-radius:10px;padding:10px 12px;font-size:12px;color:#8a5a1a;margin-top:10px}
+  .ack{background:#fbfaf5;border:1px solid #ece3c8;border-radius:10px;padding:12px;font-size:12px;color:#5c5230;max-height:170px;overflow:auto}
+  .sigwrap{border:1px solid var(--line);border-radius:10px;background:#fff}
+  #sigpad{width:100%;height:150px;touch-action:none;border-radius:10px;display:block}
+  .sigbar{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-top:1px solid var(--line)}
+  .btn2{background:var(--brand);color:#fff;border:none;border-radius:9px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer}
+  .btn-ghost{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+  .submit{background:var(--gold);color:#3a2c00;border:none;border-radius:10px;padding:14px 18px;font-size:15px;font-weight:800;width:100%;cursor:pointer;margin-top:6px}
+  .hint{font-size:11.5px;color:var(--muted)}
+  .hidden{display:none!important}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:#22364d;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:99}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .success{text-align:center;padding:30px 18px}.success .big{font-size:44px}
+</style>
+</head>
+<body>
+<header class="top"><div class="inner">
+  <img class="brandlogo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InJpbmciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZDdkYmUwIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMC41IiBzdG9wLWNvbG9yPSIjOWFhMmFjIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2MzYzhjZSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0ibmF2eSIgY3g9IjAuNSIgY3k9IjAuNCIgcj0iMC43Ij4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMjQzYTZiIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzE0MWYzZCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxwYXRoIGlkPSJ0b3AiIGQ9Ik0gMjAwLDIwMCBtIC0xNTAsMCBhIDE1MCwxNTAgMCAxIDEgMzAwLDAiIGZpbGw9Im5vbmUiLz4KICAgIDxwYXRoIGlkPSJib3QiIGQ9Ik0gNjIsMjMyIGEgMTQ1LDE0NSAwIDAgMCAyNzYsMCIgZmlsbD0ibm9uZSIvPgogIDwvZGVmcz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjE5NiIgZmlsbD0iIzE0MWYzZCIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTg4IiBmaWxsPSJ1cmwoI3JpbmcpIi8+CiAgPGNpcmNsZSBjeD0iMjAwIiBjeT0iMjAwIiByPSIxNTAiIGZpbGw9IiMxNDFmM2QiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjE0MCIgZmlsbD0idXJsKCNuYXZ5KSIvPgogIDx0ZXh0IGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNlZWYxZjUiIGZvbnQtc2l6ZT0iMzAiIGxldHRlci1zcGFjaW5nPSIzIj4KICAgIDx0ZXh0UGF0aCBocmVmPSIjdG9wIiBzdGFydE9mZnNldD0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5SRUxFQVNFIENFTlRFUjwvdGV4dFBhdGg+CiAgPC90ZXh0PgogIDx0ZXh0IGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNlZWYxZjUiIGZvbnQtc2l6ZT0iMjIiIGxldHRlci1zcGFjaW5nPSIyIj4KICAgIDx0ZXh0UGF0aCBocmVmPSIjYm90IiBzdGFydE9mZnNldD0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5PRiBUSEUgUEFMTSBCRUFDSEVTPC90ZXh0UGF0aD4KICA8L3RleHQ+CiAgPGNpcmNsZSBjeD0iNTIiIGN5PSIyMDAiIHI9IjQiIGZpbGw9IiMyNDNhNmIiLz4KICA8Y2lyY2xlIGN4PSIzNDgiIGN5PSIyMDAiIHI9IjQiIGZpbGw9IiMyNDNhNmIiLz4KICA8dGV4dCB4PSIyMDAiIHk9IjE4OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2ZmZmZmZiIgZm9udC1zaXplPSI2MCIgbGV0dGVyLXNwYWNpbmc9IjEiPkJBSUw8L3RleHQ+CiAgPHRleHQgeD0iMjAwIiB5PSIyNDgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmZmZmZmYiIGZvbnQtc2l6ZT0iNjAiIGxldHRlci1zcGFjaW5nPSIxIj5CT05EPC90ZXh0Pgo8L3N2Zz4K" alt="Bail Bond Release Center">
+  <div><h1 data-i18n="title">Credit Card Authorization</h1><p data-i18n="subtitle">Bail Bond Release Center of the Palm Beaches</p></div>
+  <div class="headright"><div class="langtog"><button type="button" id="enBtn" class="active" onclick="setLang('en')">EN</button><button type="button" id="esBtn" onclick="setLang('es')">ES</button></div></div>
+</div></header>
+
+<div class="wrap">
+  <form id="ccForm" novalidate>
+
+    <section class="card">
+      <h2><span class="num">1</span> <span data-i18n="chargeSec">Charge details</span></h2>
+      <div class="grid">
+        <div class="field full"><label data-i18n="defName">Defendant name <span class="req">*</span></label><input name="defName" required></div>
+        <div class="field full">
+          <label data-i18n="bond">Bond amount(s) ($) <span class="req">*</span></label>
+          <div id="bondRows"></div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:4px">
+            <button type="button" class="btn2 btn-ghost" id="addBond" data-i18n="addBond">+ Add another charge / bond</button>
+            <a href="#" id="blotterLink" target="_blank" rel="noopener" style="font-size:12.5px;color:var(--brand);font-weight:700" data-i18n="blotterLink">Don't know the bond? Look it up →</a>
+          </div>
+          <p class="hint" data-i18n="bondHint" style="margin-top:6px">Premium is 10% per bond ($100 minimum each). A $500 + $1,000 bond = $200, not $150. Upload the blotter above and we'll split it.</p>
+        </div>
+        <input type="hidden" name="bond">
+        <div class="field"><label data-i18n="premLabel">Total premium (10%)</label><input name="premium" readonly placeholder="$0"></div>
+        <div class="field"><label data-i18n="chargeAmt">Amount to charge this card ($) <span class="req">*</span></label><input name="chargeAmt" type="number" min="0" step="0.01" inputmode="decimal" required></div>
+      </div>
+      <div class="premium" id="premBox" style="display:none"><span data-i18n="premText">Bail premium:</span> <b id="premAmt">$0</b> <span id="premBreak" class="hint"></span><br><span class="hint" data-i18n="premHint">10% per bond, $100 minimum each. Non-refundable once bond is posted.</span></div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">2</span> <span data-i18n="cardSec">Cardholder &amp; card</span></h2>
+      <div class="grid">
+        <div class="field full"><label data-i18n="chName">Cardholder name (as on card) <span class="req">*</span></label><input name="cardholder" required></div>
+        <div class="field full"><label data-i18n="billAddr">Billing address <span class="req">*</span></label><input name="billingAddress" required></div>
+        <div class="field"><label data-i18n="city">City</label><input name="city"></div>
+        <div class="field"><label data-i18n="stzip">State / ZIP</label><input name="stateZip"></div>
+        <div class="field"><label data-i18n="cardType">Card type</label>
+          <select name="cardType"><option value="">—</option><option>Visa</option><option>Mastercard</option><option>Amex</option><option>Discover</option></select></div>
+        <div class="field"><label data-i18n="last4">Card — last 4 digits <span class="req">*</span></label><input name="last4" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="1234" required></div>
+        <div class="field"><label data-i18n="exp">Expiration (MM/YY)</label><input name="exp" placeholder="MM/YY" maxlength="5"></div>
+        <div class="field"><label data-i18n="phone">Cardholder phone <span class="req">*</span></label><input name="phone" type="tel" inputmode="tel" required></div>
+        <div class="field"><label data-i18n="email">Email for receipt</label><input name="email" type="email" inputmode="email"></div>
+      </div>
+      <div class="warn" data-i18n="pciWarn">🔒 For your security we only collect the last 4 digits here. The full card is entered on our secure Clover terminal — never by email or text. This signed form authorizes the charge and protects both of us in a dispute.</div>
+    </section>
+
+    <section class="card" id="altPaySec" style="display:none">
+      <h2>💵 <span data-i18n="altSec">Prefer to pay another way?</span></h2>
+      <p class="sub" data-i18n="altSub">You can send the premium by Venmo, Zelle, or Cash App. Please still complete and sign this form so we have your authorization on file.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a id="payVenmo" class="btn2" target="_blank" rel="noopener" style="display:none;text-decoration:none">Venmo</a>
+        <a id="payZelle" class="btn2" target="_blank" rel="noopener" style="display:none;text-decoration:none;background:#5e2ee6">Zelle</a>
+        <a id="payCashapp" class="btn2" target="_blank" rel="noopener" style="display:none;text-decoration:none;background:#00c244;color:#062">Cash App</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">3</span> <span data-i18n="idSec">Photo ID &amp; location</span></h2>
+      <p class="sub" data-i18n="idSub">Required to authorize a card-not-present charge. Snap the ID and a selfie.</p>
+      <div class="uploads">
+        <label class="drop"><div class="ico">🪪</div><div class="t" data-i18n="idFront">ID — FRONT</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="id_front" capture="environment"><img class="thumb" data-thumb></label>
+        <label class="drop"><div class="ico">🪪</div><div class="t" data-i18n="idBack">ID — BACK</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="id_back" capture="environment"><img class="thumb" data-thumb></label>
+        <label class="drop"><div class="ico">🧾</div><div class="t" data-i18n="blotter">Blotter / bond</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="blotter" capture="environment"><img class="thumb" data-thumb></label>
+        <div class="drop" id="selfieTile" style="cursor:default">
+          <div class="ico">🤳</div><div class="t" data-i18n="selfie">Live selfie w/ card &amp; ID</div>
+          <div class="d" data-i18n="selfieHint">Camera only — no uploads</div>
+          <video id="selfieVideo" playsinline autoplay muted style="display:none;width:100%;max-height:200px;border-radius:8px;margin-top:6px;background:#000"></video>
+          <div class="status" data-status></div><img class="thumb" data-thumb>
+          <div style="margin-top:6px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+            <button type="button" class="btn2" id="selfieStart" data-i18n="openCam">📷 Camera</button>
+            <button type="button" class="btn2" id="selfieSnap" style="display:none" data-i18n="capture">Capture</button>
+            <button type="button" class="btn2 btn-ghost" id="selfieRetake" style="display:none" data-i18n="retake">Retake</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button type="button" class="btn2" onclick="captureGeo()" data-i18n="geoBtn">📍 Capture my location</button>
+        <span class="hint" id="geoStatus" data-i18n="geoNone">Not captured yet</span>
+      </div>
+      <input type="hidden" name="geo">
+    </section>
+
+    <section class="card">
+      <h2><span class="num">4</span> <span data-i18n="authSec">Authorization &amp; signature</span></h2>
+      <div class="ack" id="ackText"></div>
+      <div class="grid" style="margin-top:12px">
+        <div class="field"><label data-i18n="typedName">Type cardholder full name <span class="req">*</span></label><input name="signName" required></div>
+        <div class="field"><label data-i18n="signDate">Date</label><input name="signDate" readonly></div>
+      </div>
+      <label style="margin-top:10px" data-i18n="drawSig">Cardholder signature <span class="req">*</span></label>
+      <div class="sigwrap"><canvas id="sigpad"></canvas>
+        <div class="sigbar"><span class="hint" data-i18n="sigHint">Sign with finger or mouse</span><button type="button" class="btn2 btn-ghost" onclick="clearSig()" data-i18n="clear">Clear</button></div></div>
+      <label style="margin-top:12px"><input type="checkbox" id="agree" style="width:auto;margin-right:8px"> <span data-i18n="agreeBox">I am the authorized cardholder and I authorize the charge described above.</span></label>
+      <div class="warn" style="margin-top:10px" data-i18n="locDisc">🔒 By signing, you consent to us automatically capturing your device's GPS location, IP address, and the date &amp; time to verify this authorization.</div>
+    </section>
+
+    <button type="submit" class="submit" data-i18n="submit">Authorize &amp; sign →</button>
+    <p class="hint" style="text-align:center;margin-top:14px">Bail Bond Release Center of the Palm Beaches · bailbondreleasecenter@gmail.com · 561-833-4388</p>
+  </form>
+</div>
+
+<div class="wrap hidden" id="successScreen"><div class="card success">
+  <div class="big">✅</div>
+  <h2 data-i18n="doneTitle">Authorization signed!</h2>
+  <p data-i18n="doneBody">Your signed PDF downloaded and your email opened — attach the PDF and send. We'll process the charge on our secure terminal.</p>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CONFIG={
+  recipient:"bailbondreleasecenter@gmail.com",
+  ccRecipients:"",
+  aiEndpoint:"/api/read",
+  sendEndpoint:"/api/send",
+  payEndpoint:"/api/pay", // auto-emails signed authorization to cardholder + agency
+  // Alternate payment links — leave blank to hide a button
+  venmo:"",                                  // e.g. https://venmo.com/u/YourHandle
+  zelle:"",                                  // full URL if you have one; otherwise use zelleId below
+  zelleId:"bbrc4388",                        // Zelle ID shown as tap-to-copy
+  cashapp:"https://cash.app/$key2freedom",   // Cash App
+  blotterUrl:"https://www.pbso.org/"         // PBSO booking blotter (Arrest & Jail -> Booking Search)
+};
+const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
+const form=$("#ccForm");
+let LANG="en",clientIP="",geoData="",sigHasInk=false;const imgData={},uploaded={};
+function val(n){const el=form.elements[n];return el?(el.value||"").trim():"";}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),3000);}
+
+const I18N={en:{},es:{
+  title:"Autorización de Tarjeta", subtitle:"Bail Bond Release Center of the Palm Beaches",
+  chargeSec:"Detalles del cargo", defName:"Nombre del acusado", bond:"Monto(s) de fianza ($)", premLabel:"Prima total (10%)", chargeAmt:"Monto a cobrar a esta tarjeta ($)",
+  addBond:"+ Agregar otro cargo / fianza", blotterLink:"¿No sabe la fianza? Búsquela →",
+  bondHint:"La prima es 10% por fianza ($100 mínimo cada una). Una fianza de $500 + $1,000 = $200, no $150. Suba el blotter arriba y lo separamos.",
+  blotter:"Blotter / fianza",
+  premText:"Prima de fianza:", premHint:"10% por fianza, $100 mínimo cada una. No reembolsable una vez publicada.",
+  cardSec:"Titular y tarjeta", chName:"Nombre del titular (como en la tarjeta)", billAddr:"Dirección de facturación", city:"Ciudad", stzip:"Estado / Código postal",
+  cardType:"Tipo de tarjeta", last4:"Últimos 4 dígitos", exp:"Vencimiento (MM/AA)", phone:"Teléfono del titular", email:"Correo para recibo",
+  pciWarn:"🔒 Por seguridad solo pedimos los últimos 4 dígitos. La tarjeta completa se ingresa en nuestro terminal seguro Clover — nunca por correo o texto. Este formulario firmado autoriza el cargo y nos protege a ambos en una disputa.",
+  idSec:"ID con foto y ubicación", idSub:"Requerido para autorizar un cargo sin tarjeta presente. Tome foto de la ID y una selfie.",
+  idFront:"ID — FRENTE", idBack:"ID — REVERSO", selfie:"Selfie en vivo con tarjeta e ID", selfieHint:"Solo cámara — sin subir", openCam:"📷 Cámara", capture:"Capturar", retake:"Repetir", geoBtn:"📍 Capturar mi ubicación", geoNone:"Aún no capturada",
+  authSec:"Autorización y firma", typedName:"Escriba el nombre completo del titular", signDate:"Fecha", drawSig:"Firma del titular", sigHint:"Firme con el dedo o el ratón", clear:"Borrar",
+  agreeBox:"Soy el titular autorizado y autorizo el cargo descrito arriba.", submit:"Autorizar y firmar →",
+  altSec:"¿Prefiere pagar de otra forma?", altSub:"Puede enviar la prima por Venmo, Zelle o Cash App. Complete y firme este formulario de todas formas para tener su autorización en archivo.",
+  locDisc:"🔒 Al firmar, usted consiente que capturemos automáticamente la ubicación GPS de su dispositivo, su dirección IP y la fecha y hora para verificar esta autorización.",
+  doneTitle:"¡Autorización firmada!", doneBody:"Su PDF firmado se descargó y su correo se abrió — adjunte el PDF y envíelo. Procesaremos el cargo en nuestro terminal seguro."
+}};
+const ACK={
+ en:"I, the cardholder named above, authorize Bail Bond Release Center of the Palm Beaches to charge my credit/debit card in the amount stated above for a bail bond premium and related fees for the named defendant. I understand this charge is for a service rendered (posting of a bail bond) and that the premium is fully earned and NON-REFUNDABLE once the bond is posted. I agree not to dispute or charge back this authorized transaction. I confirm I am the lawful cardholder and that the ID and photos submitted are mine. This electronic signature, with my captured location, timestamp, IP address and device information, is valid under the U.S. E-SIGN Act and Florida UETA (Ch. 668, F.S.).",
+ es:"Yo, el titular nombrado arriba, autorizo a Bail Bond Release Center of the Palm Beaches a cobrar a mi tarjeta de crédito/débito el monto indicado arriba por una prima de fianza y cargos relacionados para el acusado nombrado. Entiendo que este cargo es por un servicio prestado (publicación de una fianza) y que la prima se gana totalmente y NO ES REEMBOLSABLE una vez publicada la fianza. Acepto no disputar ni revertir esta transacción autorizada. Confirmo que soy el titular legítimo y que la ID y fotos enviadas son mías. Esta firma electrónica, con mi ubicación, fecha/hora, dirección IP y datos del dispositivo, es válida bajo la Ley E-SIGN de EE.UU. y la UETA de Florida (Cap. 668, F.S.)."
+};
+const EN_CACHE={};
+function cacheEnglish(){$$("[data-i18n]").forEach(el=>{EN_CACHE[el.getAttribute("data-i18n")]=el.textContent;});}
+function setLang(l){LANG=l;document.documentElement.lang=l;$("#enBtn").classList.toggle("active",l==="en");$("#esBtn").classList.toggle("active",l==="es");
+  const d=I18N[l];$$("[data-i18n]").forEach(el=>{const k=el.getAttribute("data-i18n");if(l==="en"){if(EN_CACHE[k]!=null)el.textContent=EN_CACHE[k];}else if(d[k]!=null)el.textContent=d[k];});
+  $("#ackText").textContent=ACK[l];}
+
+function bondAmounts(){return $$(".bondAmt").map(i=>parseFloat(i.value)||0).filter(a=>a>0);}
+function premiumFor(a){let p=Math.round(a*0.10);if(p<100)p=100;return p;}
+function bondBreakdownText(){const amts=bondAmounts();return amts.length?amts.map(a=>"$"+a.toLocaleString()+" (prem $"+premiumFor(a).toLocaleString()+")").join(" + "):"";}
+function calcPremium(){
+  const amts=bondAmounts();let total=0,prem=0;const parts=[];
+  amts.forEach(a=>{total+=a;const p=premiumFor(a);prem+=p;parts.push("$"+a.toLocaleString()+"→$"+p.toLocaleString());});
+  const bh=form.elements["bond"];if(bh)bh.value=total>0?String(total):"";
+  const el=form.elements["premium"];if(el)el.value=total>0?("$"+prem.toLocaleString()):"";
+  const ca=form.elements["chargeAmt"];if(ca&&!ca.value&&total>0)ca.value=prem;
+  const box=$("#premBox");if(box){box.style.display=total>0?"block":"none";$("#premAmt").textContent="$"+prem.toLocaleString();
+    const br=$("#premBreak");if(br)br.textContent=parts.length>1?("  ("+parts.join(", ")+")"):"";}
+  return prem;}
+function createBondRow(value){
+  const row=document.createElement("div");row.className="bondrow";row.style.cssText="display:flex;gap:8px;align-items:center;margin-bottom:6px";
+  row.innerHTML='<input class="bondAmt" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 1000" style="flex:1"><button type="button" class="btn2 btn-ghost rmBond" title="remove" style="padding:8px 11px">✕</button>';
+  if(value!=null&&value!=="")row.querySelector(".bondAmt").value=String(value).replace(/[^0-9.]/g,"");
+  row.querySelector(".rmBond").addEventListener("click",()=>{row.remove();syncRmButtons();calcPremium();});
+  return row;}
+function syncRmButtons(){const rows=$$(".bondrow");rows.forEach(r=>{r.querySelector(".rmBond").style.display=rows.length>1?"inline-block":"none";});}
+function addBondRow(v){document.getElementById("bondRows").appendChild(createBondRow(v));syncRmButtons();}
+function populateBonds(list){const c=document.getElementById("bondRows");c.innerHTML="";(list&&list.length?list:[""]).forEach(v=>c.appendChild(createBondRow(v)));syncRmButtons();}
+
+function captureGeo(){const s=$("#geoStatus");if(!navigator.geolocation){s.textContent="Not supported";return;}s.textContent="Locating…";
+  navigator.geolocation.getCurrentPosition(pos=>{const{latitude:la,longitude:lo,accuracy:ac}=pos.coords;geoData=la.toFixed(6)+", "+lo.toFixed(6)+" (±"+Math.round(ac)+"m)";form.elements["geo"].value=geoData;
+    s.innerHTML="✅ "+geoData+' · <a href="https://maps.google.com/?q='+la+','+lo+'" target="_blank">map</a>';},err=>{s.textContent="⚠️ "+(err.message||"blocked");},{enableHighAccuracy:true,timeout:10000});}
+
+function fileToBase64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(f);});}
+function fileToDataURL(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result));r.onerror=rej;r.readAsDataURL(f);});}
+const DOC_LABELS={id_front:"ID front",id_back:"ID back",blotter:"Blotter / bond",selfie:"Selfie with card & ID"};
+$$('input[type=file][data-doc]').forEach(inp=>{inp.addEventListener("change",async e=>{const f=e.target.files[0];if(!f)return;
+  const key=inp.dataset.doc;uploaded[key]=f.name;const drop=inp.closest(".drop"),st=drop.querySelector("[data-status]"),thumb=drop.querySelector("[data-thumb]");
+  try{const durl=await fileToDataURL(f);imgData[key]=durl;if(f.type.startsWith("image")){thumb.src=durl;thumb.style.display="inline-block";}}catch(_){}
+  st.textContent="Reading…";
+  if(CONFIG.aiEndpoint&&CONFIG.aiEndpoint.indexOf("REPLACE")<0){try{const b64=await fileToBase64(f);
+    const res=await fetch(CONFIG.aiEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({docType:key,mimeType:f.type,dataBase64:b64})});
+    const data=await res.json();const ff=data.fields||{};let n=0;
+    if(Array.isArray(ff.bondList)&&ff.bondList.length){const list=ff.bondList.map(v=>String(v).replace(/[^0-9.]/g,"")).filter(Boolean);if(list.length){populateBonds(list);n+=list.length;}delete ff.bondList;delete ff.bond;}
+    else if(ff.bond){const first=document.querySelector(".bondAmt");if(first&&!first.value){first.value=String(ff.bond).replace(/[^0-9.]/g,"");first.classList.add("flash");n++;}delete ff.bond;}
+    for(const k in ff){const el=form.elements[k];if(el&&!el.value){el.value=ff[k];el.classList.add("flash");n++;}}
+    calcPremium();
+    st.textContent=n>0?("✓ Filled "+n):"✓ Attached";}catch(_){st.textContent="✓ Attached";}}else st.textContent="✓ Attached";
+});});
+$$('.drop').forEach(function(d){d.addEventListener('dragover',e=>{e.preventDefault();d.classList.add('dragover');});d.addEventListener('dragleave',()=>d.classList.remove('dragover'));
+  d.addEventListener('drop',function(e){e.preventDefault();d.classList.remove('dragover');const inp=d.querySelector('input[type=file]');
+  if(inp&&e.dataTransfer&&e.dataTransfer.files.length){try{const dt=new DataTransfer();dt.items.add(e.dataTransfer.files[0]);inp.files=dt.files;}catch(_){}inp.dispatchEvent(new Event('change',{bubbles:true}));}});});
+
+const cv=$("#sigpad"),ctx=cv.getContext("2d");
+function fitCanvas(){const r=cv.getBoundingClientRect();const dpr=window.devicePixelRatio||1;cv.width=r.width*dpr;cv.height=r.height*dpr;ctx.scale(dpr,dpr);ctx.lineWidth=2.2;ctx.lineCap="round";ctx.strokeStyle="#14213d";}
+let drawing=false,last=null;
+function pos(e){const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};}
+function start(e){e.preventDefault();drawing=true;last=pos(e);if(!geoData){try{captureGeo();}catch(_){}}}
+function move(e){if(!drawing)return;e.preventDefault();const p=pos(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;sigHasInk=true;}
+function end(){drawing=false;}
+cv.addEventListener("mousedown",start);cv.addEventListener("mousemove",move);window.addEventListener("mouseup",end);
+cv.addEventListener("touchstart",start,{passive:false});cv.addEventListener("touchmove",move,{passive:false});cv.addEventListener("touchend",end);
+function clearSig(){ctx.clearRect(0,0,cv.width,cv.height);sigHasInk=false;}
+
+const REQ=["defName","bond","chargeAmt","cardholder","billingAddress","last4","phone"];
+function generatePDF(premium){const{jsPDF}=window.jspdf;const doc=new jsPDF({unit:"pt",format:"letter"});const M=40;let y=48;
+  doc.setFontSize(16);doc.setTextColor(36,58,107);doc.text("Bail Bond Release Center of the Palm Beaches",M,y);
+  y+=18;doc.setFontSize(12);doc.setTextColor(60);doc.text("Credit Card Authorization — Signed",M,y);
+  y+=22;doc.setDrawColor(200);doc.line(M,y,572,y);y+=18;doc.setFontSize(10);doc.setTextColor(20);
+  const row=(k,v)=>{if(!v)return;doc.setFont(undefined,"bold");doc.text(k+":",M,y);doc.setFont(undefined,"normal");doc.text(String(v),M+170,y);y+=15;if(y>720){doc.addPage();y=48;}};
+  row("Submitted",new Date().toLocaleString());
+  row("Defendant",val("defName"));row("Bond total","$"+(Number(val("bond"))||0).toLocaleString());
+  row("Bond breakdown",bondBreakdownText());
+  row("Premium (10% per bond)","$"+premium.toLocaleString());row("Amount authorized","$"+(Number(val("chargeAmt"))||0).toLocaleString());
+  y+=6;row("Cardholder",val("cardholder"));row("Billing address",val("billingAddress"));row("City",val("city"));row("State/ZIP",val("stateZip"));
+  row("Card type",val("cardType"));row("Card last 4","•••• "+val("last4"));row("Expiration",val("exp"));row("Phone",val("phone"));
+  y+=8;doc.setDrawColor(220);doc.line(M,y,572,y);y+=16;doc.setFontSize(8.5);doc.setTextColor(80);
+  const ack=doc.splitTextToSize(ACK[LANG],532);doc.text(ack,M,y);y+=ack.length*11+10;
+  if(y>640){doc.addPage();y=48;}doc.setFontSize(10);doc.setTextColor(20);
+  row("Signed by (typed)",val("signName"));row("Date",val("signDate"));row("GPS location",geoData||"not captured");row("IP address",clientIP||"n/a");row("Device",navigator.userAgent.slice(0,60));
+  y+=6;doc.setFont(undefined,"bold");doc.text("Signature:",M,y);doc.setFont(undefined,"normal");
+  try{doc.addImage(cv.toDataURL("image/png"),"PNG",M+70,y-14,180,50);}catch(_){}y+=54;
+  doc.addPage();let iy=60;doc.setFontSize(12);doc.setTextColor(36,58,107);doc.text("Identity verification",M,40);
+  [["id_front","ID — FRONT"],["id_back","ID — BACK"],["selfie","Selfie with card & ID"]].forEach(([k,lbl])=>{if(imgData[k]){if(iy>620){doc.addPage();iy=60;}try{doc.setFontSize(9);doc.setTextColor(60);doc.text(lbl,M,iy+12);doc.addImage(imgData[k],imgData[k].indexOf("image/png")>0?"PNG":"JPEG",M,iy+16,240,160);}catch(_){}iy+=200;}});
+  return doc;}
+
+form.addEventListener("input",calcPremium);form.addEventListener("change",calcPremium);
+form.addEventListener("submit",async e=>{e.preventDefault();
+  const miss=REQ.filter(f=>!val(f));if(miss.length){toast((LANG==="es"?"Falta: ":"Missing: ")+miss.join(", "));const el=form.elements[miss[0]];if(el)el.focus();return;}
+  if(val("last4").length!==4){toast(LANG==="es"?"Últimos 4 dígitos":"Enter the last 4 digits");return;}
+  if(!val("signName")){toast(LANG==="es"?"Escriba su nombre":"Type the cardholder name");return;}
+  if(!sigHasInk){toast(LANG==="es"?"Dibuje la firma":"Please sign");return;}
+  if(!$("#agree").checked){toast(LANG==="es"?"Marque la casilla":"Please check the authorization box");return;}
+  const premium=calcPremium();
+  const pdfName="CC-Authorization-"+(val("cardholder")||"cardholder").replace(/[^a-z0-9]/gi,"_")+".pdf";
+  let doc=null;try{doc=generatePDF(premium);}catch(err){toast("PDF error: "+err.message);}
+  const body=
+`CREDIT CARD AUTHORIZATION — SIGNED
+Submitted: ${new Date().toLocaleString()}
+
+Defendant: ${val("defName")}
+Bond total: $${(Number(val("bond"))||0).toLocaleString()}
+Bond breakdown: ${bondBreakdownText()||"(single bond)"}
+Premium (10% per bond, $100 min each): $${premium.toLocaleString()}
+AMOUNT AUTHORIZED: $${(Number(val("chargeAmt"))||0).toLocaleString()}
+
+Cardholder: ${val("cardholder")}
+Billing: ${val("billingAddress")} ${val("city")} ${val("stateZip")}
+Card: ${val("cardType")} ending •••• ${val("last4")}  Exp ${val("exp")}
+Phone: ${val("phone")}
+
+Signed by: ${val("signName")}  Date: ${val("signDate")}
+GPS: ${geoData||"not captured"}   IP: ${clientIP||"n/a"}
+Files: ${Object.keys(uploaded).map(k=>DOC_LABELS[k]||k).join(", ")||"none"}
+
+NOTE: The full card is entered on the Clover terminal — never by email or text.`;
+  const subject="CC Authorization — "+val("cardholder");
+  form.classList.add("hidden");$("#successScreen").classList.remove("hidden");window.scrollTo(0,0);
+  const done=$("#successScreen").querySelector('[data-i18n="doneBody"]');
+  let sent=false;
+  if(doc && CONFIG.sendEndpoint && CONFIG.sendEndpoint.indexOf("REPLACE")<0){
+    try{
+      const b64=doc.output("datauristring").split(",")[1];
+      const res=await fetch(CONFIG.sendEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        to:[val("email")].filter(Boolean), bcc:[CONFIG.recipient].filter(Boolean),
+        subject, text:body, attachments:[{filename:pdfName,contentBase64:b64}]
+      })});
+      sent=res.ok;
+    }catch(_){ sent=false; }
+  }
+  if(sent){
+    if(done)done.textContent=(LANG==="es")?"¡Autorización firmada y enviada por correo a usted y a nuestra oficina! Procesaremos el cargo en el terminal seguro.":"Authorization signed and emailed to you and our office! We'll process the charge on our secure terminal.";
+    toast(LANG==="es"?"Enviado ✅":"Emailed ✅");
+  } else {
+    try{ doc&&doc.save(pdfName); }catch(_){}
+    if(done)done.textContent=(LANG==="es")?"Su PDF firmado se descargó y su correo se abrió — adjunte el PDF y envíelo.":"Your signed PDF downloaded and your email opened — attach the PDF and send.";
+    const fbody=body+"\n\n*** ATTACH the downloaded PDF ("+pdfName+") before sending. ***";
+    const href=`mailto:${CONFIG.recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(fbody)}`;
+    setTimeout(()=>{window.location.href=href;},700);
+  }
+});
+
+/* live selfie camera (no uploads) */
+(function(){
+  const tile=document.getElementById("selfieTile");if(!tile)return;
+  const video=document.getElementById("selfieVideo");
+  const startBtn=document.getElementById("selfieStart"),snapBtn=document.getElementById("selfieSnap"),retakeBtn=document.getElementById("selfieRetake");
+  const st=tile.querySelector("[data-status]"),thumb=tile.querySelector("[data-thumb]");let stream=null;
+  async function openCam(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});video.srcObject=stream;video.style.display="block";await video.play();
+    startBtn.style.display="none";snapBtn.style.display="inline-block";retakeBtn.style.display="none";thumb.style.display="none";st.style.color="";st.textContent="";
+    }catch(err){st.style.color="#c0392b";st.textContent=(LANG==="es"?"Permita la cámara para la selfie en vivo":"Please allow the camera for a live selfie");}}
+  function stop(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}video.style.display="none";}
+  function snap(){const w=video.videoWidth||640,h=video.videoHeight||480;const c=document.createElement("canvas");c.width=w;c.height=h;const cx=c.getContext("2d");
+    cx.drawImage(video,0,0,w,h);cx.fillStyle="rgba(0,0,0,.55)";cx.fillRect(0,h-26,w,26);cx.fillStyle="#fff";cx.font="14px sans-serif";
+    cx.fillText(new Date().toLocaleString()+(geoData?("  "+geoData):""),8,h-8);
+    const durl=c.toDataURL("image/jpeg",0.85);imgData["selfie"]=durl;uploaded["selfie"]="live-selfie.jpg";
+    thumb.src=durl;thumb.style.display="inline-block";st.style.color="";st.textContent="✓ "+(LANG==="es"?"Selfie en vivo capturada":"Live selfie captured");
+    stop();snapBtn.style.display="none";retakeBtn.style.display="inline-block";startBtn.style.display="none";}
+  startBtn.addEventListener("click",openCam);snapBtn.addEventListener("click",snap);retakeBtn.addEventListener("click",openCam);window.addEventListener("beforeunload",stop);
+})();
+function initDate(){const el=form.elements["signDate"];if(el)el.value=new Date().toLocaleDateString();}
+async function initIP(){try{const r=await fetch("https://api.ipify.org?format=json");const j=await r.json();clientIP=j.ip;}catch(_){}}
+window.addEventListener("resize",()=>{const data=cv.toDataURL();fitCanvas();const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,cv.getBoundingClientRect().width,cv.getBoundingClientRect().height);img.src=data;});
+/* show alternate-payment buttons only when links are provided */
+(function(){let any=false;
+  function showLink(id,url){const a=document.getElementById(id);if(a&&url&&url.trim()){a.href=url;a.style.display="inline-block";any=true;}}
+  showLink("payVenmo",CONFIG.venmo);
+  showLink("payCashapp",CONFIG.cashapp);
+  if(CONFIG.zelle&&CONFIG.zelle.trim()){showLink("payZelle",CONFIG.zelle);}
+  else if(CONFIG.zelleId&&CONFIG.zelleId.trim()){
+    const a=document.getElementById("payZelle");
+    if(a){a.textContent="Zelle: "+CONFIG.zelleId;a.href="#";a.style.display="inline-block";any=true;
+      a.addEventListener("click",function(ev){ev.preventDefault();try{navigator.clipboard.writeText(CONFIG.zelleId);}catch(_){}
+        toast((LANG==="es"?"ID de Zelle copiado: ":"Zelle ID copied: ")+CONFIG.zelleId);});}
+  }
+  if(any)document.getElementById("altPaySec").style.display="block";})();
+populateBonds([""]);
+document.getElementById("addBond").addEventListener("click",()=>{addBondRow("");});
+(function(){const bl=document.getElementById("blotterLink");if(bl&&CONFIG.blotterUrl)bl.href=CONFIG.blotterUrl;})();
+cacheEnglish();fitCanvas();initDate();initIP();calcPremium();$("#ackText").textContent=ACK.en;
+</script>
+</body>
+</html>

@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bail Application — Co-Signer | Bail Bond Release Center</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{--brand:#243a6b;--gold:#c9a24b;--bg:#eef3f9;--card:#fff;--line:#dbe4ef;--muted:#6b7a90;--ok:#1a7f43}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#1c2733;line-height:1.45;-webkit-text-size-adjust:100%}
+  header.top{background:linear-gradient(120deg,#141f3d,#243a6b);border-bottom:4px solid var(--gold);padding:12px 16px;position:sticky;top:0;z-index:20}
+  .hrow{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px}
+  .hrow img{height:44px}
+  .hrow h1{margin:0;font-size:15px;color:#fff;font-weight:700}
+  .hrow p{margin:1px 0 0;font-size:11.5px;color:#c7d3ea}
+  .langtog{margin-left:auto;display:inline-flex;border:1px solid #4a5f8a;border-radius:999px;overflow:hidden}
+  .langtog button{border:none;background:transparent;color:#c7d3ea;font-size:12px;font-weight:800;padding:6px 12px;cursor:pointer}
+  .langtog button.active{background:var(--gold);color:#1c1300}
+  .bar{max-width:760px;margin:10px auto 0;padding:0 16px}
+  .bartrack{height:9px;background:#dbe4ef;border-radius:99px;overflow:hidden}
+  .barfill{height:100%;width:0;background:var(--gold);transition:width .3s}
+  .barlbl{font-size:11.5px;color:var(--muted);margin-top:5px;font-weight:600}
+  .wrap{max-width:760px;margin:0 auto;padding:14px 16px 120px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 1px 3px rgba(36,58,107,.06)}
+  h2.step{margin:0 0 4px;font-size:20px;color:var(--brand)}
+  p.sub{margin:0 0 16px;font-size:13.5px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .full{grid-column:1/-1}
+  @media(max-width:620px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:#33455c}
+  .opt{font-weight:400;color:var(--muted);font-size:12px}
+  input,select,textarea{width:100%;padding:13px 12px;border:1.5px solid var(--line);border-radius:11px;font-size:16px;font-family:inherit;background:#fff}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(36,58,107,.12)}
+  input[readonly]{background:#f2f6fb;font-weight:800;color:var(--brand)}
+  .flash{animation:fl 1.1s ease}@keyframes fl{0%{background:#d5f5e0}100%{background:#fff}}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{border:1.5px solid var(--line);border-radius:999px;padding:9px 15px;font-size:14px;font-weight:700;cursor:pointer;background:#fff;color:#33455c}
+  .chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .premium{background:#f2f8f2;border:1.5px solid #cfe8d4;border-radius:12px;padding:14px;margin-top:10px;color:#14602f}
+  .premium b{font-size:26px;display:block;line-height:1.15;margin:2px 0 4px}
+  .premium .hint{display:block;color:#3d7a52;font-weight:600}
+  .premium .hint+.hint{margin-top:3px;font-weight:400}
+  .note{background:#f0f6ff;border:1px solid #d3e3f5;border-radius:12px;padding:12px;font-size:13px;color:var(--brand);margin-top:12px}
+  .vcard{border:1.5px solid var(--line);border-radius:12px;padding:12px;margin-top:8px;background:#fafcff}
+  .vcard h4{margin:0 0 4px;font-size:14.5px;color:var(--brand)}
+  .vcard .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .vcard .chg{font-size:12.5px;display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px dashed #eef2f7}
+  .vcard .tot{font-size:15px;font-weight:900;color:var(--brand);margin-top:7px}
+  .vcard .flag{background:#fff6ed;border:1px solid #f2d5b3;color:#8a5a1a;border-radius:9px;padding:8px;font-size:12px;margin-top:7px}
+  .warn{background:#fff6ed;border:1px solid #f2d5b3;border-radius:12px;padding:12px;font-size:12.5px;color:#8a5a1a;margin-top:12px}
+  .capstep{margin-bottom:14px}
+  .capttl{font-size:12px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
+  .drop{position:relative;border:2px dashed #b9c9de;border-radius:14px;padding:22px 14px;text-align:center;background:#fafcff;display:block;cursor:pointer}
+  .drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .drop .ico{font-size:34px}.drop .t{font-weight:800;font-size:15px;margin-top:6px;color:var(--brand)}
+  .drop .status{font-size:12.5px;color:var(--ok);font-weight:800;min-height:16px;margin-top:4px}
+  .thumb{margin-top:10px;max-height:150px;border-radius:10px;display:none}
+  .done{border-color:var(--ok);background:#f4fbf6;border-style:solid}
+  #vid{display:none;width:100%;max-height:280px;border-radius:12px;margin-top:10px;background:#000}
+  #smile{font-weight:900;color:var(--brand);font-size:22px;min-height:26px;margin-top:6px}
+  .sigwrap{border:1.5px solid var(--line);border-radius:12px;background:#fff;margin-top:6px}
+  #sig{width:100%;height:190px;touch-action:none;display:block;border-radius:12px}
+  .sigbar{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid var(--line)}
+  .ack{background:#fbfaf5;border:1px solid #ece3c8;border-radius:12px;padding:13px;font-size:12.5px;color:#5c5230;max-height:190px;overflow:auto}
+  .rev{font-size:13.5px}
+  .rev .r{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed #eef2f7}
+  .rev .g{margin-top:12px;font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--brand);font-weight:800}
+  .nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px;display:flex;gap:10px;max-width:760px;margin:0 auto;box-shadow:0 -2px 10px rgba(36,58,107,.07);z-index:30}
+  .btn{flex:1;border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:900;cursor:pointer}
+  .next{background:var(--gold);color:#2a2000}
+  .back{background:#fff;color:var(--brand);border:1.5px solid var(--brand);flex:0 0 34%}
+  .btn:disabled{opacity:.5}
+  .btn2{background:var(--brand);color:#fff;border:none;border-radius:11px;padding:12px 16px;font-size:14px;font-weight:800;cursor:pointer}
+  .ghost{background:#fff;color:var(--brand);border:1.5px solid var(--brand)}
+  .hidden{display:none!important}
+  .hint{font-size:12px;color:var(--muted)}
+  .toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%) translateY(14px);background:#22364d;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:60;max-width:88%;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .success{text-align:center;padding:26px 16px}
+  .success .big{font-size:56px}
+  .sbtns{display:flex;flex-direction:column;gap:11px;max-width:340px;margin:20px auto 0}
+  .sbtns a{text-decoration:none;text-align:center;padding:15px;border-radius:12px;font-weight:800;font-size:15px}
+  .a-rev{background:var(--gold);color:#2a2000}.a-call{background:var(--brand);color:#fff}.a-txt{background:#eaf3ff;color:var(--brand);border:1px solid #cfe0f5}
+</style>
+</head>
+<body>
+<header class="top"><div class="hrow">
+  <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InJpbmciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZDdkYmUwIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMC41IiBzdG9wLWNvbG9yPSIjOWFhMmFjIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2MzYzhjZSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0ibmF2eSIgY3g9IjAuNSIgY3k9IjAuNCIgcj0iMC43Ij4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMjQzYTZiIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzE0MWYzZCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxwYXRoIGlkPSJ0b3AiIGQ9Ik0gMjAwLDIwMCBtIC0xNTAsMCBhIDE1MCwxNTAgMCAxIDEgMzAwLDAiIGZpbGw9Im5vbmUiLz4KICAgIDxwYXRoIGlkPSJib3QiIGQ9Ik0gNjIsMjMyIGEgMTQ1LDE0NSAwIDAgMCAyNzYsMCIgZmlsbD0ibm9uZSIvPgogIDwvZGVmcz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjE5NiIgZmlsbD0iIzE0MWYzZCIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTg4IiBmaWxsPSJ1cmwoI3JpbmcpIi8+CiAgPGNpcmNsZSBjeD0iMjAwIiBjeT0iMjAwIiByPSIxNTAiIGZpbGw9IiMxNDFmM2QiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjE0MCIgZmlsbD0idXJsKCNuYXZ5KSIvPgogIDx0ZXh0IGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNlZWYxZjUiIGZvbnQtc2l6ZT0iMzAiIGxldHRlci1zcGFjaW5nPSIzIj4KICAgIDx0ZXh0UGF0aCBocmVmPSIjdG9wIiBzdGFydE9mZnNldD0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5SRUxFQVNFIENFTlRFUjwvdGV4dFBhdGg+CiAgPC90ZXh0PgogIDx0ZXh0IGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNlZWYxZjUiIGZvbnQtc2l6ZT0iMjIiIGxldHRlci1zcGFjaW5nPSIyIj4KICAgIDx0ZXh0UGF0aCBocmVmPSIjYm90IiBzdGFydE9mZnNldD0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5PRiBUSEUgUEFMTSBCRUFDSEVTPC90ZXh0UGF0aD4KICA8L3RleHQ+CiAgPGNpcmNsZSBjeD0iNTIiIGN5PSIyMDAiIHI9IjQiIGZpbGw9IiMyNDNhNmIiLz4KICA8Y2lyY2xlIGN4PSIzNDgiIGN5PSIyMDAiIHI9IjQiIGZpbGw9IiMyNDNhNmIiLz4KICA8dGV4dCB4PSIyMDAiIHk9IjE4OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2ZmZmZmZiIgZm9udC1zaXplPSI2MCIgbGV0dGVyLXNwYWNpbmc9IjEiPkJBSUw8L3RleHQ+CiAgPHRleHQgeD0iMjAwIiB5PSIyNDgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmZmZmZmYiIGZvbnQtc2l6ZT0iNjAiIGxldHRlci1zcGFjaW5nPSIxIj5CT05EPC90ZXh0Pgo8L3N2Zz4K" alt="Bail Bond Release Center">
+  <div><h1 data-i="ttl">Bail Application — Co-Signer</h1><p data-i="sub2">Bail Bond Release Center of the Palm Beaches</p></div>
+  <div class="langtog"><button type="button" id="enB" class="active" onclick="setLang('en')">EN</button><button type="button" id="esB" onclick="setLang('es')">ES</button></div>
+</div></header>
+<div class="bar"><div class="bartrack"><div class="barfill" id="bf"></div></div><div class="barlbl" id="bl">Step 1 of 7</div></div>
+
+<div class="wrap" id="wrap">
+<form id="f" novalidate autocomplete="on">
+
+<!-- STEP 1 : BOND -->
+<section class="card stp" data-s="1">
+  <h2 class="step" data-i="s1t">Who are you bailing out?</h2>
+  <p class="sub" data-i="s1s">Just the basics to start. We'll figure out your cost automatically.</p>
+  <div class="grid">
+    <div class="full"><label data-i="defName">Full name of person in jail *</label><input name="defName" required autocomplete="off"></div>
+    <div class="full"><label data-i="jail">Which jail?</label>
+      <select name="jail" id="jail"></select>
+      <div class="hint" id="jailInfo" style="margin-top:6px"></div></div>
+    <div class="full">
+      <label data-i="bond">Total bond amount *</label>
+      <input name="bond" type="number" min="0" step="1" inputmode="numeric" placeholder="1000" required>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button type="button" class="btn2" id="vBtn" data-i="vBtn">Verify Bond</button>
+        <a href="#" id="blot" target="_blank" rel="noopener" style="font-size:13px;color:var(--brand);font-weight:800" data-i="blot">Open blotter &rarr;</a>
+      </div>
+      <div id="vStat" class="hint" style="margin-top:6px"></div>
+      <div id="vRes" class="hidden" style="margin-top:8px"></div>
+      <p class="hint" data-i="bondHint" style="margin-top:7px">Enter the total bond. Not sure? Use the lookup, or upload the blotter on the next step and we'll confirm it.</p>
+    </div>
+    <div class="full">
+      <div class="drop" id="pz" style="padding:16px">
+        <div class="ico">📋</div>
+        <div class="t" data-i="pasteT">Paste a screenshot of the booking page</div>
+        <div class="hint" data-i="pasteH">Screenshot the jail/booking page, then press paste (&#8984;V or Ctrl+V) anywhere on this page — or tap here to pick the image. We'll read the bond amount for you.</div>
+        <div class="status" data-status></div>
+        <img class="thumb" data-thumb>
+        <input type="file" accept="image/*" data-doc="booking" id="pzFile">
+      </div>
+    </div>
+    <div class="full premium hidden" id="premBox"><span data-i="premT">Estimated cost today</span><b id="premAmt">$0</b><span class="hint" id="premBreak"></span><span class="hint" data-i="premH">10% of the bond, $150 minimum. We confirm the bond with the jail before any charge — your final amount is based on the verified bond. Non-refundable once the bond is posted.</span></div>
+    <div class="full">
+      <label data-i="holdQ">Is there a hold on them? *</label>
+      <div class="chips" data-chip="hold">
+        <div class="chip" data-v="No hold" data-i="hNo">No hold</div>
+        <div class="chip" data-v="Immigration / ICE hold" data-i="hIce">Immigration / ICE hold</div>
+        <div class="chip" data-v="Another county or agency hold" data-i="hAgency">Another county / agency</div>
+        <div class="chip" data-v="Probation / VOP hold" data-i="hVop">Probation / VOP</div>
+        <div class="chip" data-v="Not sure" data-i="hUnk">I'm not sure</div>
+      </div>
+      <input type="hidden" name="hold">
+      <p class="hint" data-i="holdH" style="margin-top:6px">A "hold" means another agency also wants them in custody. If you don't know, choose "I'm not sure" — we'll check.</p>
+      <div class="warn hidden" id="holdWarn" data-i="holdW">⚠️ Bonds with a hold need agent approval before we can move forward, and may require paying the full bond amount instead of the 10% premium. You can still finish this application — we'll review it and contact you right away.</div>
+    </div>
+    <div class="field"><label data-i="arrestDate">Arrest date <span class="opt" data-i="ifk">(if known)</span></label><input name="arrestDate" type="date"></div>
+    <div class="field"><label data-i="booking">Booking # <span class="opt" data-i="ifk">(if known)</span></label><input name="booking"></div>
+    <div class="full"><label data-i="charges">Charges <span class="opt" data-i="ifk">(if known)</span></label><input name="charges"></div>
+  </div>
+</section>
+
+<!-- STEP 2 : ID PHOTOS -->
+<section class="card stp hidden" data-s="2">
+  <h2 class="step" data-i="s2t">Take a photo of your ID</h2>
+  <p class="sub" data-i="s2s">Front, then back, then a quick selfie. We fill in your details for you.</p>
+  <div class="capstep" id="cF">
+    <div class="capttl" data-i="p1">Photo 1 of 3 · License FRONT</div>
+    <label class="drop"><div class="ico">🪪</div><div class="t" data-i="tapF">Tap to photograph the FRONT</div><div class="status" data-status></div><input type="file" accept="image/*" capture="environment" data-doc="id_front" id="iF"><img class="thumb" data-thumb></label>
+  </div>
+  <div class="capstep hidden" id="cB">
+    <div class="capttl" data-i="p2">Photo 2 of 3 · License BACK</div>
+    <label class="drop"><div class="ico">🪪</div><div class="t" data-i="tapB">Tap to photograph the BACK</div><div class="status" data-status></div><input type="file" accept="image/*" capture="environment" data-doc="id_back" id="iB"><img class="thumb" data-thumb></label>
+  </div>
+  <div class="capstep hidden" id="cS">
+    <div class="capttl" data-i="p3">Photo 3 of 3 · Live selfie</div>
+    <div class="drop" id="sTile" style="cursor:default">
+      <div class="ico">🤳</div><div class="t" data-i="selfT">Look at the camera — we'll say “smile” and snap it</div>
+      <video id="vid" playsinline autoplay muted></video><div id="smile"></div>
+      <div class="status" data-status></div><img class="thumb" data-thumb>
+      <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button type="button" class="btn2" id="sStart" data-i="startS">📷 Start selfie</button>
+        <button type="button" class="btn2 ghost hidden" id="sAgain" data-i="again">Retake</button>
+      </div>
+    </div>
+  </div>
+  <label class="drop" style="margin-top:14px;padding:14px"><div class="ico">🧾</div><div class="t" data-i="blotU">Blotter / bond sheet (optional)</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" capture="environment" data-doc="blotter"><img class="thumb" data-thumb></label>
+  <div class="note"><strong data-i="afOn">Auto-fill is on.</strong> <span data-i="afD">Your license fills your name, birthday and address — fields flash green.</span></div>
+</section>
+
+<!-- STEP 3 : YOUR INFO -->
+<section class="card stp hidden" data-s="3">
+  <h2 class="step" data-i="s3t">Your information</h2>
+  <p class="sub" data-i="s3s">You are the co-signer (indemnitor) — the person responsible for the bond.</p>
+  <div class="grid">
+    <div class="full"><label data-i="rel">Your relationship to the person in jail *</label>
+      <select name="relationship" id="relSel" required></select></div>
+    <div class="full relother hidden"><label data-i="relO">Please describe the relationship</label><input name="relOther"></div>
+    <div class="field"><label data-i="fn">First name *</label><input name="firstName" required autocomplete="given-name"></div>
+    <div class="field"><label data-i="ln">Last name *</label><input name="lastName" required autocomplete="family-name"></div>
+    <div class="field"><label data-i="mid">Middle name</label><input name="middleName"></div>
+    <div class="field"><label data-i="nick">Nickname / alias</label><input name="nickname"></div>
+    <div class="field"><label data-i="mob">Mobile phone *</label><input name="phone" type="tel" inputmode="tel" required autocomplete="tel"></div>
+    <div class="field"><label data-i="home">Home phone</label><input name="phoneHome" type="tel" inputmode="tel"></div>
+    <div class="field"><label data-i="workp">Work phone</label><input name="phoneWork" type="tel" inputmode="tel"></div>
+    <div class="field"><label data-i="em">Email *</label><input name="email" type="email" inputmode="email" required autocomplete="email"></div>
+    <div class="full"><label data-i="addr">Current home address *</label><input name="address" required autocomplete="street-address"></div>
+    <div class="field"><label data-i="howlong">How long there?</label><input name="addrHowLong" placeholder="e.g. 3 years"></div>
+    <div class="field"><label data-i="rentown">Rent or own?</label>
+      <div class="chips" data-chip="rentOwn"><div class="chip" data-v="Rent" data-i="rent">Rent</div><div class="chip" data-v="Own" data-i="own">Own</div></div>
+      <input type="hidden" name="rentOwn"></div>
+    <div class="full"><label data-i="ll">Landlord / mortgage holder</label><input name="landlord"></div>
+    <div class="full"><label data-i="fmr">Former home address</label><input name="formerAddress"></div>
+    <div class="field"><label data-i="dob">Your date of birth</label><input name="dob" type="date"></div>
+    <div class="field"><label data-i="born">Where were you born? <span class="opt">(city, state)</span></label><input name="whereBorn"></div>
+    <div class="field"><label data-i="sex">Sex</label>
+      <div class="chips" data-chip="sex"><div class="chip" data-v="M">M</div><div class="chip" data-v="F">F</div></div>
+      <input type="hidden" name="sex"></div>
+    <div class="field"><label data-i="ssn">Social Security #</label><input name="ssn" inputmode="numeric" autocomplete="off"></div>
+    <div class="field"><label data-i="dl">Driver license #</label><input name="dlNumber"></div>
+    <div class="field"><label data-i="dls">License state</label><input name="dlState" value="FL"></div>
+    <div class="full note hidden" id="stateNote"></div>
+    <div class="field"><label data-i="race">Race</label><input name="race"></div>
+    <div class="field"><label data-i="nat">Nationality</label><input name="nationality"></div>
+    <div class="full"><label data-i="cit">Are you a U.S. citizen?</label>
+      <div class="chips" data-chip="citizen"><div class="chip" data-v="Yes" data-i="yes">Yes</div><div class="chip" data-v="No" data-i="no">No</div></div>
+      <input type="hidden" name="citizen"></div>
+    <div class="full noncit hidden">
+      <div class="note" data-i="immWhy">The jail requires this information before a bond can be posted. It is kept confidential and used only for the bond.</div>
+    </div>
+    <div class="field noncit hidden"><label data-i="immStat">Your immigration status</label>
+      <select name="immStatus">
+        <option value=""></option>
+        <option data-i="isLPR">Lawful permanent resident (green card)</option>
+        <option data-i="isVisa">Visa or work permit</option>
+        <option data-i="isAsylum">Asylum / pending case</option>
+        <option data-i="isDACA">DACA</option>
+        <option data-i="isNone">No immigration documents</option>
+        <option data-i="isPNS">Prefer not to say</option>
+      </select></div>
+    <div class="field noncit hidden"><label data-i="alien">Alien number (A#)</label><input name="alienNo" placeholder="A000000000"></div>
+    <div class="field noncit hidden"><label data-i="hlus">How long in the U.S.?</label><input name="howLongUS"></div>
+    <div class="field noncit hidden"><label data-i="country">Country of citizenship</label><input name="countryCitizen"></div>
+    <div class="full noncit hidden">
+      <label class="drop" style="padding:16px"><div class="ico">🪪</div><div class="t" data-i="immDoc">Photo of resident card / immigration document</div><div class="hint" data-i="immDocH">Green card, work permit or any immigration paper — front side. Optional but speeds things up.</div><div class="status" data-status></div><input type="file" accept="image/*" capture="environment" data-doc="imm_doc"><img class="thumb" data-thumb></label>
+    </div>
+    <div class="full"><label data-i="soc">Social media you use</label>
+      <div class="chips" data-multi="social">
+        <div class="chip" data-v="Facebook">Facebook</div><div class="chip" data-v="Instagram">Instagram</div>
+        <div class="chip" data-v="Snapchat">Snapchat</div><div class="chip" data-v="LinkedIn">LinkedIn</div><div class="chip" data-v="Twitter/X">Twitter/X</div>
+      </div><input type="hidden" name="social"></div>
+  </div>
+</section>
+
+<!-- STEP 4 : WORK / VEHICLE / FAMILY -->
+<section class="card stp hidden" data-s="4">
+  <h2 class="step" data-i="s4t">Work, vehicle &amp; family</h2>
+  <p class="sub" data-i="s4s">Skip anything that doesn't apply to you.</p>
+  <div class="grid">
+    <div class="field"><label data-i="occ">Occupation</label><input name="occupation"></div>
+    <div class="field"><label data-i="empl">Employer</label><input name="employer" autocomplete="organization"></div>
+    <div class="full"><label data-i="empa">Employer address</label><input name="employerAddress"></div>
+    <div class="field"><label data-i="empt">Employer phone</label><input name="employerTel" type="tel" inputmode="tel"></div>
+    <div class="field"><label data-i="hlj">How long there?</label><input name="jobHowLong"></div>
+    <div class="field"><label data-i="sup">Supervisor's name</label><input name="supervisor"></div>
+    <div class="field"><label data-i="uni">Union / Local #</label><input name="union"></div>
+    <div class="full"><label data-i="mil">Military service <span class="opt">(branch, active?, discharge date)</span></label><input name="military"></div>
+    <div class="field"><label data-i="vyr">Vehicle year / make / model</label><input name="vehicle" placeholder="2019 Toyota Camry"></div>
+    <div class="field"><label data-i="vcol">Color &amp; plate #</label><input name="vehiclePlate"></div>
+    <div class="field"><label data-i="vfin">Where financed?</label><input name="vehicleFinanced"></div>
+    <div class="field"><label data-i="vowe">Amount owed</label><input name="vehicleOwed" inputmode="numeric"></div>
+    <div class="full"><label data-i="mar">Marital status</label>
+      <div class="chips" data-chip="marital">
+        <div class="chip" data-v="Married" data-i="mMarried">Married</div><div class="chip" data-v="Single" data-i="mSingle">Single</div>
+        <div class="chip" data-v="Divorced" data-i="mDiv">Divorced</div><div class="chip" data-v="Separated" data-i="mSep">Separated</div>
+        <div class="chip" data-v="Widowed" data-i="mWid">Widowed</div><div class="chip" data-v="Cohab" data-i="mCoh">Living together</div>
+      </div><input type="hidden" name="marital"></div>
+    <div class="field"><label data-i="spn">Spouse / partner name</label><input name="spouseName"></div>
+    <div class="field"><label data-i="spl">How long together?</label><input name="spouseHowLong"></div>
+    <div class="field"><label data-i="spp">Their phone</label><input name="spousePhone" type="tel" inputmode="tel"></div>
+    <div class="field"><label data-i="spe">Their employer</label><input name="spouseEmployer"></div>
+  </div>
+</section>
+
+<!-- STEP 5 : REFERENCES -->
+<section class="card stp hidden" data-s="5">
+  <h2 class="step" data-i="s5t">Two references</h2>
+  <p class="sub" data-i="s5s">People who know you — not the person in jail.</p>
+  <div class="grid">
+    <div class="full"><label style="color:var(--brand)" data-i="ref1">Reference 1</label></div>
+    <div class="field"><label data-i="rname">Name</label><input name="ref1Name"></div>
+    <div class="field"><label data-i="rrel">Relation</label><input name="ref1Relation"></div>
+    <div class="field"><label data-i="rphone">Phone</label><input name="ref1Phone" type="tel" inputmode="tel"></div>
+    <div class="field"><label data-i="raddr">Address</label><input name="ref1Address"></div>
+    <div class="full"><label style="color:var(--brand);margin-top:6px" data-i="ref2">Reference 2</label></div>
+    <div class="field"><label data-i="rname">Name</label><input name="ref2Name"></div>
+    <div class="field"><label data-i="rrel">Relation</label><input name="ref2Relation"></div>
+    <div class="field"><label data-i="rphone">Phone</label><input name="ref2Phone" type="tel" inputmode="tel"></div>
+    <div class="field"><label data-i="raddr">Address</label><input name="ref2Address"></div>
+    <div class="full" style="margin-top:8px"><label style="color:var(--brand)" data-i="finT">Financial (optional)</label></div>
+    <div class="field"><label data-i="cash">Cash on hand</label><input name="cashHand" inputmode="numeric"></div>
+    <div class="field"><label data-i="bank">Cash in bank</label><input name="cashBank" inputmode="numeric"></div>
+    <div class="field"><label data-i="reV">Real estate value</label><input name="realEstateValue" inputmode="numeric"></div>
+    <div class="field"><label data-i="reM">Real estate mortgage</label><input name="realEstateMortgage" inputmode="numeric"></div>
+    <div class="field"><label data-i="title">Title in whose name?</label><input name="titleName"></div>
+    <div class="field"><label data-i="sal">Monthly income</label><input name="monthlyIncome" inputmode="numeric"></div>
+    <div class="full"><label data-i="notes">Anything we should know?</label><textarea name="notes" rows="2"></textarea></div>
+    <div class="full"><label data-i="hasAtt">Does the defendant have an attorney?</label>
+      <div class="chips" data-chip="hasAttorney"><div class="chip" data-v="Yes" data-i="yes">Yes</div><div class="chip" data-v="No" data-i="no">No</div></div>
+      <input type="hidden" name="hasAttorney"></div>
+    <div class="field"><label data-i="attN">Attorney name</label><input name="attorneyName"></div>
+    <div class="full"><label style="font-weight:600"><input type="checkbox" name="wantAttorney" style="width:auto;margin-right:9px;transform:scale(1.3)"> <span data-i="wantA">Please have an attorney contact me</span></label></div>
+  </div>
+</section>
+
+<!-- STEP 6 : REVIEW -->
+<section class="card stp hidden" data-s="6">
+  <h2 class="step" data-i="s6t">Payment &amp; review</h2>
+  <p class="sub" data-i="s6s">Tell us how you're paying, check your answers, then continue to sign.</p>
+  <div class="grid" style="margin-bottom:14px">
+    <div class="full"><label data-i="collQ">Is collateral being put up? *</label>
+      <select name="collType" id="collType">
+        <option value="None" data-i="cNone">No — nothing is being put up</option>
+        <option value="Cash" data-i="cCash">Cash</option>
+        <option value="Credit Card" data-i="cCC">Credit card (hold / authorization)</option>
+        <option value="Vehicle" data-i="cVeh">Vehicle (car, truck, motorcycle)</option>
+        <option value="Real Estate" data-i="cRE">House / real estate</option>
+        <option value="Jewelry" data-i="cJew">Jewelry</option>
+        <option value="Other" data-i="cOth">Something else</option>
+      </select></div>
+
+    <div class="field collamt hidden"><label data-i="collAmt">Collateral amount</label><input name="collAmount" type="number" min="0" step="0.01" inputmode="decimal"></div>
+    <div class="full collcc hidden note" data-i="collCCn">This amount is a refundable hold added to today's total. It is returned when the bond is discharged, minus anything owed.</div>
+
+    <div class="field collveh hidden"><label data-i="collVeh">Vehicle — year, make, model</label><input name="collVehicle" placeholder="2019 Toyota Camry"></div>
+    <div class="field collveh hidden"><label data-i="collVin">VIN</label><input name="collVIN"></div>
+    <div class="field collveh hidden"><label data-i="collPlate">Plate #</label><input name="collPlate"></div>
+    <div class="field collveh hidden"><label data-i="collLien">Lienholder (if financed)</label><input name="collLien"></div>
+
+    <div class="full collre hidden"><label data-i="collAddr">Property address</label><input name="collAddress"></div>
+    <div class="field collre hidden"><label data-i="collMtg">Mortgage balance owed</label><input name="collMortgage" inputmode="numeric"></div>
+    <div class="full collre hidden warn" data-i="collREn">⚠️ Putting up a house requires a recorded mortgage and a notarized signature. We will prepare the documents and contact you — this cannot be completed online.</div>
+
+    <div class="field collother hidden"><label data-i="collDesc">Describe the collateral</label><input name="collDesc"></div>
+
+    <div class="field collval hidden"><label data-i="collVal">Estimated value</label><input name="collValue" inputmode="numeric"></div>
+    <div class="field collval hidden"><label data-i="collTitle">Title / ownership in whose name?</label><input name="collTitleName"></div>
+    <div class="full collany hidden"><label class="drop" style="padding:14px"><div class="ico">📄</div><div class="t" data-i="collDoc">Photo of title / deed / document</div><div class="hint" data-i="collDocH">Optional — speeds up processing.</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" capture="environment" data-doc="coll_doc"><img class="thumb" data-thumb></label></div>
+  </div>
+
+  <div class="premium" id="checkout" style="display:none">
+    <span data-i="coT">Total to collect today</span><b id="coTotal">$0</b>
+    <span class="hint" id="coBreak"></span>
+  </div>
+
+  <div class="grid" style="margin-bottom:16px">
+    <div class="full"><label data-i="payM">How are you paying? *</label>
+      <div class="chips" data-chip="payMethod">
+        <div class="chip" data-v="Credit Card" data-i="pCC">Credit / debit card</div>
+        <div class="chip" data-v="Cash" data-i="pCash">Cash</div>
+        <div class="chip" data-v="Zelle" data-i="pZelle">Zelle</div>
+        <div class="chip" data-v="Cash App" data-i="pCashApp">Cash App</div>
+        <div class="chip" data-v="Money Order" data-i="pMO">Money order</div>
+        <div class="chip" data-v="Check" data-i="pChk">Check</div>
+        <div class="chip" data-v="Other" data-i="pOth">Other</div>
+      </div><input type="hidden" name="payMethod"></div>
+    <div class="field paycc hidden"><label data-i="cc4">Card — last 4 digits</label><input name="ccLast4" maxlength="4" inputmode="numeric" placeholder="1234"></div>
+    <div class="field payoth hidden"><label data-i="payOthD">Describe the payment</label><input name="payOther"></div>
+    <div class="field"><label data-i="payNow">Amount you're paying today</label><input name="amountPaid" type="number" min="0" step="0.01" inputmode="decimal"></div>
+    <div class="field"><label data-i="balDue">Balance due</label><input name="balanceDue" readonly placeholder="$0"></div>
+    <div class="full warn hidden" id="balWarn" data-i="balW">A balance means a payment plan. Any unpaid balance remains owed after the bond is discharged and accrues interest at the maximum rate allowed by Florida law.</div>
+  </div>
+  <div class="rev" id="rev"></div>
+</section>
+
+<!-- STEP 7 : SIGN -->
+<section class="card stp hidden" data-s="7">
+  <h2 class="step" data-i="s7t">Sign to finish</h2>
+  <p class="sub" data-i="s7s">Read the agreement, type your name, then sign with your finger.</p>
+  <div class="ack" id="ack"></div>
+  <div class="grid" style="margin-top:14px">
+    <div class="field"><label data-i="typeN">Type your full legal name *</label><input name="signName" required></div>
+    <div class="field"><label data-i="sdate">Date</label><input name="signDate" readonly></div>
+  </div>
+  <label style="margin-top:14px" data-i="drawS">Sign here *</label>
+  <div class="sigwrap"><canvas id="sig"></canvas>
+    <div class="sigbar"><span class="hint" data-i="sigH">Use your finger or mouse</span><button type="button" class="btn2 ghost" id="clr" data-i="clear">Clear</button></div>
+  </div>
+  <label style="margin-top:14px;font-weight:600"><input type="checkbox" id="agree" style="width:auto;margin-right:9px;transform:scale(1.3)"> <span data-i="agreeB">I have read and agree, and everything I entered is true.</span></label>
+  <div class="warn" data-i="locD">🔒 By signing, you consent to us capturing your device location, IP address and the date &amp; time to verify this signature. This protects you and us.</div>
+</section>
+
+</form>
+</div>
+
+<div class="nav" id="nav">
+  <button type="button" class="btn back hidden" id="bBack" data-i="back">← Back</button>
+  <button type="button" class="btn next" id="bNext" data-i="next">Continue →</button>
+</div>
+
+<div class="wrap hidden" id="ok"><div class="card success">
+  <div class="big">✅</div>
+  <h2 data-i="okT">All done!</h2>
+  <p data-i="okB">We received your signed application. We'll confirm and post the bond.</p>
+  <p class="hint" data-i="pickL">Pick-up / jail location — tap for directions:</p>
+  <div class="sbtns">
+    <a class="a-txt" id="rcpBtn" href="#" data-i="getRcp">🧾 View / save your receipt</a>
+    <a class="a-rev" id="revLink" href="#" target="_blank" data-i="leaveR">⭐ Leave us a 5-star review</a>
+    <a class="a-txt" id="gmap" href="#" target="_blank" data-i="gmapT">📍 Directions — Google Maps</a>
+    <a class="a-txt" id="amap" href="#" target="_blank" data-i="amapT">🍎 Directions — Apple Maps</a>
+    <a class="a-call" href="tel:5618334388" data-i="callU">📞 Call us: 561-833-4388</a>
+    <a class="a-txt" href="sms:5615318622" data-i="textU">💬 Text us: 561-531-8622</a>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== CONFIG ===== */
+const CONFIG={
+  recipient:"bailbondreleasecenter@gmail.com",
+  aiEndpoint:"/api/read",
+  sendEndpoint:"/api/send",
+  payEndpoint:"/api/pay",
+  reviewUrl:"https://www.giveratings.com/bail-bonds-release-center",
+  agentName:"Carlos Sevilla",
+  agentTitle:"Bail Bond Agent",
+  agentLicense:"P204302",
+  agentSigImage:"",          // optional: paste a data:image/png;base64,... of your signature
+  receiptPrefix:"BBRC",      // receipt numbers look like BBRC-260729-4821
+  blotterUrl:"https://www3.pbso.org/blotter/index.cfm",
+  verifyEndpoint:"/api/verify",
+  locations:{ main:{g:"https://maps.app.goo.gl/uLAJPRdLGg27T4M79",a:"https://maps.apple/p/5RDzN8cG8aWM3.z"},
+              west:{g:"https://maps.app.goo.gl/srQgHM6h82hqFo1q6",a:"https://maps.apple.com/frame?center=26.723974,-80.664145&distance=1521.588922&map=hybrid&span=0.007283,0.008755"} }
+};
+const TOTAL=7;
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const f=document.getElementById('f');
+let step=1, LANG='en', ip='', geo='', inked=false;
+const imgs={}, files={};
+const val=n=>{const e=f.elements[n];return e?(e.value||'').trim():''};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3200);}
+
+/* ===== i18n ===== */
+const ES={
+ ttl:"Solicitud de Fianza — Co-firmante", sub2:"Bail Bond Release Center of the Palm Beaches",
+ s1t:"¿A quién va a sacar de la cárcel?", s1s:"Solo lo básico. Calculamos su costo automáticamente.",
+ defName:"Nombre completo de la persona en la cárcel *", jail:"¿Cuál cárcel?", bond:"Monto total de la fianza *",
+ blot:"Abrir blotter →", vBtn:"Verificar Fianza",
+ holdQ:"¿Hay una retención (hold) sobre esta persona? *", hNo:"Sin retención", hIce:"Retención de inmigración / ICE",
+ hAgency:"Otro condado o agencia", hVop:"Probación / VOP", hUnk:"No estoy seguro",
+ holdH:"Una \"retención\" significa que otra agencia también lo quiere en custodia. Si no sabe, elija \"No estoy seguro\" — lo verificamos.",
+ holdW:"⚠️ Las fianzas con retención necesitan aprobación de un agente antes de continuar, y pueden requerir pagar la fianza completa en vez de la prima del 10%. Puede terminar esta solicitud — la revisaremos y le contactaremos de inmediato.",
+ cit:"¿Es ciudadano de EE.UU.?",
+ immWhy:"La cárcel requiere esta información antes de publicar una fianza. Es confidencial y se usa solo para la fianza.",
+ immStat:"Su estatus migratorio", isLPR:"Residente permanente legal (green card)", isVisa:"Visa o permiso de trabajo",
+ isAsylum:"Asilo / caso pendiente", isDACA:"DACA", isNone:"Sin documentos migratorios", isPNS:"Prefiero no decir",
+ alien:"Número de extranjero (A#)", country:"País de ciudadanía", hlus:"¿Cuánto tiempo en EE.UU.?",
+ immDoc:"Foto de la green card / documento migratorio", immDocH:"Green card, permiso de trabajo o cualquier documento — lado frontal. Opcional pero acelera el proceso.", pasteT:"Pegue una captura de la página de registro", pasteH:"Tome una captura de la página de la cárcel, luego pegue (⌘V o Ctrl+V) en cualquier parte de esta página — o toque aquí para elegir la imagen. Leemos el monto de la fianza por usted.",
+ bondHint:"Escriba el monto total de la fianza. ¿No está seguro? Use el enlace o suba el blotter en el siguiente paso y lo confirmamos.",
+ premT:"Costo estimado hoy", premH:"10% de la fianza, mínimo $150. Confirmamos la fianza con la cárcel antes de cualquier cargo — su monto final se basa en la fianza verificada. No reembolsable una vez publicada la fianza.",
+ arrestDate:"Fecha de arresto", ifk:"(si lo sabe)", booking:"# de registro", charges:"Cargos",
+ s2t:"Tome una foto de su ID", s2s:"Frente, luego reverso, luego una selfie. Llenamos sus datos por usted.",
+ p1:"Foto 1 de 3 · FRENTE de la licencia", p2:"Foto 2 de 3 · REVERSO de la licencia", p3:"Foto 3 de 3 · Selfie en vivo",
+ tapF:"Toque para fotografiar el FRENTE", tapB:"Toque para fotografiar el REVERSO",
+ selfT:"Mire a la cámara — diremos “sonría” y la tomamos", startS:"📷 Iniciar selfie", again:"Repetir",
+ blotU:"Blotter / hoja de fianza (opcional)", afOn:"Auto-llenado activado.", afD:"Su licencia llena su nombre, fecha de nacimiento y dirección.",
+ s3t:"Su información", s3s:"Usted es el co-firmante (indemnizador) — la persona responsable de la fianza.",
+ rel:"Su relación con la persona en la cárcel *", relO:"Describa la relación", fn:"Nombre *", ln:"Apellido *", mid:"Segundo nombre", nick:"Apodo / alias",
+ mob:"Teléfono móvil *", home:"Teléfono de casa", workp:"Teléfono del trabajo", em:"Correo electrónico *",
+ addr:"Dirección actual *", howlong:"¿Cuánto tiempo ahí?", rentown:"¿Renta o es dueño?", rent:"Renta", own:"Dueño",
+ ll:"Arrendador / acreedor hipotecario", fmr:"Dirección anterior", dob:"Su fecha de nacimiento", born:"¿Dónde nació?",
+ sex:"Sexo", ssn:"# de Seguro Social", dl:"# de licencia", dls:"Estado de licencia", race:"Raza", nat:"Nacionalidad",
+ cit:"¿Ciudadano de EE.UU.?", yes:"Sí", no:"No", hlus:"¿Cuánto tiempo en EE.UU.?", alien:"# de extranjero", soc:"Redes sociales que usa",
+ s4t:"Trabajo, vehículo y familia", s4s:"Omita lo que no aplique.",
+ occ:"Ocupación", empl:"Empleador", empa:"Dirección del empleador", empt:"Teléfono del empleador", hlj:"¿Cuánto tiempo ahí?",
+ sup:"Nombre del supervisor", uni:"Sindicato / Local #", mil:"Servicio militar", vyr:"Año / marca / modelo del vehículo",
+ vcol:"Color y placa", vfin:"¿Dónde financiado?", vowe:"Monto que debe", mar:"Estado civil",
+ mMarried:"Casado", mSingle:"Soltero", mDiv:"Divorciado", mSep:"Separado", mWid:"Viudo", mCoh:"Viviendo juntos",
+ spn:"Nombre del cónyuge / pareja", spl:"¿Cuánto tiempo juntos?", spp:"Su teléfono", spe:"Su empleador",
+ s5t:"Dos referencias", s5s:"Personas que lo conocen — no la persona en la cárcel.",
+ ref1:"Referencia 1", ref2:"Referencia 2", rname:"Nombre", rrel:"Relación", rphone:"Teléfono", raddr:"Dirección",
+ finT:"Finanzas (opcional)", cash:"Efectivo a mano", bank:"Efectivo en el banco", reV:"Valor de bienes raíces",
+ reM:"Hipoteca de bienes raíces", title:"¿Título a nombre de quién?", sal:"Ingreso mensual", notes:"¿Algo que debamos saber?",
+ hasAtt:"¿El acusado tiene abogado?", attN:"Nombre del abogado", wantA:"Que un abogado me contacte",
+ s6t:"Pago y revisión", s6s:"Díganos cómo va a pagar, revise sus respuestas y continúe a firmar.",
+ collQ:"¿Se está poniendo garantía (colateral)? *", cNone:"No — no se pone nada", cCash:"Efectivo",
+ cCC:"Tarjeta de crédito (retención / autorización)", cVeh:"Vehículo (carro, camioneta, moto)", cRE:"Casa / bienes raíces",
+ cJew:"Joyería", cOth:"Otra cosa", collAmt:"Monto de la garantía",
+ collCCn:"Este monto es una retención reembolsable que se agrega al total de hoy. Se devuelve cuando la fianza se descarga, menos lo que se deba.",
+ collVeh:"Vehículo — año, marca, modelo", collVin:"VIN", collPlate:"Placa #", collLien:"Acreedor (si está financiado)",
+ collAddr:"Dirección de la propiedad", collMtg:"Saldo de la hipoteca",
+ collREn:"⚠️ Poner una casa requiere una hipoteca registrada y firma notariada. Prepararemos los documentos y le contactaremos — esto no se puede completar en línea.",
+ collDesc:"Describa la garantía", collVal:"Valor estimado", collTitle:"¿Título a nombre de quién?",
+ collDoc:"Foto del título / escritura / documento", collDocH:"Opcional — acelera el proceso.",
+ coT:"Total a cobrar hoy",
+ payM:"¿Cómo va a pagar? *", pCC:"Tarjeta de crédito / débito", pCash:"Efectivo", pZelle:"Zelle", pCashApp:"Cash App",
+ pMO:"Money order", pChk:"Cheque", pOth:"Otro", cc4:"Últimos 4 de la tarjeta", payOthD:"Describa el pago",
+ payNow:"Monto que paga hoy", balDue:"Saldo pendiente",
+ balW:"Un saldo significa un plan de pago. Cualquier saldo no pagado sigue debiéndose después de la descarga de la fianza y genera intereses a la tasa máxima permitida por la ley de Florida.",
+ getRcp:"🧾 Ver / guardar su recibo",
+ s7t:"Firme para terminar", s7s:"Lea el acuerdo, escriba su nombre y firme con el dedo.",
+ typeN:"Escriba su nombre legal completo *", sdate:"Fecha", drawS:"Firme aquí *", sigH:"Use su dedo o el ratón", clear:"Borrar",
+ agreeB:"He leído y acepto, y todo lo que escribí es verdadero.",
+ locD:"🔒 Al firmar, consiente que capturemos la ubicación de su dispositivo, su dirección IP y la fecha y hora para verificar esta firma.",
+ back:"← Atrás", next:"Continuar →",
+ okT:"¡Listo!", okB:"Recibimos su solicitud firmada. Confirmaremos y publicaremos la fianza.",
+ pickL:"Recogida / cárcel — toque para direcciones:", leaveR:"⭐ Déjenos una reseña de 5 estrellas",
+ gmapT:"📍 Direcciones — Google Maps", amapT:"🍎 Direcciones — Apple Maps",
+ callU:"📞 Llámenos: 561-833-4388", textU:"💬 Texto: 561-531-8622"
+};
+const EN={};
+$$('[data-i]').forEach(e=>EN[e.getAttribute('data-i')]=e.textContent);
+function setLang(l){LANG=l;document.documentElement.lang=l;
+  $('#enB').classList.toggle('active',l==='en');$('#esB').classList.toggle('active',l==='es');
+  $$('[data-i]').forEach(e=>{const k=e.getAttribute('data-i');e.textContent=(l==='es'&&ES[k])?ES[k]:EN[k];});
+  $('#ack').textContent=ACK[l]; buildRel(); flagState(); jailInfo(); bar(); review();}
+
+const ACK={
+ en:"By signing below, I, the co-signer (indemnitor), agree to guarantee the appearance of the named defendant at all required court dates. I understand the amount due is a bail premium equal to ten percent (10%) of the bond amount, subject to a minimum total charge of one hundred fifty dollars ($150.00); where ten percent is less than that minimum, the difference is charged as an agent fee. I understand the final amount due is based on the bond amount as confirmed with the jail or court, and that if the actual bond differs from the amount I stated, the premium will be adjusted accordingly. I understand this amount is fully earned and NON-REFUNDABLE once the bond is posted. I agree to be financially responsible for the full bond amount if the defendant fails to appear, plus all recovery, investigative, court and attorney costs. If any premium or financed balance is not paid in full, I agree it remains owed after the bond is discharged and shall bear interest at the maximum rate permitted by Florida law. I authorize Bail Bond Release Center of the Palm Beaches, Inc. to verify all information provided, including an investigative consumer report. I certify the identification and photos I submitted are my own and accurate. This electronic signature, together with my captured location, timestamp, IP address and device information, has the same legal effect as a handwritten signature under the U.S. E-SIGN Act and Florida UETA (Ch. 668, F.S.).",
+ es:"Al firmar abajo, yo, el co-firmante (indemnizador), acepto garantizar la comparecencia del acusado nombrado en todas las fechas de corte requeridas. Entiendo que el monto a pagar es una prima de fianza igual al diez por ciento (10%) del monto de la fianza, sujeto a un cargo mínimo total de ciento cincuenta dólares ($150.00); cuando el diez por ciento sea menor que ese mínimo, la diferencia se cobra como cargo de agente. Entiendo que el monto final se basa en la fianza confirmada con la cárcel o la corte, y que si la fianza real difiere del monto que indiqué, la prima se ajustará. Entiendo que este monto se gana totalmente y NO ES REEMBOLSABLE una vez publicada la fianza. Acepto ser responsable financieramente del monto total de la fianza si el acusado no comparece, más todos los costos de recuperación, investigación, corte y abogados. Si alguna prima o saldo financiado no se paga en su totalidad, acepto que sigue debiéndose después de la descarga de la fianza y generará intereses a la tasa máxima permitida por la ley de Florida. Autorizo a Bail Bond Release Center of the Palm Beaches, Inc. a verificar toda la información, incluyendo un informe de consumidor investigativo. Certifico que la identificación y las fotos que envié son mías y correctas. Esta firma electrónica, junto con mi ubicación, fecha/hora, dirección IP y datos del dispositivo, tiene el mismo efecto legal que una firma manuscrita bajo la Ley E-SIGN de EE.UU. y la UETA de Florida (Cap. 668, F.S.)."
+};
+
+/* ===== jails ===== */
+/* prov:'pbso' = automatic bond lookup supported. addr = used for map directions.
+   loc = we have an exact dropped pin for these two.                            */
+const JAILS=[
+ {c:'Palm Beach County',j:[
+   {n:'Main Detention Center — Gun Club Rd, West Palm Beach',v:'Palm Beach County Main Detention Center',prov:'pbso',loc:'main',
+    addr:'3228 Gun Club Rd, West Palm Beach, FL 33406',tel:'(561) 688-4400',srch:'https://www3.pbso.org/blotter/index.cfm'},
+   {n:'West Detention Center — Belle Glade',v:'Palm Beach County West Detention Center',prov:'pbso',loc:'west',
+    addr:'38811 James Wheeler Way, Belle Glade, FL 33430',tel:'(561) 992-1697',srch:'https://www3.pbso.org/blotter/index.cfm'}]},
+ {c:'Broward County',j:[
+   {n:'Main Jail / Central Intake — Fort Lauderdale',v:'Broward County Main Jail, Fort Lauderdale',
+    addr:'555 SE 1st Ave, Fort Lauderdale, FL 33301',tel:'(954) 831-5900',srch:'https://www.sheriff.org/'},
+   {n:'Paul Rein Detention Facility — Pompano Beach',v:'Paul Rein Detention Facility, Pompano Beach',
+    addr:'2421 NW 16th St, Pompano Beach, FL 33069',tel:'(954) 831-5900',srch:'https://www.sheriff.org/'},
+   {n:'North Broward Bureau — Pompano Beach',v:'North Broward Bureau, Pompano Beach',
+    addr:'1550 NW 30th Ave, Pompano Beach, FL 33069',tel:'(954) 831-5900',srch:'https://www.sheriff.org/'},
+   {n:'Joseph V. Conte Facility — Pompano Beach',v:'Joseph V. Conte Facility, Pompano Beach',
+    addr:'Joseph V Conte Facility Pompano Beach FL',tel:'(954) 831-5900',srch:'https://www.sheriff.org/'}]},
+ {c:'Miami-Dade County',j:[
+   {n:'Turner Guilford Knight (TGK)',v:'Turner Guilford Knight Correctional Center, Miami',
+    addr:'7000 NW 41st St, Miami, FL 33166',tel:'(786) 263-5341',srch:'https://www.miamidade.gov/global/corrections/home.page'},
+   {n:'Metro West Detention Center',v:'Metro West Detention Center, Miami',
+    addr:'13850 NW 41st St, Miami, FL 33178',tel:'(786) 263-5110',srch:'https://www.miamidade.gov/global/corrections/home.page'},
+   {n:'Pre-Trial Detention Center (Main Jail)',v:'Miami-Dade Pre-Trial Detention Center',
+    addr:'1321 NW 13th St, Miami, FL 33125',tel:'(786) 263-4110',srch:'https://www.miamidade.gov/global/corrections/home.page'}]},
+ {c:'Treasure Coast',j:[
+   {n:'Martin County Jail — Stuart',v:'Martin County Jail, Stuart',
+    addr:'800 SE Monterey Rd, Stuart, FL 34994',tel:'(772) 220-7200',srch:'https://www.mcsofl.org/223/Jail-Inmate-Search'},
+   {n:'St. Lucie County Jail — Fort Pierce',v:'St. Lucie County Jail, Fort Pierce',
+    addr:'900 N Rock Rd, Fort Pierce, FL 34945',tel:'(772) 462-7300',srch:'https://www.stluciesheriff.com/213/Inmate-Information'},
+   {n:'Indian River County Jail — Vero Beach',v:'Indian River County Jail, Vero Beach',addr:'Indian River County Jail Vero Beach FL',srch:'https://www.ircsheriff.org/'}]},
+ {c:'Lake Okeechobee area',j:[
+   {n:'Okeechobee County Jail',v:'Okeechobee County Jail',addr:'Okeechobee County Jail FL'},
+   {n:'Glades County Detention Center — Moore Haven',v:'Glades County Detention Center, Moore Haven',addr:'Glades County Detention Center Moore Haven FL'},
+   {n:'Hendry County Jail — LaBelle',v:'Hendry County Jail, LaBelle',addr:'Hendry County Jail LaBelle FL'}]},
+ {c:'Southwest Florida',j:[
+   {n:'Lee County Jail — Fort Myers',v:'Lee County Jail, Fort Myers',addr:'Lee County Jail Fort Myers FL'},
+   {n:'Collier County — Naples Jail Center',v:'Naples Jail Center, Collier County',addr:'Naples Jail Center Collier County FL'},
+   {n:'Charlotte County Jail — Punta Gorda',v:'Charlotte County Jail, Punta Gorda',addr:'Charlotte County Jail Punta Gorda FL'}]},
+ {c:'Central Florida',j:[
+   {n:'Orange County Jail — Orlando',v:'Orange County Jail, Orlando',addr:'Orange County Jail Orlando FL'},
+   {n:'Osceola County Jail — Kissimmee',v:'Osceola County Jail, Kissimmee',addr:'Osceola County Jail Kissimmee FL'},
+   {n:'Brevard County Jail — Titusville',v:'Brevard County Jail, Titusville',addr:'Brevard County Jail Titusville FL'},
+   {n:'Highlands County Jail — Sebring',v:'Highlands County Jail, Sebring',addr:'Highlands County Jail Sebring FL'}]},
+ {c:'Federal / Immigration',j:[
+   {n:'Krome Detention Center (ICE) — Miami',v:'Krome North Service Processing Center (ICE), Miami',addr:'Krome Detention Center Miami FL'},
+   {n:'Broward Transitional Center (ICE) — Pompano',v:'Broward Transitional Center (ICE), Pompano Beach',addr:'Broward Transitional Center Pompano Beach FL'},
+   {n:'Federal Detention Center — Miami',v:'Federal Detention Center, Miami',addr:'Federal Detention Center Miami FL'}]},
+ {c:'Other',j:[{n:'Other / not listed — we will confirm',v:'Other — not listed',addr:''}]}
+];
+function buildJails(){const sel=$('#jail');if(!sel)return;const cur=sel.value;
+  sel.innerHTML='';
+  JAILS.forEach(grp=>{const og=document.createElement('optgroup');og.label=grp.c;
+    grp.j.forEach(x=>{const o=document.createElement('option');o.value=x.v;o.textContent=x.n;
+      if(x.prov)o.setAttribute('data-prov',x.prov);
+      if(x.loc)o.setAttribute('data-loc',x.loc);
+      if(x.addr)o.setAttribute('data-addr',x.addr);
+      if(x.tel)o.setAttribute('data-tel',x.tel);
+      if(x.srch)o.setAttribute('data-srch',x.srch);
+      og.appendChild(o);});
+    sel.appendChild(og);});
+  if(cur)sel.value=cur;}
+function jailOpt(){const sel=$('#jail');return sel&&sel.options[sel.selectedIndex];}
+function jailInfo(){const o=jailOpt(),e=$('#jailInfo');if(!e)return;
+  const a=(o&&o.getAttribute('data-addr'))||'', t=(o&&o.getAttribute('data-tel'))||'';
+  const looksAddr=/\d/.test(a)&&/,/.test(a);
+  e.innerHTML = looksAddr
+    ? ((LANG==='es'?'Liberación / recogida: ':'Release / pick-up: ')+a+(t?('  ·  '+t):''))
+    : (a?(LANG==='es'?'Confirmaremos la dirección exacta de liberación.':"We'll confirm the exact release address."):'');}
+
+/* ===== payment ===== */
+function recNo(){ if(window.__rec) return window.__rec;
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  const stamp=String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate());
+  const rand=Math.floor(1000+Math.random()*9000);
+  window.__rec=(CONFIG.receiptPrefix||'BBRC')+'-'+stamp+'-'+rand; return window.__rec;}
+function collNo(){ if(window.__coll) return window.__coll;
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  window.__coll='COL-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+Math.floor(1000+Math.random()*9000);
+  return window.__coll;}
+function collTaken(){const t=val('collType');return !!t && t!=='None';}
+function collCash(){const t=val('collType');
+  return (t==='Cash'||t==='Credit Card') ? (parseFloat(val('collAmount'))||0) : 0;}
+function collSummary(){const t=val('collType');if(!collTaken())return 'None';
+  if(t==='Cash'||t==='Credit Card')return t+' — $'+collCash().toLocaleString();
+  if(t==='Vehicle')return 'Vehicle — '+[val('collVehicle'),val('collVIN')?('VIN '+val('collVIN')):'',val('collPlate')?('plate '+val('collPlate')):'',val('collValue')?('est. $'+val('collValue')):''].filter(Boolean).join(', ');
+  if(t==='Real Estate')return 'Real Estate — '+[val('collAddress'),val('collValue')?('est. $'+val('collValue')):'',val('collMortgage')?('mortgage $'+val('collMortgage')):''].filter(Boolean).join(', ');
+  return t+' — '+[val('collDesc'),val('collValue')?('est. $'+val('collValue')):''].filter(Boolean).join(', ');}
+function syncColl(){const t=val('collType');
+  const show=(cls,on)=>$$(cls).forEach(e=>e.classList.toggle('hidden',!on));
+  show('.collamt', t==='Cash'||t==='Credit Card');
+  show('.collcc',  t==='Credit Card');
+  show('.collveh', t==='Vehicle');
+  show('.collre',  t==='Real Estate');
+  show('.collother', t==='Jewelry'||t==='Other');
+  show('.collval', t==='Vehicle'||t==='Real Estate'||t==='Jewelry'||t==='Other');
+  show('.collany', collTaken());}
+function payMethodText(){const m=val('payMethod');
+  if(m==='Credit Card'&&val('ccLast4'))return 'Credit Card (ending '+val('ccLast4')+')';
+  if(m==='Other'&&val('payOther'))return 'Other — '+val('payOther');
+  return m;}
+function syncPay(){
+  syncColl();
+  $$('.paycc').forEach(e=>e.classList.toggle('hidden',val('payMethod')!=='Credit Card'));
+  $$('.payoth').forEach(e=>e.classList.toggle('hidden',val('payMethod')!=='Other'));
+  const prem=calc(), cc=collCash(), due=prem+cc;
+  const paidEl=f.elements['amountPaid'];
+  if(paidEl&&!paidEl.value&&due>0)paidEl.value=due;
+  const paid=parseFloat(val('amountPaid'))||0;
+  const bal=Math.max(0,due-paid);
+  const b=f.elements['balanceDue']; if(b)b.value=due>0?('$'+bal.toLocaleString()):'';
+  const w=$('#balWarn'); if(w)w.classList.toggle('hidden',!(bal>0));
+  const co=$('#checkout');
+  if(co){ co.style.display=due>0?'block':'none';
+    const t=$('#coTotal'); if(t)t.textContent='$'+due.toLocaleString();
+    const br=$('#coBreak');
+    if(br)br.textContent = cc>0
+      ? ((LANG==='es'?'prima ':'premium ')+'$'+prem.toLocaleString()+(LANG==='es'?' (no reembolsable) + garantía ':' (non-refundable) + collateral ')+'$'+cc.toLocaleString()+(LANG==='es'?' (reembolsable)':' (refundable)'))
+      : ((LANG==='es'?'prima $':'premium $')+prem.toLocaleString()+(LANG==='es'?' (no reembolsable)':' (non-refundable)'));}
+  return {total:prem,collateral:cc,due:due,paid:paid,bal:bal};}
+
+/* ===== out-of-state ID flag ===== */
+function outOfState(){const st=val('dlState').trim().toUpperCase();
+  return !!st && st!=='FL' && st!=='FLORIDA' && st!=='FLA';}
+function flagState(){const n=$('#stateNote');if(!n)return;
+  n.classList.toggle('hidden',!outOfState());
+  if(outOfState())n.textContent=(LANG==='es'
+    ? 'Nota: su licencia es de '+val('dlState').toUpperCase()+' (fuera de Florida). Es normal — solo puede requerir verificación adicional.'
+    : 'Note: your license is from '+val('dlState').toUpperCase()+' (outside Florida). That\'s fine — it may just need extra verification.');}
+
+/* ===== relationship dropdown ===== */
+const RELS=[
+ {g:'partner',o:[['Spouse — Husband','Esposo'],['Spouse — Wife','Esposa'],['Fiancé / Fiancée','Prometido/a'],
+   ['Girlfriend','Novia'],['Boyfriend','Novio'],['Domestic partner','Pareja de hecho'],['Ex-spouse','Ex esposo/a'],
+   ['Ex-girlfriend / Ex-boyfriend','Ex novia / Ex novio']]},
+ {g:'family',o:[['Mother','Madre'],['Father','Padre'],['Stepmother','Madrastra'],['Stepfather','Padrastro'],
+   ['Son','Hijo'],['Daughter','Hija'],['Stepson','Hijastro'],['Stepdaughter','Hijastra'],
+   ['Brother','Hermano'],['Sister','Hermana'],['Stepbrother','Hermanastro'],['Stepsister','Hermanastra'],
+   ['Half-brother','Medio hermano'],['Half-sister','Media hermana'],
+   ['Grandmother','Abuela'],['Grandfather','Abuelo'],['Grandson','Nieto'],['Granddaughter','Nieta'],
+   ['Aunt','Tía'],['Uncle','Tío'],['Niece','Sobrina'],['Nephew','Sobrino'],['Cousin','Primo/a'],
+   ['Mother-in-law','Suegra'],['Father-in-law','Suegro'],['Son-in-law','Yerno'],['Daughter-in-law','Nuera'],
+   ['Brother-in-law','Cuñado'],['Sister-in-law','Cuñada'],['Godmother','Madrina'],['Godfather','Padrino'],
+   ['Legal guardian','Tutor legal'],['Foster parent','Padre/madre de crianza'],['Family friend','Amigo de la familia']]},
+ {g:'other',o:[['Friend','Amigo/a'],['Best friend','Mejor amigo/a'],['Neighbor','Vecino/a'],['Roommate','Compañero/a de cuarto'],
+   ['Coworker','Compañero/a de trabajo'],['Employer','Empleador'],['Employee','Empleado'],['Supervisor','Supervisor'],
+   ['Pastor / Clergy','Pastor / Clero'],['Attorney','Abogado'],['Bondsman referral','Referencia de fianzas'],
+   ['Acquaintance','Conocido/a'],['Self','Yo mismo'],['Other','Otro']]}
+];
+const RELG={partner:['Spouse / Partner','Esposo / Pareja'],family:['Family','Familia'],other:['Other','Otro']};
+function buildRel(){const sel=$('#relSel');if(!sel)return;const cur=sel.value;
+  sel.innerHTML='<option value=""></option>';
+  RELS.forEach(grp=>{const og=document.createElement('optgroup');
+    og.label=RELG[grp.g][LANG==='es'?1:0];
+    grp.o.forEach(([en,es])=>{const op=document.createElement('option');op.value=en;op.textContent=(LANG==='es'?es:en);og.appendChild(op);});
+    sel.appendChild(og);});
+  if(cur)sel.value=cur;}
+function relText(){const r=val('relationship');return r==='Other'?(val('relOther')||'Other'):r;}
+
+/* ===== chips ===== */
+$$('[data-chip]').forEach(box=>{const n=box.getAttribute('data-chip');
+  box.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+    box.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');
+    f.elements[n].value=c.getAttribute('data-v');syncCond();review();}));});
+function needsApproval(){const h=val('hold');return !!h && h!=='No hold';}
+function syncCond(){
+  syncPay();
+  $$('.relother').forEach(e=>e.classList.toggle('hidden',val('relationship')!=='Other'));
+  const nc = val('citizen')==='No';
+  $$('.noncit').forEach(e=>e.classList.toggle('hidden',!nc));
+  const w=$('#holdWarn'); if(w) w.classList.toggle('hidden',!needsApproval());
+}
+$$('[data-multi]').forEach(box=>{const n=box.getAttribute('data-multi');
+  box.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');
+    f.elements[n].value=Array.from(box.querySelectorAll('.chip.on')).map(x=>x.getAttribute('data-v')).join(', ');review();}));});
+
+/* ===== pricing: 10% of bond, $150 minimum (agent fee makes up the difference) ===== */
+const RATE=0.10, MIN_TOTAL=150;
+function priceParts(){const b=parseFloat(val('bond'))||0;
+  if(b<=0)return {bond:0,prem:0,fee:0,total:0,min:false};
+  const prem=Math.round(b*RATE); const total=Math.max(prem,MIN_TOTAL); const fee=total-prem;
+  return {bond:b,prem:prem,fee:fee,total:total,min:fee>0};}
+function calc(){const p=priceParts();const box=$('#premBox');
+  box.classList.toggle('hidden',!(p.total>0));
+  $('#premAmt').textContent='$'+p.total.toLocaleString();
+  let txt='';
+  if(p.total>0){ txt = p.fee>0
+    ? ((LANG==='es'?'prima 10% ':'10% premium ')+'$'+p.prem.toLocaleString()+' + $'+p.fee.toLocaleString()+(LANG==='es'?' cargo de agente (mínimo $150)':' agent fee (minimum $150)'))
+    : ((LANG==='es'?'prima 10% de ':'10% of ')+'$'+p.bond.toLocaleString()); }
+  $('#premBreak').textContent=txt;
+  return p.total;}
+function feeBreak(){const p=priceParts();if(!p.total)return '';
+  return p.fee>0
+    ? ('10% premium $'+p.prem.toLocaleString()+' + $'+p.fee.toLocaleString()+' agent fee = $'+p.total.toLocaleString()+' ($150 minimum)')
+    : ('10% of $'+p.bond.toLocaleString()+' = $'+p.total.toLocaleString());}
+
+/* ===== bond verification (calls verify-worker) ===== */
+let bondVerified=false, verifiedInfo='';
+function vMsg(t,color){const e=$('#vStat');if(!e)return;e.textContent=t;e.style.color=color||'';}
+function nameParts(str){const s=(str||'').trim();
+  if(!s)return{last:'',first:''};
+  if(s.indexOf(',')>-1){const a=s.split(',');return{last:(a[0]||'').trim(),first:((a[1]||'').trim().split(/\s+/)[0]||'')};}
+  const t=s.split(/\s+/);
+  if(t.length===1)return{last:t[0],first:''};
+  return{last:t[t.length-1],first:t[0]};}
+function providerKey(){const o=jailOpt();return (o&&o.getAttribute('data-prov'))||'';}
+function applyVerified(m){
+  const el=f.elements['bond']; if(el){el.value=String(m.bondTotal);el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1100);}
+  if(m.name&&!val('defName'))setF('defName',m.name);
+  bondVerified=true;
+  verifiedInfo='VERIFIED via '+(m.source||'PBSO')+' — '+m.name+' · '+m.facility+' · booked '+m.bookingDate
+    +' · holds: '+m.holds+' · charges: '+m.charges.map(c=>'$'+c.bond.toLocaleString()).join(' + ')
+    +' · total $'+m.bondTotal.toLocaleString();
+  // auto-set hold chip if the jail record shows one
+  if(/yes/i.test(m.holds)){const box=document.querySelector('[data-chip="hold"]');
+    if(box){const c=Array.from(box.querySelectorAll('.chip')).find(x=>x.getAttribute('data-v')==='Another county or agency hold');
+      if(c&&!box.querySelector('.chip.on')){box.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');f.elements['hold'].value=c.getAttribute('data-v');}}}
+  calc();syncCond();review();
+  toast((LANG==='es'?'✅ Fianza verificada: $':'✅ Bond verified: $')+m.bondTotal.toLocaleString());
+}
+function renderMatches(data){
+  const box=$('#vRes'); if(!box)return; box.classList.remove('hidden'); box.innerHTML='';
+  (data.matches||[]).forEach((m,i)=>{
+    m.source=data.source;
+    const d=document.createElement('div'); d.className='vcard';
+    let h='<h4>'+m.name+'</h4><div class="meta">'+[m.facility,m.bookingDate?('booked '+m.bookingDate):'',m.holds?('holds: '+m.holds):''].filter(Boolean).join(' · ')+'</div>';
+    (m.charges||[]).forEach(c=>{h+='<div class="chg"><span>'+String(c.desc).slice(0,70)+'</span><b>$'+c.bond.toLocaleString()+'</b></div>';});
+    h+='<div class="tot">'+(LANG==='es'?'Fianza total: ':'Total bond: ')+'$'+(m.bondTotal||0).toLocaleString()+'</div>';
+    if(m.needsReview)h+='<div class="flag">'+(LANG==='es'?'⚠️ Este registro muestra una retención o una fianza de $0 — requiere aprobación de un agente.':'⚠️ This record shows a hold or a $0 bond — needs agent approval.')+'</div>';
+    d.innerHTML=h;
+    const b=document.createElement('button'); b.type='button'; b.className='btn2'; b.style.marginTop='9px';
+    b.textContent=(LANG==='es'?'Usar $':'Use $')+(m.bondTotal||0).toLocaleString();
+    b.addEventListener('click',()=>applyVerified(m));
+    d.appendChild(b); box.appendChild(d);
+  });
+  if(data.note){const n=document.createElement('p');n.className='hint';n.style.marginTop='7px';n.textContent=data.note;box.appendChild(n);}
+}
+(function(){const b=$('#vBtn');if(!b)return;
+  b.addEventListener('click',async()=>{
+    const nm=val('defName');
+    if(!nm){toast(LANG==='es'?'Escriba el nombre primero':'Enter the name first');const e=f.elements['defName'];if(e)e.focus();return;}
+    const {last,first}=nameParts(nm);
+    const box=$('#vRes'); if(box){box.classList.add('hidden');box.innerHTML='';}
+    // jail has no automatic lookup -> send them to that jail's own search
+    if(!providerKey()){
+      const jn=(jailOpt()&&jailOpt().textContent)||'';
+      try{navigator.clipboard.writeText(last);}catch(_){}
+      const own=(jailOpt()&&jailOpt().getAttribute('data-srch'))||'';
+      window.open(own||('https://www.google.com/search?q='+encodeURIComponent(((jailOpt()&&jailOpt().value)||'')+' inmate search bond')),'_blank','noopener');
+      vMsg(LANG==='es'
+        ? 'Esa cárcel no tiene búsqueda automática. Abrimos su sitio — busque "'+last+'", tome una captura y péguela aquí.'
+        : 'That jail has no automatic lookup. We opened its search — find "'+last+'", screenshot it, then paste it here.','#8a5a1a');
+      return;}
+    if(CONFIG.verifyEndpoint.indexOf('REPLACE')>-1){
+      try{if(nm)navigator.clipboard.writeText(last);}catch(_){}
+      window.open(CONFIG.blotterUrl,'_blank','noopener');
+      vMsg(LANG==='es'?'↗ Se abrió el blotter — busque "'+last+'", tome una captura y péguela aquí.':'↗ Blotter opened — search "'+last+'", screenshot it, then paste it here.','#8a5a1a');
+      return;}
+    b.disabled=true; const lbl=b.textContent;
+    b.textContent=LANG==='es'?'Buscando…':'Checking…';
+    vMsg(LANG==='es'?'Consultando los registros de la cárcel…':'Searching jail records…','');
+    try{
+      const r=await fetch(CONFIG.verifyEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({provider:providerKey(),lastName:last,firstName:first,days:45})});
+      const data=await r.json();
+      if(data.ok&&(data.matches||[]).length){
+        vMsg((LANG==='es'?'✅ ':'✅ ')+data.matches.length+(LANG==='es'?' registro(s) encontrado(s) — toque "Usar" para aplicar el monto.':' record(s) found — tap "Use" to apply the amount.'),'#14602f');
+        renderMatches(data);
+      }else if(data.ok){
+        vMsg(LANG==='es'?'No encontramos registros con ese nombre. Verifique la ortografía, o pegue una captura del blotter.':"No records found for that name. Check the spelling, or paste a screenshot of the blotter.",'#8a5a1a');
+      }else{
+        vMsg((LANG==='es'?'No pudimos verificar automáticamente. ':"Couldn't verify automatically. ")+(LANG==='es'?'Abra el blotter y pegue una captura.':'Open the blotter and paste a screenshot.'),'#8a5a1a');
+      }
+    }catch(_){
+      vMsg(LANG==='es'?'No pudimos conectar. Abra el blotter y pegue una captura.':"Couldn't connect. Open the blotter and paste a screenshot.",'#8a5a1a');
+    }
+    b.disabled=false; b.textContent=lbl;
+  });
+})();
+
+/* ===== geo ===== *//* ===== geo ===== */
+function getGeo(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{
+  geo=p.coords.latitude.toFixed(6)+', '+p.coords.longitude.toFixed(6)+' (±'+Math.round(p.coords.accuracy)+'m)';},()=>{},{enableHighAccuracy:true,timeout:10000});}
+
+/* ===== uploads + AI prefill ===== */
+const b64=fl=>new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(String(x.result).split(',')[1]);x.onerror=j;x.readAsDataURL(fl);});
+const durl=fl=>new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(String(x.result));x.onerror=j;x.readAsDataURL(fl);});
+const LBL={id_front:'License front',id_back:'License back',blotter:'Blotter',booking:'Booking screenshot',imm_doc:'Immigration document',coll_doc:'Collateral document',selfie:'Live selfie'};
+async function ingest(fl,k,box){
+  if(!fl)return; files[k]=fl.name||'pasted-image.png';
+  const st=box.querySelector('[data-status]'), th=box.querySelector('[data-thumb]');
+  box.classList.add('done');
+  try{const d=await durl(fl);imgs[k]=d;if((fl.type||'').startsWith('image')){th.src=d;th.style.display='inline-block';}}catch(_){}
+  st.style.color=''; st.textContent='✓';
+  if(CONFIG.aiEndpoint.indexOf('REPLACE')<0){
+    st.textContent=LANG==='es'?'Leyendo…':'Reading…';
+    try{const res=await fetch(CONFIG.aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({docType:(k==='booking'?'blotter':k),mimeType:fl.type||'image/png',dataBase64:await b64(fl)})});
+      const dd=await res.json(); const n=apply(dd.fields||{});
+      st.textContent=n>0?('✓ '+(LANG==='es'?'Llenó ':'Filled ')+n):'✓';
+      if(n>0)toast((LANG==='es'?'✨ Llenamos ':'✨ Filled ')+n+(LANG==='es'?' campos':' fields')+(k==='booking'||k==='blotter'?(LANG==='es'?' del blotter':' from the booking page'):(LANG==='es'?' de su ID':' from your ID')));
+    }catch(_){st.textContent='✓';}
+  }
+  review();
+}
+$$('input[type=file][data-doc]').forEach(inp=>inp.addEventListener('change',e=>{
+  const fl=e.target.files[0]; if(fl) ingest(fl,inp.dataset.doc,inp.closest('.drop'));
+}));
+/* paste a screenshot anywhere */
+document.addEventListener('paste',async e=>{
+  const items=(e.clipboardData&&e.clipboardData.items)||[];
+  for(const it of items){
+    if(it.type&&it.type.indexOf('image')===0){
+      const blob=it.getAsFile();
+      if(blob){e.preventDefault();
+        const pz=$('#pz');
+        if(step!==1){step=1;show();}
+        toast(LANG==='es'?'📋 Leyendo la captura…':'📋 Reading your screenshot…');
+        await ingest(blob,'booking',pz);
+      }
+      break;
+    }
+  }
+});
+function setF(n,v){const e=f.elements[n];if(!e||v==null||v==='')return false;
+  if(e.tagName==='SELECT'){
+    if(e.value&&n!=='dlState')return false;
+    const want=String(v).trim().toLowerCase();let hit=null;
+    for(const o of e.options){const ov=(o.value||'').trim().toLowerCase(),ot=(o.textContent||'').trim().toLowerCase();
+      if(ov===want||ot===want){hit=o.value;break;}}
+    if(hit==null)for(const o of e.options){const ot=(o.textContent||'').trim().toLowerCase();
+      if(ot&&(ot.indexOf(want)>-1||want.indexOf(ot)>-1)){hit=o.value;break;}}
+    if(hit==null)return false;e.value=hit;
+  } else {
+    if(e.value&&n!=='dlState')return false;e.value=v;
+  }
+  e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),1100);
+  if(n==='dlState')flagState();
+  return true;}
+function apply(o){let n=0;
+  if(Array.isArray(o.bondList)&&o.bondList.length){const t=o.bondList.map(v=>parseFloat(String(v).replace(/[^0-9.]/g,''))||0).reduce((a,b)=>a+b,0);
+    if(t>0&&setF('bond',String(t)))n++;delete o.bondList;delete o.bond;}
+  else if(o.bond){if(setF('bond',String(o.bond).replace(/[^0-9.]/g,'')))n++;delete o.bond;}
+  for(const k in o){if(setF(k,o[k]))n++;}
+  calc();review();return n;}
+
+/* ===== guided capture ===== */
+(function(){const cF=$('#cF'),cB=$('#cB'),cS=$('#cS'),iF=$('#iF'),iB=$('#iB');
+ const tile=$('#sTile'),vid=$('#vid'),sm=$('#smile'),st=tile.querySelector('[data-status]'),th=tile.querySelector('[data-thumb]');
+ const bS=$('#sStart'),bA=$('#sAgain');let stream=null;
+ iF.addEventListener('change',()=>{if(iF.files.length){cF.classList.add('hidden');cB.classList.remove('hidden');}});
+ iB.addEventListener('change',()=>{if(iB.files.length){cB.classList.add('hidden');cS.classList.remove('hidden');setTimeout(start,400);}});
+ async function start(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+   vid.srcObject=stream;vid.style.display='block';await vid.play();bS.classList.add('hidden');bA.classList.add('hidden');th.style.display='none';st.textContent='';count();
+  }catch(e){st.style.color='#c0392b';st.textContent=LANG==='es'?'Permita la cámara':'Please allow the camera';bS.classList.remove('hidden');}}
+ function count(){const seq=LANG==='es'?['¡Sonría! 😊','3','2','1']:['Smile! 😊','3','2','1'];let i=0;sm.textContent=seq[0];
+   const t=setInterval(()=>{i++;if(i<seq.length)sm.textContent=seq[i];else{clearInterval(t);sm.textContent='';snap();}},800);}
+ function stop(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}vid.style.display='none';}
+ function snap(){const w=vid.videoWidth||640,h=vid.videoHeight||480;const c=document.createElement('canvas');c.width=w;c.height=h;
+   const x=c.getContext('2d');x.drawImage(vid,0,0,w,h);
+   x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,h-28,w,28);x.fillStyle='#fff';x.font='15px sans-serif';
+   x.fillText(new Date().toLocaleString()+(geo?('  '+geo):''),8,h-9);
+   const d=c.toDataURL('image/jpeg',.85);imgs.selfie=d;files.selfie='live-selfie.jpg';
+   th.src=d;th.style.display='inline-block';tile.classList.add('done');
+   st.style.color='';st.textContent='✓ '+(LANG==='es'?'Selfie capturada':'Live selfie captured');
+   stop();bA.classList.remove('hidden');review();}
+ bS.addEventListener('click',start);bA.addEventListener('click',start);window.addEventListener('beforeunload',stop);
+})();
+
+/* ===== signature ===== */
+const cv=$('#sig'),cx=cv.getContext('2d');
+function fit(){const r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;cx.scale(d,d);cx.lineWidth=2.6;cx.lineCap='round';cx.strokeStyle='#14213d';}
+let draw=false,last=null;
+const pos=e=>{const r=cv.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};};
+function dn(e){e.preventDefault();draw=true;last=pos(e);if(!geo)getGeo();}
+function mv(e){if(!draw)return;e.preventDefault();const p=pos(e);cx.beginPath();cx.moveTo(last.x,last.y);cx.lineTo(p.x,p.y);cx.stroke();last=p;inked=true;}
+function up(){draw=false;}
+cv.addEventListener('mousedown',dn);cv.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+cv.addEventListener('touchstart',dn,{passive:false});cv.addEventListener('touchmove',mv,{passive:false});cv.addEventListener('touchend',up);
+$('#clr').addEventListener('click',()=>{cx.clearRect(0,0,cv.width,cv.height);inked=false;});
+
+/* ===== steps ===== */
+const REQ={1:['defName','bond','hold'],6:['collType','payMethod'],3:['relationship','firstName','lastName','phone','email','address']};
+function bar(){const pct=Math.round((step-1)/(TOTAL-1)*100);$('#bf').style.width=pct+'%';
+  $('#bl').textContent=(LANG==='es'?'Paso ':'Step ')+step+(LANG==='es'?' de ':' of ')+TOTAL;}
+function show(){$$('.stp').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==step));
+  $('#bBack').classList.toggle('hidden',step===1);
+  $('#bNext').textContent=step===TOTAL?(LANG==='es'?'✓ Enviar y firmar':'✓ Submit & Sign'):(LANG==='es'?'Continuar →':'Continue →');
+  bar();window.scrollTo({top:0,behavior:'smooth'});if(step===6)review();}
+function firstMissing(){const need=REQ[step]||[];for(const n of need){if(!val(n))return n;}return null;}
+$('#bBack').addEventListener('click',()=>{if(step>1){step--;show();}});
+$('#bNext').addEventListener('click',()=>{
+  const m=firstMissing();
+  if(m){const lbls={defName:LANG==='es'?'nombre del acusado':'name of person in jail',bond:LANG==='es'?'monto total de la fianza':'total bond amount',hold:LANG==='es'?'si hay una retención (hold)':'whether there is a hold',payMethod:LANG==='es'?'forma de pago':'how you are paying',collType:LANG==='es'?'si hay garantía (colateral)':'whether collateral is being put up',
+      relationship:LANG==='es'?'su relación':'your relationship',firstName:LANG==='es'?'nombre':'first name',lastName:LANG==='es'?'apellido':'last name',
+      phone:LANG==='es'?'teléfono':'phone',email:LANG==='es'?'correo':'email',address:LANG==='es'?'dirección':'address'};
+    toast((LANG==='es'?'Falta: ':'Please add: ')+(lbls[m]||m));
+    const el=f.elements[m];if(el&&el.focus)el.focus();return;}
+  if(step<TOTAL){step++;show();return;}
+  submit();
+});
+f.addEventListener('input',()=>{calc();syncPay();flagState();review();});
+f.addEventListener('change',()=>{calc();review();updatePins();});
+
+/* ===== review ===== */
+function row(k,v){return v?'<div class="r"><b>'+k+'</b><span>'+String(v).replace(/</g,'&lt;')+'</span></div>':'';}
+function review(){const g=t=>'<div class="g">'+t+'</div>';let h='';
+  h+=g(LANG==='es'?'Fianza':'Bond');
+  h+=row(LANG==='es'?'Acusado':'Defendant',val('defName'));
+  h+=row(LANG==='es'?'Cárcel':'Jail',val('jail').split('(')[0]);
+  h+=row(LANG==='es'?'Retención (hold)':'Hold',val('hold'));
+  h+=row(LANG==='es'?'Total fianza':'Bond total',val('bond')?'$'+Number(val('bond')).toLocaleString():'');
+  h+=row(LANG==='es'?'Su costo hoy':'Your cost today','$'+calc().toLocaleString());
+  h+=g(LANG==='es'?'Usted':'You');
+  h+=row(LANG==='es'?'Nombre':'Name',[val('firstName'),val('lastName')].filter(Boolean).join(' '));
+  h+=row(LANG==='es'?'Relación':'Relationship',relText());
+  h+=row(LANG==='es'?'Teléfono':'Phone',val('phone'));h+=row('Email',val('email'));
+  h+=row(LANG==='es'?'Dirección':'Address',val('address'));
+  if(outOfState())h+=row(LANG==='es'?'Licencia de':'License from',val('dlState').toUpperCase());
+  if(collTaken()){h+=g(LANG==='es'?'Garantía':'Collateral');h+=row(LANG==='es'?'Tipo':'Type',collSummary());}
+  const ph=Object.keys(files).map(k=>LBL[k]||k);
+  if(ph.length){h+=g(LANG==='es'?'Fotos':'Photos');ph.forEach(p=>h+='<div class="r"><span>📎 '+p+'</span></div>');}
+  const r=$('#rev');if(r)r.innerHTML=h;}
+
+/* ===== PDF ===== */
+function pdf(prem){const{jsPDF}=window.jspdf;const d=new jsPDF({unit:'pt',format:'letter'});const M=40;let y=46;
+  d.setFontSize(15);d.setTextColor(36,58,107);d.text('Bail Bond Release Center of the Palm Beaches',M,y);
+  y+=17;d.setFontSize(11);d.setTextColor(70);d.text('BAIL BOND APPLICATION — INDEMNITOR (CO-SIGNER) — SIGNED',M,y);
+  y+=8;d.setDrawColor(200);d.line(M,y,572,y);y+=16;
+  const S=t=>{if(y>720){d.addPage();y=46;}d.setFontSize(10.5);d.setTextColor(36,58,107);d.setFont(undefined,'bold');d.text(t,M,y);d.setFont(undefined,'normal');y+=13;};
+  const R=(k,v)=>{if(!v)return;if(y>735){d.addPage();y=46;}d.setFontSize(9.5);d.setTextColor(20);
+    d.setFont(undefined,'bold');d.text(k+':',M,y);d.setFont(undefined,'normal');
+    const t=d.splitTextToSize(String(v),350);d.text(t,M+165,y);y+=Math.max(12,t.length*11);};
+  R('Submitted',new Date().toLocaleString());
+  S('BOND');
+  R('Defendant',val('defName'));R('Jail / County',val('jail'));R('HOLD',val('hold')||'not answered');
+  if(needsApproval())R('*** REQUIRES AGENT APPROVAL','Hold present — approve before proceeding; may require FULL bond ***');
+  R('Arrest date',val('arrestDate'));
+  R('Booking #',val('booking'));R('Charges',val('charges'));
+  R('Bond total','$'+(Number(val('bond'))||0).toLocaleString());
+  R('Charges breakdown',feeBreak());
+  R('Bond source',bondVerified?'VERIFIED against jail records':((imgs.booking||imgs.blotter)?'Client-supplied booking/blotter screenshot attached':'Client-stated only — NO screenshot attached'));
+  if(verifiedInfo)R('Verification',verifiedInfo);
+  if(!bondVerified)R('*** AGENCY ACTION','VERIFY bond on PBSO blotter before charging ***');
+  R('TOTAL DUE','$'+prem.toLocaleString());
+  S('1. INDEMNITOR NAME AND INFORMATION');
+  R('Relationship to defendant',relText());
+  R('Name',[val('firstName'),val('middleName'),val('lastName')].filter(Boolean).join(' '));
+  R('Nickname / alias',val('nickname'));R('Phone — mobile',val('phone'));R('Phone — home',val('phoneHome'));R('Phone — work',val('phoneWork'));
+  R('Email',val('email'));R('Current home address',val('address'));R('How long',val('addrHowLong'));
+  R('Rent / Own',val('rentOwn'));R('Landlord / mortgage holder',val('landlord'));R('Former home address',val('formerAddress'));
+  R('Social media',val('social'));
+  S('2. PERSONAL DESCRIPTION');
+  R('Date of birth',val('dob'));R('Where born',val('whereBorn'));R('Sex',val('sex'));R('Social Security #',val('ssn'));
+  R('Driver license #',val('dlNumber'));R('Issuing state',val('dlState'));
+  if(outOfState())R('*** OUT-OF-STATE ID','Issued in '+val('dlState').toUpperCase()+' — not Florida. Verify residency / collection risk ***');R('Race',val('race'));
+  R('U.S. citizen',val('citizen'));R('Nationality',val('nationality'));
+  if(val('citizen')==='No'){R('Immigration status',val('immStatus'));R('Alien number (A#)',val('alienNo'));
+    R('Country of citizenship',val('countryCitizen'));R('How long in U.S.',val('howLongUS'));
+    R('Immigration doc attached',imgs.imm_doc?'YES':'no');}
+  else{R('How long in U.S.',val('howLongUS'));}
+  S('3. EMPLOYMENT');
+  R('Occupation',val('occupation'));R('Employer',val('employer'));R('Employer address',val('employerAddress'));
+  R('Employer tel',val('employerTel'));R('How long',val('jobHowLong'));R('Supervisor',val('supervisor'));
+  R('Union / Local #',val('union'));R('Military service',val('military'));
+  S('4. AUTOMOBILE');
+  R('Vehicle',val('vehicle'));R('Color / plate',val('vehiclePlate'));R('Where financed',val('vehicleFinanced'));R('Amount owed',val('vehicleOwed'));
+  S('5. MARITAL STATUS');
+  R('Status',val('marital'));R('Spouse / partner',val('spouseName'));R('How long together',val('spouseHowLong'));
+  R('Their phone',val('spousePhone'));R('Their employer',val('spouseEmployer'));
+  S('6. REFERENCES');
+  R('Ref 1',[val('ref1Name'),val('ref1Relation'),val('ref1Phone'),val('ref1Address')].filter(Boolean).join(' · '));
+  R('Ref 2',[val('ref2Name'),val('ref2Relation'),val('ref2Phone'),val('ref2Address')].filter(Boolean).join(' · '));
+  S('7. FINANCIAL STATEMENT');
+  R('Cash on hand',val('cashHand'));R('Cash in bank',val('cashBank'));R('Real estate value',val('realEstateValue'));
+  R('Real estate mortgage',val('realEstateMortgage'));R('Title in name of',val('titleName'));R('Monthly income',val('monthlyIncome'));
+  S('COLLATERAL');
+  R('Collateral taken',collTaken()?'YES':'No');
+  if(collTaken()){R('Type / details',collSummary());R('Collateral receipt no.',collNo());
+    R('Title / ownership',val('collTitleName'));R('Lienholder',val('collLien'));
+    R('Document attached',imgs.coll_doc?'YES':'no');
+    if(val('collType')==='Real Estate')R('*** ACTION','Recorded MORTGAGE + notary required — use BBRC Mortgage & Indemnity Agreement ***');
+    R('*** ACTION','Issue pre-numbered COLLATERAL RECEIPT '+collNo()+' ***');}
+  S('8. NOTES / ATTORNEY');
+  R('Notes',val('notes'));R('Has attorney',val('hasAttorney'));R('Attorney name',val('attorneyName'));
+  R('Attorney referral requested',(f.elements['wantAttorney']&&f.elements['wantAttorney'].checked)?'YES':'');
+  if(y>560){d.addPage();y=46;}
+  y+=6;d.setDrawColor(215);d.line(M,y,572,y);y+=14;
+  d.setFontSize(7.6);d.setTextColor(85);const a=d.splitTextToSize(ACK[LANG],530);d.text(a,M,y);y+=a.length*9.4+10;
+  if(y>640){d.addPage();y=46;}
+  d.setFontSize(9.5);d.setTextColor(20);
+  R('Signed by (typed)',val('signName'));R('Date',val('signDate'));R('GPS location',geo||'not captured');
+  R('IP address',ip||'n/a');R('Device',navigator.userAgent.slice(0,64));
+  y+=6;d.setFont(undefined,'bold');d.text('Signature:',M,y);d.setFont(undefined,'normal');
+  try{d.addImage(cv.toDataURL('image/png'),'PNG',M+70,y-15,190,54);}catch(_){}
+  d.addPage();let iy=58;d.setFontSize(12);d.setTextColor(36,58,107);d.text('Identity verification',M,40);
+  [['id_front','Driver License — FRONT'],['id_back','Driver License — BACK'],['selfie','Live selfie']].forEach(([k,l])=>{
+    if(!imgs[k])return;if(iy>600){d.addPage();iy=58;}
+    try{d.setFontSize(9);d.setTextColor(60);d.text(l,M,iy);d.addImage(imgs[k],imgs[k].indexOf('image/png')>0?'PNG':'JPEG',M,iy+6,250,166);}catch(_){}
+    iy+=196;});
+  if(imgs.imm_doc){if(iy>600){d.addPage();iy=58;}try{d.setFontSize(9);d.text('Immigration document',M,iy);d.addImage(imgs.imm_doc,'JPEG',M,iy+6,250,166);}catch(_){}iy+=196;}
+  if(imgs.booking){if(iy>600){d.addPage();iy=58;}try{d.setFontSize(9);d.text('Booking page screenshot',M,iy);d.addImage(imgs.booking,'JPEG',M,iy+6,250,166);}catch(_){}iy+=196;}
+  if(imgs.blotter){if(iy>600){d.addPage();iy=58;}try{d.setFontSize(9);d.text('Blotter / bond sheet',M,iy);d.addImage(imgs.blotter,'JPEG',M,iy+6,250,166);}catch(_){}}
+  return d;}
+
+/* ===== RECEIPT PDF (producer-signed) ===== */
+function receiptPDF(){
+  const {jsPDF}=window.jspdf; const d=new jsPDF({unit:'pt',format:'letter'});
+  const M=44; let y=52; const P=syncPay();
+  // header
+  d.setFontSize(15);d.setTextColor(36,58,107);d.setFont(undefined,'bold');
+  d.text('BAIL BOND RELEASE CENTER OF THE PALM BEACHES, INC.',M,y);
+  y+=14;d.setFont(undefined,'normal');d.setFontSize(9);d.setTextColor(70);
+  d.text('800 S Congress Ave, Ste 102, West Palm Beach, FL 33406  ·  (561) 833-4388  ·  bailbondreleasecenter@gmail.com',M,y);
+  y+=11;d.text('Agent License #'+CONFIG.agentLicense+'   ·   Surety: Sun Surety Insurance Company',M,y);
+  y+=18;d.setDrawColor(36,58,107);d.setLineWidth(1.2);d.line(M,y,568,y);d.setLineWidth(.5);
+  y+=20;d.setFontSize(13);d.setTextColor(20);d.setFont(undefined,'bold');
+  d.text('BAIL BOND PREMIUM RECEIPT AND STATEMENT OF CHARGES',M,y);
+  d.setFontSize(11);d.setTextColor(150,20,20);d.text('RECEIPT NO.: '+recNo(),M+330,y+16);
+  y+=30;d.setFont(undefined,'normal');d.setFontSize(8);d.setTextColor(70);
+  const intro=d.splitTextToSize('I understand that the premium owing or paid is fully earned upon the defendant\u2019s release from custody and the fact that the defendant may have been improperly arrested, re-arrested, the case dismissed, or the bail reduced shall not obligate the return or forgiveness of any portion of any premium except as otherwise provided by applicable law (if any) as stated in the Bail Bond Agreement.',480);
+  d.text(intro,M,y); y+=intro.length*9.5+10;
+  d.setFontSize(9.5);d.setTextColor(20);
+  let n=0;
+  const L=(label,value,indent)=>{ if(y>720){d.addPage();y=52;}
+    n++; d.setFont(undefined,'normal');
+    d.text(String(n)+'.',M,y);
+    d.text(label,M+16,y);
+    const w=d.getTextWidth(label);
+    d.setFont(undefined,'bold');
+    d.text(String(value||''),M+22+w,y);
+    d.setDrawColor(205);d.line(M+18+w,y+2.5,560,y+2.5);
+    y+=17;};
+  const today=new Date().toLocaleDateString();
+  L('Today\u2019s Date: ',today);
+  L('Date of Defendant\u2019s Arrest: ',val('arrestDate'));
+  L('Amount Received: $',P.paid.toLocaleString());
+  L('In the form of: ',payMethodText());
+  L('Payer\u2019s Full Name: ',[val('firstName'),val('middleName'),val('lastName')].filter(Boolean).join(' '));
+  L('Payer\u2019s Address: ',val('address'));
+  L('In connection with (a) Bail Bond(s) for Defendant: ',val('defName'));
+  L('Bail Bond Amount(s): $',(Number(val('bond'))||0).toLocaleString());
+  L('Jail / Facility: ',val('jail'));
+  L('Charge(s): ',val('charges'));
+  L('Bail bond premium: $',P.total.toLocaleString());
+  if(P.collateral>0)L('Collateral held (refundable): $',P.collateral.toLocaleString());
+  L('Total Due Today: $',P.due.toLocaleString());
+  L('Amount Paid: $',P.paid.toLocaleString());
+  L('Balance Due: $',P.bal.toLocaleString());
+  L('Was collateral taken? ',collTaken()?('Yes — '+collSummary()+'   (Collateral Receipt No. '+collNo()+')'):'No');
+  y+=4;d.setFontSize(8);d.setTextColor(70);
+  const foot=d.splitTextToSize('Charges shown are a bail premium of ten percent (10%) of the bond amount, subject to a minimum total charge of $150.00; where 10% is less than that minimum the difference is charged as an agent fee. The premium is fully earned and non-refundable once the bond is posted. Any unpaid balance remains owed after the bond is discharged and shall bear interest at the maximum rate permitted by Florida law. All other documents executed by Defendant, Indemnitor(s), or other party related to the Bail Bond(s) are incorporated into and made a part hereof by reference.',480);
+  d.text(foot,M,y); y+=foot.length*9.5+22;
+  if(y>620){d.addPage();y=60;}
+  // signatures
+  d.setFontSize(9.5);d.setTextColor(20);
+  d.text('Paid by:',M,y); d.text('Received by:',M+270,y);
+  try{ if(cv) d.addImage(cv.toDataURL('image/png'),'PNG',M,y+4,150,44); }catch(_){}
+  // agent signature: image if provided, else script-style name
+  if(CONFIG.agentSigImage && CONFIG.agentSigImage.indexOf('data:')===0){
+    try{ d.addImage(CONFIG.agentSigImage,'PNG',M+270,y+4,150,44); }catch(_){}
+  } else {
+    d.setFont('times','italic'); d.setFontSize(19); d.setTextColor(20,30,70);
+    d.text(CONFIG.agentName,M+272,y+34); d.setFont(undefined,'normal'); d.setTextColor(20);
+  }
+  y+=52; d.setDrawColor(120); d.line(M,y,M+200,y); d.line(M+270,y,M+470,y);
+  y+=11; d.setFontSize(8); d.setTextColor(90);
+  d.text('Payor Signature',M,y); d.text('Producer / Representative Signature',M+270,y);
+  y+=14; d.setFontSize(9.5); d.setTextColor(20);
+  d.text([val('firstName'),val('lastName')].filter(Boolean).join(' '),M,y);
+  d.text(CONFIG.agentName+', '+CONFIG.agentTitle,M+270,y);
+  y+=11; d.setFontSize(8); d.setTextColor(90);
+  d.text('Payor Name (printed)',M,y); d.text('Lic. #'+CONFIG.agentLicense,M+270,y);
+  y+=20; d.setFontSize(7.5); d.setTextColor(110);
+  const aud=d.splitTextToSize('Electronically signed. Payor signature captured '+new Date().toLocaleString()
+    +'  ·  GPS: '+(geo||'not captured')+'  ·  IP: '+(ip||'n/a')
+    +'  ·  Producer signature applied electronically by '+CONFIG.agentName+', Florida bail bond agent license #'+CONFIG.agentLicense
+    +'.  Valid under the U.S. E-SIGN Act and Florida UETA (Ch. 668, F.S.).  Receipt '+recNo()+'.',480);
+  d.text(aud,M,y);
+  return d;}
+
+/* ===== submit ===== */
+async function submit(){
+  if(!val('signName')){toast(LANG==='es'?'Escriba su nombre':'Type your name to sign');return;}
+  if(!inked){toast(LANG==='es'?'Firme con el dedo':'Please sign with your finger');return;}
+  if(!$('#agree').checked){toast(LANG==='es'?'Marque la casilla':'Please check the agreement box');return;}
+  const b=$('#bNext');b.disabled=true;b.textContent=LANG==='es'?'Enviando…':'Sending…';
+  const prem=calc();
+  const name=(val('defName')||'defendant').replace(/[^a-z0-9]/gi,'_');
+  const fn='Indemnitor-Application-'+name+'.pdf';
+  let doc=null,rcp=null;
+  try{doc=pdf(prem);}catch(e){toast('PDF error: '+e.message);}
+  try{rcp=receiptPDF();}catch(e){}
+  const rcpName='Receipt-'+recNo()+'.pdf';
+  window.__rcpDoc=rcp; window.__rcpName=rcpName;
+  const body='BAIL BOND APPLICATION — INDEMNITOR (SIGNED)\n'
+    +'Submitted: '+new Date().toLocaleString()+'\n\n'
+    +'DEFENDANT: '+val('defName')+'\nJail: '+val('jail')+'\nHOLD: '+(val('hold')||'not answered')+'\nBond total: $'+(Number(val('bond'))||0).toLocaleString()
+    +'\nBreakdown: '+feeBreak()+'\nESTIMATED TOTAL DUE: $'+prem.toLocaleString()+'\nBond evidence: '+(bondVerified?('VERIFIED — '+verifiedInfo):((imgs.booking||imgs.blotter)?'booking/blotter screenshot attached':'NONE — client-stated only'))+(bondVerified?'':'\n*** VERIFY bond on PBSO blotter before charging the card ***')+'\n\n'
+    +'INDEMNITOR: '+val('firstName')+' '+val('lastName')+'\nRelationship: '+relText()
+    +'\nPhone: '+val('phone')+'\nEmail: '+val('email')+'\nAddress: '+val('address')+'\nDOB: '+val('dob')+'\nSSN: '+val('ssn')
+    +'\nDL: '+val('dlNumber')+' '+val('dlState')+'\nEmployer: '+val('employer')+'\n\n'
+    +'Signed by: '+val('signName')+'  Date: '+val('signDate')+'\nGPS: '+(geo||'not captured')+'\nIP: '+(ip||'n/a')+'\n'
+    +'Attorney referral: '+((f.elements['wantAttorney']&&f.elements['wantAttorney'].checked)?'YES':'no')+'\n'
+    +'Photos: '+(Object.keys(files).map(k=>LBL[k]||k).join(', ')||'none')
+    +(val('citizen')==='No'?('\n\nNON-CITIZEN INFO\nStatus: '+val('immStatus')+'\nA#: '+val('alienNo')+'\nCountry: '+val('countryCitizen')+'\nDoc attached: '+(imgs.imm_doc?'YES':'no')):'')
+    +(collTaken()?('\n\n*** COLLATERAL TAKEN ***\n'+collSummary()+'\nCollateral Receipt No: '+collNo()
+        +(val('collType')==='Real Estate'?'\n>>> Requires recorded MORTGAGE + notarized signature — cannot finish online. Contact client.':'')
+        +'\n>>> Issue the pre-numbered collateral receipt.'):'')
+    +(outOfState()?('\n\n*** FLAG: OUT-OF-STATE ID ***\nLicense issued in '+val('dlState').toUpperCase()+' (not Florida).\nIndemnitor address: '+val('address')+'\nConsider extra verification / collection risk.'):'')
+    +(needsApproval()?('\n\n*** HOLD PRESENT — AGENT APPROVAL REQUIRED ***\nHold type: '+val('hold')+'\nDo NOT proceed until approved. May require FULL bond amount rather than premium.'):'');
+  const subj=(needsApproval()?'[HOLD — APPROVAL NEEDED] ':'')+(val('collType')==='Real Estate'?'[MORTGAGE NEEDED] ':(collTaken()?'[COLLATERAL] ':''))+(outOfState()?'[OUT-OF-STATE ID] ':'')+'Indemnitor Application — '+val('defName');
+  let sent=false;
+  if(doc&&CONFIG.sendEndpoint.indexOf('REPLACE')<0){
+    try{const r=await fetch(CONFIG.sendEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({to:[val('email')].filter(Boolean),bcc:[CONFIG.recipient],subject:subj,text:body,
+        attachments:[{filename:fn,contentBase64:doc.output('datauristring').split(',')[1]}]
+          .concat(rcp?[{filename:rcpName,contentBase64:rcp.output('datauristring').split(',')[1]}]:[])})});
+      sent=r.ok;}catch(_){sent=false;}}
+  $('#revLink').href=CONFIG.reviewUrl;updatePins();
+  const rb=$('#rcpBtn');
+  if(rb){ if(window.__rcpDoc){rb.classList.remove('hidden');
+      rb.addEventListener('click',ev=>{ev.preventDefault();try{window.__rcpDoc.save(window.__rcpName);}catch(_){}}); }
+    else rb.classList.add('hidden'); }
+  $('#wrap').classList.add('hidden');$('#nav').classList.add('hidden');$('#ok').classList.remove('hidden');window.scrollTo(0,0);
+  const ob=$('#ok').querySelector('[data-i="okB"]');
+  if(needsApproval()){const h=$('#ok').querySelector('[data-i="okT"]');
+    if(h)h.textContent=LANG==='es'?'Recibido — pendiente de aprobación':'Received — pending approval';
+    if(ob)ob.textContent=LANG==='es'?'Hay una retención (hold) en este caso, así que un agente debe aprobarlo antes de continuar. Puede requerir pagar la fianza completa. Le contactaremos de inmediato.':'There is a hold on this case, so an agent must approve it before we can move forward. It may require paying the full bond. We will contact you right away.';}
+  else if(sent){if(ob)ob.textContent=LANG==='es'?'Enviamos su solicitud firmada por correo a usted y a nuestra oficina. Confirmaremos y publicaremos la fianza.':"We emailed your signed application to you and our office. We'll confirm and post the bond.";}
+  else{try{doc&&doc.save(fn);}catch(_){}
+    if(ob)ob.textContent=LANG==='es'?'Su PDF firmado se descargó y su correo se abrió — adjunte el PDF y envíelo.':'Your signed PDF downloaded and your email opened — attach the PDF and hit send.';
+    setTimeout(()=>{location.href='mailto:'+CONFIG.recipient+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body+'\n\n*** Please ATTACH the downloaded PDF ('+fn+') ***');},700);}
+}
+
+/* ===== init ===== */
+function updatePins(){const o=jailOpt();
+  const loc=o&&o.getAttribute('data-loc'), addr=(o&&o.getAttribute('data-addr'))||'';
+  const g=$('#gmap'),a=$('#amap');
+  if(loc&&CONFIG.locations[loc]){const L=CONFIG.locations[loc];
+    if(g)g.href=L.g||'#'; if(a)a.href=L.a||'#';}
+  else if(addr){
+    if(g)g.href='https://maps.google.com/?q='+encodeURIComponent(addr);
+    if(a)a.href='https://maps.apple.com/?q='+encodeURIComponent(addr);}
+  else{if(g)g.href='#';if(a)a.href='#';}}
+(async function(){try{const r=await fetch('https://api.ipify.org?format=json');ip=(await r.json()).ip;}catch(_){}})();
+window.addEventListener('resize',()=>{const d=cv.toDataURL();fit();const i=new Image();i.onload=()=>cx.drawImage(i,0,0,cv.getBoundingClientRect().width,cv.getBoundingClientRect().height);i.src=d;});
+fit();
+f.elements['signDate'].value=new Date().toLocaleDateString();
+$('#blot').href=CONFIG.blotterUrl;$('#ack').textContent=ACK.en;
+buildJails();jailInfo();buildRel();getGeo();calc();syncColl();syncCond();flagState();show();review();updatePins();
+</script>
+</body>
+</html>
