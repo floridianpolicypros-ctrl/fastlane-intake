@@ -409,6 +409,7 @@ const CONFIG={
   aiEndpoint:"/api/read",
   sendEndpoint:"/api/send",
   payEndpoint:"/api/pay",
+  recNoEndpoint:"/api/recno",
   reviewUrl:"https://www.giveratings.com/bail-bonds-release-center",
   agentName:"Carlos Sevilla",
   agentTitle:"Bail Bond Agent",
@@ -579,14 +580,36 @@ function jailInfo(){const o=jailOpt(),e=$('#jailInfo');if(!e)return;
     : (a?(LANG==='es'?'Confirmaremos la dirección exacta de liberación.':"We'll confirm the exact release address."):'');}
 
 /* ===== payment ===== */
+/* Reserve CONSECUTIVE numbers from the server before any document is rendered.
+   Called once, at submit. Florida wants consecutively pre-numbered collateral
+   receipts, which a random number cannot satisfy.
+
+   If the counter is unreachable we still let the client finish — a bail
+   application must never fail because a counter is down — but the number is
+   stamped TMP so it is obviously out of sequence, and the agency email says so
+   in plain language for manual reconciliation. */
+async function reserveNumbers(){
+  const want=[['receipt','__rec']];
+  if(collTaken())want.push(['collateral','__coll']);
+  for(const pair of want){
+    const kind=pair[0], slot=pair[1];
+    if(window[slot])continue;
+    try{
+      const r=await fetch(CONFIG.recNoEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind})});
+      const d=await r.json();
+      if(d&&d.ok&&d.number){window[slot]=d.number;continue;}
+    }catch(_){}
+  }}
 function recNo(){ if(window.__rec) return window.__rec;
   const d=new Date(), p=n=>String(n).padStart(2,'0');
   const stamp=String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate());
   const rand=Math.floor(1000+Math.random()*9000);
-  window.__rec=(CONFIG.receiptPrefix||'BBRC')+'-'+stamp+'-'+rand; return window.__rec;}
+  window.__recTmp=true;
+  window.__rec='PR-TMP-'+stamp+'-'+rand; return window.__rec;}
 function collNo(){ if(window.__coll) return window.__coll;
   const d=new Date(), p=n=>String(n).padStart(2,'0');
-  window.__coll='COL-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+Math.floor(1000+Math.random()*9000);
+  window.__collTmp=true;
+  window.__coll='CR-TMP-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+Math.floor(1000+Math.random()*9000);
   return window.__coll;}
 function collTaken(){const t=val('collType');return !!t && t!=='None';}
 function collCash(){const t=val('collType');
@@ -1130,6 +1153,7 @@ async function submit(){
   if(!inked){toast(LANG==='es'?'Firme con el dedo':'Please sign with your finger');return;}
   if(!$('#agree').checked){toast(LANG==='es'?'Marque la casilla':'Please check the agreement box');return;}
   const b=$('#bNext');b.disabled=true;b.textContent=LANG==='es'?'Enviando…':'Sending…';
+  await reserveNumbers();   // consecutive PR-/CR- numbers, before anything renders
   const prem=calc();
   const name=(val('defName')||'defendant').replace(/[^a-z0-9]/gi,'_');
   const fn='Indemnitor-Application-'+name+'.pdf';
@@ -1153,7 +1177,9 @@ async function submit(){
         +(val('collType')==='Real Estate'?'\n>>> Requires recorded MORTGAGE + notarized signature — cannot finish online. Contact client.':'')
         +'\n>>> Issue the pre-numbered collateral receipt.'):'')
     +(outOfState()?('\n\n*** FLAG: OUT-OF-STATE ID ***\nLicense issued in '+val('dlState').toUpperCase()+' (not Florida).\nIndemnitor address: '+val('address')+'\nConsider extra verification / collection risk.'):'')
-    +(needsApproval()?('\n\n*** HOLD PRESENT — AGENT APPROVAL REQUIRED ***\nHold type: '+val('hold')+'\nDo NOT proceed until approved. May require FULL bond amount rather than premium.'):'');
+    +(needsApproval()?('\n\n*** HOLD PRESENT — AGENT APPROVAL REQUIRED ***\nHold type: '+val('hold')+'\nDo NOT proceed until approved. May require FULL bond amount rather than premium.'):'')
+    +'\n\nReceipt No: '+recNo()+(collTaken()?('\nCollateral Receipt No: '+collNo()):'')
+    +((window.__recTmp||window.__collTmp)?'\n\n*** NUMBERING WARNING ***\nThe sequential counter could not be reached, so a TMP number was issued.\nThis number is NOT part of the consecutive series. Reissue a numbered\nreceipt manually and record the correction.':'');
   const subj=(needsApproval()?'[HOLD — APPROVAL NEEDED] ':'')+(val('collType')==='Real Estate'?'[MORTGAGE NEEDED] ':(collTaken()?'[COLLATERAL] ':''))+(outOfState()?'[OUT-OF-STATE ID] ':'')+'Indemnitor Application — '+val('defName');
   let sent=false;
   if(doc&&CONFIG.sendEndpoint.indexOf('REPLACE')<0){
