@@ -806,7 +806,7 @@ async function ingest(fl,k,box){
     st.textContent=LANG==='es'?'Leyendo…':'Reading…';
     try{const res=await fetch(CONFIG.aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({docType:(k==='booking'?'blotter':k),mimeType:fl.type||'image/png',dataBase64:await b64(fl)})});
-      const dd=await res.json(); const n=apply(dd.fields||{});
+      const dd=await res.json(); const n=apply(dd.fields||{}, (k==='booking'?'blotter':k));
       st.textContent=n>0?('✓ '+(LANG==='es'?'Llenó ':'Filled ')+n):'✓';
       if(n>0)toast((LANG==='es'?'✨ Llenamos ':'✨ Filled ')+n+(LANG==='es'?' campos':' fields')+(k==='booking'||k==='blotter'?(LANG==='es'?' del blotter':' from the booking page'):(LANG==='es'?' de su ID':' from your ID')));
     }catch(_){st.textContent='✓';}
@@ -847,7 +847,25 @@ function setF(n,v){const e=f.elements[n];if(!e||v==null||v==='')return false;
   e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),1100);
   if(n==='dlState')flagState();
   return true;}
-function apply(o){let n=0;
+/* Which fields each document is ALLOWED to fill.
+   A booking screenshot describes the DEFENDANT; a license describes the
+   INDEMNITOR. Without this split, reading the booking page wrote the
+   defendant's name and DOB into the co-signer's fields, and the license
+   afterwards appeared to do nothing because setF() will not overwrite a
+   field that already has a value. */
+const FIELDMAP={
+  id_front:['firstName','lastName','middleName','nickname','dob','address','dlNumber','dlState','sex','race','nationality','whereBorn','ssn'],
+  id_back :['address','dlNumber','dlState','dob','sex'],
+  blotter :['defName','bond','bondList','charges'],
+  booking :['defName','bond','bondList','charges'],
+  imm_doc :['alienNo','immStatus','countryCitizen'],
+  coll_doc:['collVehicle','collVIN','collPlate','collValue','collAddress','collMortgage','collDesc'],
+  selfie  :[]
+};
+function apply(o,docType){
+  const allow=FIELDMAP[docType];              // undefined => unknown doc, allow all
+  if(allow){ for(const k in o){ if(allow.indexOf(k)<0) delete o[k]; } }
+  let n=0;
   if(Array.isArray(o.bondList)&&o.bondList.length){const t=o.bondList.map(v=>parseFloat(String(v).replace(/[^0-9.]/g,''))||0).reduce((a,b)=>a+b,0);
     if(t>0&&setF('bond',String(t)))n++;delete o.bondList;delete o.bond;}
   else if(o.bond){if(setF('bond',String(o.bond).replace(/[^0-9.]/g,'')))n++;delete o.bond;}
@@ -896,7 +914,13 @@ function bar(){const pct=Math.round((step-1)/(TOTAL-1)*100);$('#bf').style.width
 function show(){$$('.stp').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==step));
   $('#bBack').classList.toggle('hidden',step===1);
   $('#bNext').textContent=step===TOTAL?(LANG==='es'?'✓ Enviar y firmar':'✓ Submit & Sign'):(LANG==='es'?'Continuar →':'Continue →');
-  bar();window.scrollTo({top:0,behavior:'smooth'});if(step===6)review();}
+  bar();window.scrollTo({top:0,behavior:'smooth'});if(step===6)review();
+  /* The signature canvas is measured with getBoundingClientRect(), which returns
+     0x0 while its step is display:none. Sizing it only at page load produced a
+     zero-size canvas that could not be drawn on at all. Re-measure on arrival —
+     but only if it has no usable size yet, so going Back then Next does not
+     erase a signature the client already drew. */
+  if(step===7){ requestAnimationFrame(()=>{ if(!cv.width||!cv.height) fit(); }); }}
 function firstMissing(){const need=REQ[step]||[];for(const n of need){if(!val(n))return n;}return null;}
 $('#bBack').addEventListener('click',()=>{if(step>1){step--;show();}});
 $('#bNext').addEventListener('click',()=>{
@@ -1090,6 +1114,18 @@ function receiptPDF(){
   return d;}
 
 /* ===== submit ===== */
+/* Every photo the client captured — license front/back, live selfie, booking
+   screenshot — as email attachments. These were being captured and shown on
+   screen but never actually sent, so the agency copy arrived with no ID. */
+function photoAtt(){
+  const out=[];
+  for(const k in imgs){
+    const m=String(imgs[k]||'').match(/^data:([^;]+);base64,(.+)$/);
+    if(!m)continue;
+    const ext=(m[1].split('/')[1]||'jpg').toLowerCase().replace('jpeg','jpg');
+    out.push({filename:(LBL[k]||k).replace(/[^a-z0-9]+/gi,'-')+'.'+ext, contentBase64:m[2]});
+  }
+  return out;}
 async function submit(){
   if(!val('signName')){toast(LANG==='es'?'Escriba su nombre':'Type your name to sign');return;}
   if(!inked){toast(LANG==='es'?'Firme con el dedo':'Please sign with your finger');return;}
@@ -1125,7 +1161,8 @@ async function submit(){
     try{const r=await fetch(CONFIG.sendEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({to:[val('email')].filter(Boolean),bcc:[CONFIG.recipient],subject:subj,text:body,
         attachments:[{filename:fn,contentBase64:doc.output('datauristring').split(',')[1]}]
-          .concat(rcp?[{filename:rcpName,contentBase64:rcp.output('datauristring').split(',')[1]}]:[])})});
+          .concat(rcp?[{filename:rcpName,contentBase64:rcp.output('datauristring').split(',')[1]}]:[])
+          .concat(photoAtt())})});
       sent=r.ok;}catch(_){sent=false;}}
   $('#revLink').href=CONFIG.reviewUrl;updatePins();
   const rb=$('#rcpBtn');
