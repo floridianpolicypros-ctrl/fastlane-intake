@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bail Application — Co-Signer | Bail Bond Release Center</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root{--brand:#243a6b;--gold:#c9a24b;--bg:#eef3f9;--card:#fff;--line:#dbe4ef;--muted:#6b7a90;--ok:#1a7f43}
   *{box-sizing:border-box}
@@ -393,6 +394,7 @@
   <div class="big">✅</div>
   <h2 data-i="okT">All done!</h2>
   <p data-i="okB">We received your signed application. We'll confirm and post the bond.</p>
+  <div id="payAlt" class="hidden" style="text-align:left;background:#fffbe8;border:2px solid #e6c34a;border-radius:12px;padding:15px;margin:18px auto 0;max-width:340px;font-size:14px;line-height:1.55"></div>
   <div id="relInfo" style="text-align:left;background:#f4f8ff;border:1px solid #cfe0f5;border-radius:12px;padding:14px;margin:18px auto 0;max-width:340px;font-size:14px;line-height:1.5"></div>
   <p class="hint" data-i="pickL">Pick-up / jail location — tap for directions:</p>
   <div class="sbtns">
@@ -417,6 +419,8 @@ const CONFIG={
   sendEndpoint:"/api/send",
   payEndpoint:"/api/pay",
   recNoEndpoint:"/api/recno",
+  cashAppTag:"$key2freedom",   // no processing fee, confirmed manually in the app
+  zelleHandle:"",              // add your Zelle email or phone to show it here
   reviewUrl:"https://www.giveratings.com/bail-bonds-release-center",
   agentName:"Carlos Sevilla",
   agentTitle:"Bail Bond Agent",
@@ -588,6 +592,49 @@ const WAIT={
   'Palm Beach County West Detention Center':{en:'4 to 10 hours',es:'4 a 10 horas'}
 };
 const WAIT_DEF={en:'4 to 12 hours',es:'4 a 12 horas'};
+/* Cash App / Zelle payment instructions.
+   Deliberately NOT an automated integration. Receiving to a cashtag has no
+   payment webhook, and the products that do (Cash App Pay via Square/Stripe)
+   both charge a percentage AND generally restrict bail bonds. So this is a
+   scannable code plus one job for the client: put the reference in the note.
+   That reference is what lets Carlos match the money to the file by eye. */
+function memoRef(){
+  const last=String(val('defName')||'').split(',')[0].trim().toUpperCase();
+  return [last,recNo()].filter(Boolean).join(' ');}
+function payAltInfo(){
+  const box=$('#payAlt'); if(!box)return;
+  const m=val('payMethod');
+  if(m!=='Cash App' && m!=='Zelle'){ box.classList.add('hidden'); return; }
+  const es=LANG==='es';
+  const P=syncPay();
+  const amt=(P.due||calc())||0;
+  const ref=memoRef();
+  let h='<b style="font-size:16px">'+(es?'Termine su pago':'Finish your payment')+' — $'+amt.toLocaleString()+'</b>';
+  if(m==='Cash App'&&CONFIG.cashAppTag){
+    const tag=CONFIG.cashAppTag.replace(/^\$*/,'$');
+    const url='https://cash.app/'+encodeURIComponent(tag)+'/'+amt;
+    h+='<div style="text-align:center;margin:12px 0"><div id="qrBox" style="display:inline-block;background:#fff;padding:9px;border-radius:9px"></div></div>';
+    h+='<a href="'+url+'" target="_blank" rel="noopener" style="display:block;text-align:center;background:#00c244;color:#fff;font-weight:800;padding:13px;border-radius:11px;text-decoration:none">'
+      +(es?'Abrir Cash App':'Open Cash App')+' &nbsp;'+tag+'</a>';
+  } else if(m==='Zelle'){
+    h+='<p style="margin:10px 0 0">'+(es?'Envíe por Zelle a: ':'Send by Zelle to: ')+'<b>'+(CONFIG.zelleHandle||(es?'le enviaremos los datos':'we will text you the details'))+'</b></p>';
+  }
+  h+='<div style="margin-top:13px;background:#fff;border:2px dashed #e6c34a;border-radius:9px;padding:11px">'
+    +'<b>'+(es?'IMPORTANTE — escriba esto en la nota:':'IMPORTANT — put this in the note:')+'</b>'
+    +'<div style="font-size:17px;font-weight:800;letter-spacing:.5px;margin-top:6px">'+ref+'</div>'
+    +'<div style="font-size:12.5px;color:#6b5b1f;margin-top:6px">'
+    +(es?'Sin esta nota no podemos saber de quién es el pago y la fianza se retrasa.'
+       :'Without this note we cannot tell whose payment it is, and the bond gets delayed.')+'</div></div>';
+  h+='<p style="margin:11px 0 0;font-size:12.5px;color:#6b5b1f">'
+    +(es?'Confirmamos el pago manualmente antes de publicar la fianza.'
+       :'We confirm the payment by hand before the bond is posted.')+'</p>';
+  box.innerHTML=h;
+  box.classList.remove('hidden');
+  const qb=$('#qrBox');
+  if(qb && m==='Cash App' && window.QRCode){
+    const tag=CONFIG.cashAppTag.replace(/^\$*/,'$');
+    try{ new QRCode(qb,{text:'https://cash.app/'+tag+'/'+amt,width:150,height:150,correctLevel:QRCode.CorrectLevel.M}); }catch(_){}
+  }}
 function releaseInfo(){
   const box=$('#relInfo'); if(!box)return;
   const o=jailOpt();
@@ -1250,6 +1297,11 @@ async function submit(){
     +(outOfState()?('\n\n*** FLAG: OUT-OF-STATE ID ***\nLicense issued in '+val('dlState').toUpperCase()+' (not Florida).\nIndemnitor address: '+val('address')+'\nConsider extra verification / collection risk.'):'')
     +(needsApproval()?('\n\n*** HOLD PRESENT — AGENT APPROVAL REQUIRED ***\nHold type: '+val('hold')+'\nDo NOT proceed until approved. May require FULL bond amount rather than premium.'):'')
     +'\n\nReceipt No: '+recNo()+(collTaken()?('\nCollateral Receipt No: '+collNo()):'')
+    +((val('payMethod')==='Cash App'||val('payMethod')==='Zelle')
+        ? ('\n\n*** '+val('payMethod').toUpperCase()+' — CONFIRM MANUALLY BEFORE POSTING ***'
+           +'\nExpect $'+(syncPay().due||calc()).toLocaleString()+' with this note: '+memoRef()
+           +'\nNo automatic confirmation exists for this method. Check the app and match the note.')
+        : '')
     +((window.__recTmp||window.__collTmp)?'\n\n*** NUMBERING WARNING ***\nThe sequential counter could not be reached, so a TMP number was issued.\nThis number is NOT part of the consecutive series. Reissue a numbered\nreceipt manually and record the correction.':'');
   const subj=(needsApproval()?'[HOLD — APPROVAL NEEDED] ':'')+(val('collType')==='Real Estate'?'[MORTGAGE NEEDED] ':(collTaken()?'[COLLATERAL] ':''))+(outOfState()?'[OUT-OF-STATE ID] ':'')+'Indemnitor Application — '+val('defName');
   let sent=false;
@@ -1260,7 +1312,7 @@ async function submit(){
           .concat(rcp?[{filename:rcpName,contentBase64:rcp.output('datauristring').split(',')[1]}]:[])
           .concat(photoAtt())})});
       sent=r.ok;}catch(_){sent=false;}}
-  $('#revLink').href=CONFIG.reviewUrl;updatePins();releaseInfo();
+  $('#revLink').href=CONFIG.reviewUrl;updatePins();releaseInfo();payAltInfo();
   /* Second attorney ask. The first one sits mid-form where people are rushing;
      by the time the bond is handled they actually think about the case. */
   const ab=$('#attyBtn');
