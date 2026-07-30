@@ -364,6 +364,11 @@
   <h2 class="step" data-i="s7t">Sign to finish</h2>
   <p class="sub" data-i="s7s">Read the agreement, type your name, then sign with your finger.</p>
   <div class="ack" id="ack"></div>
+  <div id="appPrev" class="hidden" style="margin:16px 0">
+    <label style="font-weight:700" data-i="prevH">Your completed application — read before signing</label>
+    <iframe id="prevFrame" title="Completed application" style="width:100%;height:430px;border:1px solid #cfe0f5;border-radius:12px;background:#fff;margin-top:8px"></iframe>
+    <a id="prevOpen" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;padding:13px;margin-top:9px;border-radius:11px;background:#eaf3ff;color:var(--brand);text-decoration:none;font-weight:800;border:1px solid #cfe0f5" data-i="prevOpenT">📄 Open full size</a>
+  </div>
   <div class="grid" style="margin-top:14px">
     <div class="field"><label data-i="typeN">Type your full legal name *</label><input name="signName" required></div>
     <div class="field"><label data-i="sdate">Date</label><input name="signDate" readonly></div>
@@ -388,9 +393,11 @@
   <div class="big">✅</div>
   <h2 data-i="okT">All done!</h2>
   <p data-i="okB">We received your signed application. We'll confirm and post the bond.</p>
+  <div id="relInfo" style="text-align:left;background:#f4f8ff;border:1px solid #cfe0f5;border-radius:12px;padding:14px;margin:18px auto 0;max-width:340px;font-size:14px;line-height:1.5"></div>
   <p class="hint" data-i="pickL">Pick-up / jail location — tap for directions:</p>
   <div class="sbtns">
     <a class="a-pay hidden" id="payBtn" href="#">💳 Pay now by card</a>
+    <a class="a-txt" id="attyBtn" href="#" data-i="attyB">⚖️ Yes — have an attorney call me</a>
     <a class="a-txt" id="rcpBtn" href="#" data-i="getRcp">🧾 View / save your receipt</a>
     <a class="a-rev" id="revLink" href="#" target="_blank" data-i="leaveR">⭐ Leave us a 5-star review</a>
     <a class="a-txt" id="gmap" href="#" target="_blank" data-i="gmapT">📍 Directions — Google Maps</a>
@@ -572,6 +579,31 @@ function buildJails(){const sel=$('#jail');if(!sel)return;const cur=sel.value;
     sel.appendChild(og);});
   if(cur)sel.value=cur;}
 function jailOpt(){const sel=$('#jail');return sel&&sel.options[sel.selectedIndex];}
+/* Typical time from the bond being posted to the person physically walking out.
+   Clients ask this constantly, and a wrong expectation is what generates the
+   angry 2am phone calls. The bond is posted immediately — the jail controls
+   release, and we do not. */
+const WAIT={
+  'Palm Beach County Main Detention Center':{en:'4 to 12 hours',es:'4 a 12 horas'},
+  'Palm Beach County West Detention Center':{en:'4 to 10 hours',es:'4 a 10 horas'}
+};
+const WAIT_DEF={en:'4 to 12 hours',es:'4 a 12 horas'};
+function releaseInfo(){
+  const box=$('#relInfo'); if(!box)return;
+  const o=jailOpt();
+  const addr=(o&&o.getAttribute('data-addr'))||'', tel=(o&&o.getAttribute('data-tel'))||'';
+  const es=LANG==='es';
+  const w=(WAIT[val('jail')]||WAIT_DEF)[es?'es':'en'];
+  let h='<b>'+(es?'Dónde recogerlo':'Where to pick them up')+'</b><br>'
+      + (addr || (es?'Confirmaremos la dirección exacta.':'We will confirm the exact address.'))
+      + (tel?('<br>'+tel):'');
+  h+='<br><br><b>'+(es?'Espera típica':'Typical wait')+':</b> '+w+'<br>'
+    + (es?'La fianza se publica de inmediato, pero la cárcel controla la salida.'
+        :'The bond is posted right away, but the jail controls the actual release.');
+  h+='<br><br><b>'+(es?'Si no sale antes de las 11:00 PM':'If they are not out by 11:00 PM')+'</b><br>'
+    + (es?'Avise al alguacil en la recepción que usted está ahí para llevarlo. Sin transporte pueden retenerlo hasta la mañana.'
+        :'Tell the deputy at the front desk that you are there to give them a ride. Without a ride they can be held until morning.');
+  box.innerHTML=h;}
 function jailInfo(){const o=jailOpt(),e=$('#jailInfo');if(!e)return;
   const a=(o&&o.getAttribute('data-addr'))||'', t=(o&&o.getAttribute('data-tel'))||'';
   const looksAddr=/\d/.test(a)&&/,/.test(a);
@@ -812,8 +844,23 @@ function renderMatches(data){
 })();
 
 /* ===== geo ===== *//* ===== geo ===== */
-function getGeo(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{
-  geo=p.coords.latitude.toFixed(6)+', '+p.coords.longitude.toFixed(6)+' (±'+Math.round(p.coords.accuracy)+'m)';},()=>{},{enableHighAccuracy:true,timeout:10000});}
+/* Location is captured SILENTLY. The old version called
+   navigator.geolocation, which fires a browser permission prompt — nervous
+   clients decline it and we end up with no record at all. Cloudflare already
+   knows roughly where the request originated and hands it to us at the edge,
+   so there is nothing to ask for and nothing to refuse.
+   Trade-off, stated plainly: this is IP-derived, so city/postal level rather
+   than a street-accurate GPS fix. */
+async function getGeo(){
+  try{
+    const r=await fetch('/api/geo',{cache:'no-store'});
+    const d=await r.json();
+    if(!d||!d.ok)return;
+    if(d.ip)ip=d.ip;
+    const place=[d.city,d.region,d.postal,d.country].filter(Boolean).join(', ');
+    const coords=(d.lat&&d.lon)?(Number(d.lat).toFixed(4)+', '+Number(d.lon).toFixed(4)):'';
+    geo=[coords,place?('approx. '+place):''].filter(Boolean).join('  ·  ')+' (from IP, no prompt)';
+  }catch(_){}}
 
 /* ===== uploads + AI prefill ===== */
 const b64=fl=>new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(String(x.result).split(',')[1]);x.onerror=j;x.readAsDataURL(fl);});
@@ -943,7 +990,21 @@ function show(){$$('.stp').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!=
      zero-size canvas that could not be drawn on at all. Re-measure on arrival —
      but only if it has no usable size yet, so going Back then Next does not
      erase a signature the client already drew. */
-  if(step===7){ requestAnimationFrame(()=>{ if(!cv.width||!cv.height) fit(); }); }}
+  if(step===7){ requestAnimationFrame(()=>{ if(!cv.width||!cv.height) fit(); buildPreview(); }); }}
+/* Render the finished application and show it ON the signing step, so the
+   client reads the actual document before putting their name to it — rather
+   than signing a blank pad and receiving the paperwork afterwards. */
+let prevUrl=null;
+function buildPreview(){
+  const box=$('#appPrev'); if(!box)return;
+  try{
+    const blob=pdf(calc()).output('blob');
+    if(prevUrl)URL.revokeObjectURL(prevUrl);
+    prevUrl=URL.createObjectURL(blob);
+    const fr=$('#prevFrame'); if(fr)fr.src=prevUrl;
+    const op=$('#prevOpen'); if(op)op.href=prevUrl;
+    box.classList.remove('hidden');
+  }catch(e){ box.classList.add('hidden'); }}
 function firstMissing(){const need=REQ[step]||[];for(const n of need){if(!val(n))return n;}return null;}
 $('#bBack').addEventListener('click',()=>{if(step>1){step--;show();}});
 $('#bNext').addEventListener('click',()=>{
@@ -1189,7 +1250,22 @@ async function submit(){
           .concat(rcp?[{filename:rcpName,contentBase64:rcp.output('datauristring').split(',')[1]}]:[])
           .concat(photoAtt())})});
       sent=r.ok;}catch(_){sent=false;}}
-  $('#revLink').href=CONFIG.reviewUrl;updatePins();
+  $('#revLink').href=CONFIG.reviewUrl;updatePins();releaseInfo();
+  /* Second attorney ask. The first one sits mid-form where people are rushing;
+     by the time the bond is handled they actually think about the case. */
+  const ab=$('#attyBtn');
+  if(ab){ ab.addEventListener('click',async ev=>{ ev.preventDefault();
+    ab.textContent=LANG==='es'?'Enviando…':'Sending…';
+    try{ await fetch(CONFIG.sendEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({to:[CONFIG.recipient],subject:'[ATTORNEY REQUEST] '+val('defName'),
+        text:'Attorney referral requested from the confirmation screen.\n\n'
+          +'Indemnitor: '+[val('firstName'),val('lastName')].filter(Boolean).join(' ')
+          +'\nPhone: '+val('phone')+'\nEmail: '+val('email')
+          +'\nDefendant: '+val('defName')+'\nJail: '+val('jail')
+          +'\nReceipt: '+recNo()})});
+    }catch(_){}
+    ab.textContent=LANG==='es'?'✓ Un abogado le llamará':'✓ An attorney will call you';
+    ab.style.background='#e8f7ee'; ab.style.color='#0a7c34'; ab.style.pointerEvents='none'; }); }
   const rb=$('#rcpBtn');
   if(rb){ if(window.__rcpDoc){rb.classList.remove('hidden');
       rb.addEventListener('click',ev=>{ev.preventDefault();try{window.__rcpDoc.save(window.__rcpName);}catch(_){}}); }
