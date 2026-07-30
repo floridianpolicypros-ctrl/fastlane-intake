@@ -82,6 +82,7 @@
   .sbtns{display:flex;flex-direction:column;gap:11px;max-width:340px;margin:20px auto 0}
   .sbtns a{text-decoration:none;text-align:center;padding:15px;border-radius:12px;font-weight:800;font-size:15px}
   .a-rev{background:var(--gold);color:#2a2000}.a-call{background:var(--brand);color:#fff}.a-txt{background:#eaf3ff;color:var(--brand);border:1px solid #cfe0f5}
+  .a-pay{background:#0a7c34;color:#fff;font-size:17px!important;padding:18px!important;box-shadow:0 2px 8px rgba(10,124,52,.3)}
 </style>
 </head>
 <body>
@@ -389,6 +390,7 @@
   <p data-i="okB">We received your signed application. We'll confirm and post the bond.</p>
   <p class="hint" data-i="pickL">Pick-up / jail location — tap for directions:</p>
   <div class="sbtns">
+    <a class="a-pay hidden" id="payBtn" href="#">💳 Pay now by card</a>
     <a class="a-txt" id="rcpBtn" href="#" data-i="getRcp">🧾 View / save your receipt</a>
     <a class="a-rev" id="revLink" href="#" target="_blank" data-i="leaveR">⭐ Leave us a 5-star review</a>
     <a class="a-txt" id="gmap" href="#" target="_blank" data-i="gmapT">📍 Directions — Google Maps</a>
@@ -1130,6 +1132,34 @@ async function submit(){
   if(rb){ if(window.__rcpDoc){rb.classList.remove('hidden');
       rb.addEventListener('click',ev=>{ev.preventDefault();try{window.__rcpDoc.save(window.__rcpName);}catch(_){}}); }
     else rb.classList.add('hidden'); }
+  /* ---- Pay Now (Clover Hosted Checkout) ----
+     Only offered when the client chose card AND there is no hold. A hold means
+     the agent must approve first and may require the FULL bond, so charging a
+     card at that point would be wrong. */
+  const pb=$('#payBtn');
+  if(pb){
+    const due=calc()+collCash();
+    const label=()=>(LANG==='es'?'💳 Pagar ahora con tarjeta — $':'💳 Pay now by card — $')+due.toLocaleString();
+    if(val('payMethod')==='Credit Card' && due>0 && !needsApproval()){
+      pb.textContent=label();
+      pb.classList.remove('hidden');
+      pb.addEventListener('click',async ev=>{
+        ev.preventDefault();
+        pb.textContent=LANG==='es'?'Abriendo pago seguro…':'Opening secure checkout…';
+        try{
+          const r=await fetch(CONFIG.payEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({premium:calc(),collateral:collCash(),
+              defendant:val('defName'),receiptNo:recNo(),
+              customer:{firstName:val('firstName'),lastName:val('lastName'),
+                        email:val('email'),phone:val('phone')}})});
+          const d=await r.json();
+          if(d&&d.ok&&d.url){location.href=d.url;return;}
+          toast((d&&d.error)||(LANG==='es'?'No se pudo iniciar el pago':'Could not start checkout'));
+        }catch(e){toast((LANG==='es'?'Error de pago: ':'Payment error: ')+e.message);}
+        pb.textContent=label();
+      });
+    } else pb.classList.add('hidden');
+  }
   $('#wrap').classList.add('hidden');$('#nav').classList.add('hidden');$('#ok').classList.remove('hidden');window.scrollTo(0,0);
   const ob=$('#ok').querySelector('[data-i="okB"]');
   if(needsApproval()){const h=$('#ok').querySelector('[data-i="okT"]');
