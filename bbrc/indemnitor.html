@@ -1038,79 +1038,78 @@ function pdf(prem){const{jsPDF}=window.jspdf;const d=new jsPDF({unit:'pt',format
   return d;}
 
 /* ===== RECEIPT PDF (producer-signed) ===== */
-function receiptPDF(){
-  const {jsPDF}=window.jspdf; const d=new jsPDF({unit:'pt',format:'letter'});
-  const M=44; let y=52; const P=syncPay();
-  // header
-  d.setFontSize(15);d.setTextColor(36,58,107);d.setFont(undefined,'bold');
-  d.text('BAIL BOND RELEASE CENTER OF THE PALM BEACHES, INC.',M,y);
-  y+=14;d.setFont(undefined,'normal');d.setFontSize(9);d.setTextColor(70);
-  d.text('800 S Congress Ave, Ste 102, West Palm Beach, FL 33406  ·  (561) 833-4388  ·  bailbondreleasecenter@gmail.com',M,y);
-  y+=11;d.text('Agent License #'+CONFIG.agentLicense+'   ·   Surety: Sun Surety Insurance Company',M,y);
-  y+=18;d.setDrawColor(36,58,107);d.setLineWidth(1.2);d.line(M,y,568,y);d.setLineWidth(.5);
-  y+=20;d.setFontSize(13);d.setTextColor(20);d.setFont(undefined,'bold');
-  d.text('BAIL BOND PREMIUM RECEIPT AND STATEMENT OF CHARGES',M,y);
-  d.setFontSize(11);d.setTextColor(150,20,20);d.text('RECEIPT NO.: '+recNo(),M+330,y+16);
-  y+=30;d.setFont(undefined,'normal');d.setFontSize(8);d.setTextColor(70);
-  const intro=d.splitTextToSize('I understand that the premium owing or paid is fully earned upon the defendant\u2019s release from custody and the fact that the defendant may have been improperly arrested, re-arrested, the case dismissed, or the bail reduced shall not obligate the return or forgiveness of any portion of any premium except as otherwise provided by applicable law (if any) as stated in the Bail Bond Agreement.',480);
-  d.text(intro,M,y); y+=intro.length*9.5+10;
-  d.setFontSize(9.5);d.setTextColor(20);
-  let n=0;
-  const L=(label,value,indent)=>{ if(y>720){d.addPage();y=52;}
-    n++; d.setFont(undefined,'normal');
-    d.text(String(n)+'.',M,y);
-    d.text(label,M+16,y);
-    const w=d.getTextWidth(label);
-    d.setFont(undefined,'bold');
-    d.text(String(value||''),M+22+w,y);
-    d.setDrawColor(205);d.line(M+18+w,y+2.5,560,y+2.5);
-    y+=17;};
-  const today=new Date().toLocaleDateString();
-  L('Today\u2019s Date: ',today);
-  L('Date of Defendant\u2019s Arrest: ',val('arrestDate'));
-  L('Amount Received: $',P.paid.toLocaleString());
-  L('In the form of: ',payMethodText());
-  L('Payer\u2019s Full Name: ',[val('firstName'),val('middleName'),val('lastName')].filter(Boolean).join(' '));
-  L('Payer\u2019s Address: ',val('address'));
-  L('In connection with (a) Bail Bond(s) for Defendant: ',val('defName'));
-  L('Bail Bond Amount(s): $',(Number(val('bond'))||0).toLocaleString());
-  L('Jail / Facility: ',val('jail'));
-  L('Charge(s): ',val('charges'));
-  L('Bail bond premium: $',P.total.toLocaleString());
-  if(P.collateral>0)L('Collateral held (refundable): $',P.collateral.toLocaleString());
-  L('Total Due Today: $',P.due.toLocaleString());
-  L('Amount Paid: $',P.paid.toLocaleString());
-  L('Balance Due: $',P.bal.toLocaleString());
-  L('Was collateral taken? ',collTaken()?('Yes — '+collSummary()+'   (Collateral Receipt No. '+collNo()+')'):'No');
-  y+=4;d.setFontSize(8);d.setTextColor(70);
-  const foot=d.splitTextToSize('Charges shown are a bail premium of ten percent (10%) of the bond amount, subject to a minimum total charge of $150.00; where 10% is less than that minimum the difference is charged as an agent fee. The premium is fully earned and non-refundable once the bond is posted. Any unpaid balance remains owed after the bond is discharged and shall bear interest at the maximum rate permitted by Florida law. All other documents executed by Defendant, Indemnitor(s), or other party related to the Bail Bond(s) are incorporated into and made a part hereof by reference.',480);
-  d.text(foot,M,y); y+=foot.length*9.5+22;
-  if(y>620){d.addPage();y=60;}
-  // signatures
-  d.setFontSize(9.5);d.setTextColor(20);
-  d.text('Paid by:',M,y); d.text('Received by:',M+270,y);
-  try{ if(cv) d.addImage(cv.toDataURL('image/png'),'PNG',M,y+4,150,44); }catch(_){}
-  // agent signature: image if provided, else script-style name
-  if(CONFIG.agentSigImage && CONFIG.agentSigImage.indexOf('data:')===0){
-    try{ d.addImage(CONFIG.agentSigImage,'PNG',M+270,y+4,150,44); }catch(_){}
-  } else {
-    d.setFont('times','italic'); d.setFontSize(19); d.setTextColor(20,30,70);
-    d.text(CONFIG.agentName,M+272,y+34); d.setFont(undefined,'normal'); d.setTextColor(20);
-  }
-  y+=52; d.setDrawColor(120); d.line(M,y,M+200,y); d.line(M+270,y,M+470,y);
-  y+=11; d.setFontSize(8); d.setTextColor(90);
-  d.text('Payor Signature',M,y); d.text('Producer / Representative Signature',M+270,y);
-  y+=14; d.setFontSize(9.5); d.setTextColor(20);
-  d.text([val('firstName'),val('lastName')].filter(Boolean).join(' '),M,y);
-  d.text(CONFIG.agentName+', '+CONFIG.agentTitle,M+270,y);
-  y+=11; d.setFontSize(8); d.setTextColor(90);
-  d.text('Payor Name (printed)',M,y); d.text('Lic. #'+CONFIG.agentLicense,M+270,y);
-  y+=20; d.setFontSize(7.5); d.setTextColor(110);
-  const aud=d.splitTextToSize('Electronically signed. Payor signature captured '+new Date().toLocaleString()
-    +'  ·  GPS: '+(geo||'not captured')+'  ·  IP: '+(ip||'n/a')
-    +'  ·  Producer signature applied electronically by '+CONFIG.agentName+', Florida bail bond agent license #'+CONFIG.agentLicense
-    +'.  Valid under the U.S. E-SIGN Act and Florida UETA (Ch. 668, F.S.).  Receipt '+recNo()+'.',480);
-  d.text(aud,M,y);
+/* ---------- Premium receipt ----------
+   Rendered ON TOP of the real Sun Surety form (SSIC-PR Rev. 4-2017) instead of
+   being redrawn, so the client receives the actual carrier document. The pixel
+   coordinates below were measured off the 200 dpi scan (1697 x 2207) by
+   detecting the printed fill-in rules, then scaled to the PDF page.
+   Line 12 carries the 10% premium and line 13 carries the agent fee that makes
+   up the $150 minimum — so a $1,000 bond reads 100 + 50 = 150 rather than one
+   unexplained lump sum. */
+const RCPT_PX_W=1697, RCPT_PX_H=2207;
+let RCPT_TPL=null;
+async function rcptTemplate(){
+  if(RCPT_TPL)return RCPT_TPL;
+  const r=await fetch('receipt-template.jpg',{cache:'force-cache'});
+  if(!r.ok)throw new Error('receipt template '+r.status);
+  const b=await r.blob();
+  RCPT_TPL=await new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>ok(String(fr.result));fr.onerror=no;fr.readAsDataURL(b);});
+  return RCPT_TPL;}
+function words(n){
+  n=Math.round(Number(n)||0); if(n===0)return 'Zero';
+  const o=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const t=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  const u=x=>x<20?o[x]:t[Math.floor(x/10)]+(x%10?'-'+o[x%10]:'');
+  const h=x=>{let s='';if(x>=100){s+=o[Math.floor(x/100)]+' Hundred';x%=100;if(x)s+=' ';}if(x)s+=u(x);return s;};
+  let s='';
+  if(n>=1000){s+=h(Math.floor(n/1000))+' Thousand';n%=1000;if(n)s+=' ';}
+  if(n)s+=h(n);
+  return s;}
+async function receiptPDF(){
+  const {jsPDF}=window.jspdf;
+  const W=612,H=792;
+  const d=new jsPDF({unit:'pt',format:[W,H]});
+  d.addImage(await rcptTemplate(),'JPEG',0,0,W,H);
+  const KX=W/RCPT_PX_W, KY=H/RCPT_PX_H;
+  const P=syncPay(), pp=priceParts();
+  d.setTextColor(20,40,120);
+  const put=(px,py,s,sz,bold)=>{ if(s==null||s==='')return;
+    sz=sz||26; d.setFont('helvetica',bold?'bold':'normal'); d.setFontSize(sz*0.36);
+    d.text(String(s), px*KX, (py+sz*0.8)*KY); };
+  const cash=(px,py,v,bold)=>put(px,py,(Number(v)||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','),27,bold);
+  const tick=(px,py)=>put(px+2,py-4,'X',24,true);
+
+  put(1337,366,recNo().replace(/^[A-Z]+-/,''),27,true);   // completes the preprinted "PR-"
+  put(320,632,val('signDate')||new Date().toLocaleDateString());
+  put(1135,632,val('arrestDate'));
+  put(382,695,words(P.paid)+' and 00/100',25);
+  cash(1288,695,P.paid);
+  const pm=val('payMethod');
+  if(pm==='Cash')tick(352,768);
+  else if(pm==='Check')tick(487,769);
+  else if(pm==='Money Order')tick(638,769);
+  else if(pm==='Credit Card')tick(872,768);
+  else if(pm){tick(1087,769);put(1215,756,val('payOther')||pm,24);}
+  put(390,817,[val('firstName'),val('middleName'),val('lastName')].filter(Boolean).join(' ').toUpperCase());
+  put(365,877,val('address')||'SEE FILE',24);
+  put(758,959,val('defName'));
+  cash(415,1043,Number(val('bond'))||0);
+  put(610,1105,'TBD');                                   // 8  date of release
+  put(480,1167,'TBD');                                   // 9  court name/address
+  put(760,1228,'TBD');                                   // 10 next appearance
+  put(285,1288,val('charges'),24);
+  cash(1285,1349,pp.prem);                               // 12 premium (10%)
+  if(pp.fee>0){put(565,1410,'Agent fee',26);cash(1285,1410,pp.fee);}   // 13 agent fee
+  cash(1330,1580,pp.total,true);                         // 15 total charges
+  cash(1285,1640,P.paid);                                // 16 amount paid
+  cash(1285,1700,P.bal);                                 // 17 balance due
+  if(collTaken()){tick(458,1773);put(1045,1761,collNo(),24);} else tick(574,1773);
+  try{ if(inked) d.addImage(cv.toDataURL('image/png'),'PNG',200*KX,1890*KY,300*KX,68*KY); }catch(_){}
+  if(CONFIG.agentSigImage&&CONFIG.agentSigImage.indexOf('data:')===0){
+    try{ d.addImage(CONFIG.agentSigImage,'PNG',1000*KX,1890*KY,300*KX,68*KY); }catch(_){}
+  } else { d.setFont('times','italic'); d.setFontSize(15); d.setTextColor(20,40,120); d.text(CONFIG.agentName,1000*KX,1955*KY); }
+  put(200,2015,[val('firstName'),val('lastName')].filter(Boolean).join(' ').toUpperCase(),24);
+  put(1000,2015,(CONFIG.agentName+'  Lic. #'+CONFIG.agentLicense).toUpperCase(),22);
   return d;}
 
 /* ===== submit ===== */
@@ -1136,7 +1135,7 @@ async function submit(){
   const fn='Indemnitor-Application-'+name+'.pdf';
   let doc=null,rcp=null;
   try{doc=pdf(prem);}catch(e){toast('PDF error: '+e.message);}
-  try{rcp=receiptPDF();}catch(e){}
+  try{rcp=await receiptPDF();}catch(e){}
   const rcpName='Receipt-'+recNo()+'.pdf';
   window.__rcpDoc=rcp; window.__rcpName=rcpName;
   const body='BAIL BOND APPLICATION — INDEMNITOR (SIGNED)\n'
