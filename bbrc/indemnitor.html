@@ -350,9 +350,11 @@
         <div class="chip" data-v="Money Order" data-i="pMO">Money order</div>
         <div class="chip" data-v="Check" data-i="pChk">Check</div>
         <div class="chip" data-v="Other" data-i="pOth">Other</div>
+        <div class="chip" data-v="Already Paid" data-i="pDone">Already paid</div>
       </div><input type="hidden" name="payMethod"></div>
     <div class="field paycc hidden"><label data-i="cc4">Card — last 4 digits</label><input name="ccLast4" maxlength="4" inputmode="numeric" placeholder="1234"></div>
     <div class="field payoth hidden"><label data-i="payOthD">Describe the payment</label><input name="payOther"></div>
+    <div class="field paydone hidden"><label data-i="paidByL">Who paid, and how? <span class="opt" data-i="ifk">(if known)</span></label><input name="paidBy" placeholder="e.g. sister Maria — cash at the office"></div>
     <div class="field"><label data-i="payNow">Amount you're paying today</label><input name="amountPaid" type="number" min="0" step="0.01" inputmode="decimal"></div>
     <div class="field"><label data-i="balDue">Balance due</label><input name="balanceDue" readonly placeholder="$0"></div>
     <div class="full warn hidden" id="balWarn" data-i="balW">A balance means a payment plan. Any unpaid balance remains owed after the bond is discharged and accrues interest at the maximum rate allowed by Florida law.</div>
@@ -710,20 +712,27 @@ function syncColl(){const t=val('collType');
 function payMethodText(){const m=val('payMethod');
   if(m==='Credit Card'&&val('ccLast4'))return 'Credit Card (ending '+val('ccLast4')+')';
   if(m==='Other'&&val('payOther'))return 'Other — '+val('payOther');
+  if(m==='Already Paid')return 'Already paid'+(val('paidBy')?(' — '+val('paidBy')):'');
   return m;}
 function syncPay(){
   syncColl();
   $$('.paycc').forEach(e=>e.classList.toggle('hidden',val('payMethod')!=='Credit Card'));
   $$('.payoth').forEach(e=>e.classList.toggle('hidden',val('payMethod')!=='Other'));
+  /* "Already paid" — someone else settled it in cash, by Zelle, at the office.
+     The form must stop asking for money it has already got: the amount is
+     treated as paid in full and every payment prompt is suppressed. */
+  const done=val('payMethod')==='Already Paid';
+  $$('.paydone').forEach(e=>e.classList.toggle('hidden',!done));
   const prem=calc(), cc=collCash(), due=prem+cc;
   const paidEl=f.elements['amountPaid'];
-  if(paidEl&&!paidEl.value&&due>0)paidEl.value=due;
-  const paid=parseFloat(val('amountPaid'))||0;
+  if(done && paidEl && due>0) paidEl.value=due;          // settled in full already
+  else if(paidEl&&!paidEl.value&&due>0)paidEl.value=due;
+  const paid=done?due:(parseFloat(val('amountPaid'))||0);
   const bal=Math.max(0,due-paid);
   const b=f.elements['balanceDue']; if(b)b.value=due>0?('$'+bal.toLocaleString()):'';
   const w=$('#balWarn'); if(w)w.classList.toggle('hidden',!(bal>0));
   const co=$('#checkout');
-  if(co){ co.style.display=due>0?'block':'none';
+  if(co){ co.style.display=(due>0&&!done)?'block':'none';
     const t=$('#coTotal'); if(t)t.textContent='$'+due.toLocaleString();
     const br=$('#coBreak');
     if(br)br.textContent = cc>0
@@ -1230,7 +1239,10 @@ async function receiptPDF(){
   else if(pm==='Check')tick(487,769);
   else if(pm==='Money Order')tick(638,769);
   else if(pm==='Credit Card')tick(872,768);
-  else if(pm){tick(1087,769);put(1215,756,val('payOther')||pm,24);}
+  else if(pm){tick(1087,769);
+    put(1215,756,(pm==='Already Paid'
+      ? ('Paid in advance'+(val('paidBy')?(' — '+val('paidBy')):''))
+      : (val('payOther')||pm)),24);}
   put(390,817,[val('firstName'),val('middleName'),val('lastName')].filter(Boolean).join(' ').toUpperCase());
   put(365,877,val('address')||'SEE FILE',24);
   put(758,959,val('defName'));
@@ -1297,6 +1309,11 @@ async function submit(){
     +(outOfState()?('\n\n*** FLAG: OUT-OF-STATE ID ***\nLicense issued in '+val('dlState').toUpperCase()+' (not Florida).\nIndemnitor address: '+val('address')+'\nConsider extra verification / collection risk.'):'')
     +(needsApproval()?('\n\n*** HOLD PRESENT — AGENT APPROVAL REQUIRED ***\nHold type: '+val('hold')+'\nDo NOT proceed until approved. May require FULL bond amount rather than premium.'):'')
     +'\n\nReceipt No: '+recNo()+(collTaken()?('\nCollateral Receipt No: '+collNo()):'')
+    +(val('payMethod')==='Already Paid'
+        ? ('\n\nPAYMENT: ALREADY RECEIVED — no payment was requested from this client.'
+           +(val('paidBy')?('\nPaid by / how: '+val('paidBy')):'')
+           +'\nReceipt shows paid in full, balance $0. Verify against your records before posting.')
+        : '')
     +((val('payMethod')==='Cash App'||val('payMethod')==='Zelle')
         ? ('\n\n*** '+val('payMethod').toUpperCase()+' — CONFIRM MANUALLY BEFORE POSTING ***'
            +'\nExpect $'+(syncPay().due||calc()).toLocaleString()+' with this note: '+memoRef()
@@ -1340,7 +1357,7 @@ async function submit(){
   if(pb){
     const due=calc()+collCash();
     const label=()=>(LANG==='es'?'💳 Pagar ahora con tarjeta — $':'💳 Pay now by card — $')+due.toLocaleString();
-    if(val('payMethod')==='Credit Card' && due>0 && !needsApproval()){
+    if(val('payMethod')==='Credit Card' && due>0 && !needsApproval() && val('payMethod')!=='Already Paid'){
       pb.textContent=label();
       pb.classList.remove('hidden');
       pb.addEventListener('click',async ev=>{
