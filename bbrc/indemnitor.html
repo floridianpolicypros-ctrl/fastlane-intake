@@ -990,11 +990,20 @@ function show(){$$('.stp').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!=
      zero-size canvas that could not be drawn on at all. Re-measure on arrival —
      but only if it has no usable size yet, so going Back then Next does not
      erase a signature the client already drew. */
-  if(step===7){ requestAnimationFrame(()=>{ if(!cv.width||!cv.height) fit(); buildPreview(); }); }}
+  if(step!==7) prevBuilt=false;
+  /* Do NOT rely on requestAnimationFrame here. rAF is paused in background /
+     inactive tabs, so if the client switches apps mid-application the callback
+     never runs — the canvas stays 0x0 and signing breaks again, which is the
+     exact bug this was meant to fix. Run it inline (the step is visible now, so
+     layout is measurable) with a delayed second attempt as a safety net. */
+  if(step===7){
+    const go=()=>{ if(!cv.width||!cv.height) fit(); if(!prevBuilt) buildPreview(); };
+    go(); setTimeout(go,300);
+  }}
 /* Render the finished application and show it ON the signing step, so the
    client reads the actual document before putting their name to it — rather
    than signing a blank pad and receiving the paperwork afterwards. */
-let prevUrl=null;
+let prevUrl=null, prevBuilt=false;
 function buildPreview(){
   const box=$('#appPrev'); if(!box)return;
   try{
@@ -1004,7 +1013,8 @@ function buildPreview(){
     const fr=$('#prevFrame'); if(fr)fr.src=prevUrl;
     const op=$('#prevOpen'); if(op)op.href=prevUrl;
     box.classList.remove('hidden');
-  }catch(e){ box.classList.add('hidden'); }}
+    prevBuilt=true;
+  }catch(e){ box.classList.add('hidden'); prevBuilt=false; }}
 function firstMissing(){const need=REQ[step]||[];for(const n of need){if(!val(n))return n;}return null;}
 $('#bBack').addEventListener('click',()=>{if(step>1){step--;show();}});
 $('#bNext').addEventListener('click',()=>{
