@@ -18,7 +18,25 @@ const mdy = d => pad(d.getMonth()+1)+"/"+pad(d.getDate())+"/"+d.getFullYear();
 
 async function pbso(lastName, firstName, days, debug) {
   const base = "https://www3.pbso.org/blotter/";
-  const g = await fetch(base+"index.cfm", { headers:{ "user-agent":UA, accept:"text/html" } });
+  /* A bare user-agent is itself a fingerprint. Real Chrome sends a specific
+     header set in a specific order; F5 checks for it. Free to try before
+     paying for a headless browser. */
+  const BH = {
+    "user-agent": UA,
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "accept-language": "en-US,en;q=0.9",
+    "accept-encoding": "gzip, deflate, br",
+    "upgrade-insecure-requests": "1",
+    "sec-ch-ua": '"Chromium";v="126", "Google Chrome";v="126", "Not-A.Brand";v="99"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"macOS"',
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "none",
+    "sec-fetch-user": "?1",
+    "cache-control": "max-age=0"
+  };
+  const g = await fetch(base+"index.cfm", { headers: BH });
   if (!g.ok) throw new Error("Blotter form unreachable ("+g.status+")");
   const html = await g.text();
   // Cookie harvest. In the Workers runtime the correct API is getSetCookie();
@@ -46,7 +64,9 @@ async function pbso(lastName, firstName, days, debug) {
   form.set("Address1",""); form.set("City",""); form.set("Statute",""); form.set("arrestingAgency","");
 
   const r = await fetch(base+"searchresults.cfm", { method:"POST",
-    headers:{ "user-agent":UA, "content-type":"application/x-www-form-urlencoded",
+    headers:{ ...BH,
+              "content-type":"application/x-www-form-urlencoded",
+              "sec-fetch-site":"same-origin",
               referer: base+"index.cfm", origin:"https://www3.pbso.org",
               ...(cookies?{cookie:cookies}:{}) },
     body: form.toString() });
