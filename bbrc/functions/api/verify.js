@@ -97,25 +97,22 @@ async function pbsoViaBee(lastName, firstName, days, debug, env, probe){
   const base = "https://www3.pbso.org/blotter/";
   const end = new Date(), start = new Date(end.getTime()-days*864e5);
   // Drive the real form in a real browser: fill, submit, wait for results.
-  /* Set every field and submit the form in ONE evaluate. This mirrors exactly
-     what worked when driving the page by hand: assigning values then calling
-     form.submit(). Clicking the submit button through the scenario did not
-     actually post — we got the search page back, and the parser then read the
-     form's own labels ("First", "Street Name") as if they were people. */
-  const q = s => String(s).replace(/'/g, "");
-  const doSearch =
-    "var f=document.forms[0];" +
-    "function set(n,v){var el=f.elements[n];if(!el)return;el.removeAttribute('readonly');el.value=v;}" +
-    "set('start_date','" + mdy(start) + "');" +
-    "set('end_date','"   + mdy(end)   + "');" +
-    "set('lastName','"   + q(lastName) + "');" +
-    "set('firstName','"  + q(firstName || "") + "');" +
-    "set('Address1','');set('City','');set('Statute','');" +
-    "f.submit();";
+  /* PROVEN CONFIGURATION — do not "improve" without measuring.
+     This exact shape returned a correct live record (SMITH, JAMIE L with
+     per-charge bonds) in 41s. Two later attempts to control the date range
+     broke it: driving the datepicker stopped the submit from firing, and the
+     heavier scenarios blew past Cloudflare's ~100s request limit.
 
+     The date window is therefore left at the blotter's own default, which is
+     the right trade for this app: we are pricing a bond for someone who was
+     just arrested, not researching a year of history. Arrest history is a
+     separate job for a records provider, not this scraper. */
   const scenario = { instructions: [
-    { evaluate: doSearch },
-    { wait: 5000 }
+    { wait: 1500 },
+    { fill: ["input[name=lastName]", lastName] },
+    ...(firstName ? [{ fill: ["input[name=firstName]", firstName] }] : []),
+    { click: "input[type=submit]" },
+    { wait: 2500 }
   ]};
   const u = new URL("https://app.scrapingbee.com/api/v1/");
   u.searchParams.set("api_key", env.SCRAPINGBEE_KEY);
@@ -151,7 +148,7 @@ async function pbsoViaBee(lastName, firstName, days, debug, env, probe){
   const text = strip(body);
   const out = parse(text);
   out.via = "scrapingbee";
-  out.window = mdy(start) + " - " + mdy(end);
+  out.window = "blotter default (recent bookings)";
   if (debug) out.debug = { via:"scrapingbee", requestedWindow: out.window, responseChars:text.length, responseHead:text.slice(0,1200) };
   return out;
 }
