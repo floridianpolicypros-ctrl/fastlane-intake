@@ -912,21 +912,45 @@ function renderMatches(data){
       return;}
     b.disabled=true; const lbl=b.textContent;
     b.textContent=LANG==='es'?'Buscando…':'Checking…';
-    vMsg(LANG==='es'?'Consultando los registros de la cárcel…':'Searching jail records…','');
+    /* This lookup drives a real browser on the jail's site and genuinely takes
+       40-70s. Without a visible timer it reads as broken, which is exactly how
+       it was reported. Count up, and give a hard ceiling so it can never hang. */
+    let t0=Date.now(), tick=setInterval(()=>{
+      const s=Math.round((Date.now()-t0)/1000);
+      vMsg((LANG==='es'?'Consultando los registros de la cárcel… ':'Searching jail records… ')+s+'s'
+           +(LANG==='es'?'  (puede tardar un minuto)':'  (this can take up to a minute)'),'');
+    },1000);
+    const ctl=new AbortController();
+    const killer=setTimeout(()=>ctl.abort(),95000);
+    const done=()=>{clearInterval(tick);clearTimeout(killer);};
     try{
       const r=await fetch(CONFIG.verifyEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+        signal:ctl.signal,
         body:JSON.stringify({provider:providerKey(),lastName:last,firstName:first,days:45})});
       const data=await r.json();
+      done();
       if(data.ok&&(data.matches||[]).length){
         vMsg((LANG==='es'?'✅ ':'✅ ')+data.matches.length+(LANG==='es'?' registro(s) encontrado(s) — toque "Usar" para aplicar el monto.':' record(s) found — tap "Use" to apply the amount.'),'#14602f');
         renderMatches(data);
       }else if(data.ok){
         vMsg(LANG==='es'?'No encontramos registros con ese nombre. Verifique la ortografía, o pegue una captura del blotter.':"No records found for that name. Check the spelling, or paste a screenshot of the blotter.",'#8a5a1a');
       }else{
-        vMsg((LANG==='es'?'No pudimos verificar automáticamente. ':"Couldn't verify automatically. ")+(LANG==='es'?'Abra el blotter y pegue una captura.':'Open the blotter and paste a screenshot.'),'#8a5a1a');
+        /* data.ok === false means the lookup itself failed. Never phrase this
+           as "no records found" — that is a different and much more damaging
+           statement to make to someone whose relative is sitting in jail. */
+        vMsg((LANG==='es'?'⚠️ La verificación falló — esto NO significa que no esté detenido. '
+                         :"⚠️ The check failed — this does NOT mean they aren't in custody. ")
+            +(data.error?('('+data.error+') '):'')
+            +(LANG==='es'?'Abra el blotter y pegue una captura.':'Open the blotter and paste a screenshot.'),'#c0392b');
       }
-    }catch(_){
-      vMsg(LANG==='es'?'No pudimos conectar. Abra el blotter y pegue una captura.':"Couldn't connect. Open the blotter and paste a screenshot.",'#8a5a1a');
+    }catch(err){
+      done();
+      const aborted = err && err.name==='AbortError';
+      vMsg(aborted
+        ? (LANG==='es'?'La búsqueda tardó demasiado. NO significa que no esté detenido — abra el blotter y pegue una captura.'
+                      :"The search took too long. This does NOT mean they aren't in custody — open the blotter and paste a screenshot.")
+        : (LANG==='es'?'No pudimos conectar. Abra el blotter y pegue una captura.'
+                      :"Couldn't connect. Open the blotter and paste a screenshot."),'#c0392b');
     }
     b.disabled=false; b.textContent=lbl;
   });
