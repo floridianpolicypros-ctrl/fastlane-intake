@@ -314,6 +314,12 @@
       <div class="hint" id="priceNote">You'll be taken to a secure Stripe checkout after you submit.</div>
     </div>
 
+    <div class="field full" style="margin-top:14px">
+      <label>Promo / family code <span class="opt">(optional)</span></label>
+      <input name="promoCode" id="promoCode" placeholder="Have a code? Enter it here" autocomplete="off" style="text-transform:uppercase">
+      <p class="hint" id="promoNote"></p>
+    </div>
+
     <button type="submit" class="submit" id="submitBtn">Submit &amp; continue to payment &rarr;</button>
     <div class="paylogos">
       <span class="visa">VISA</span><span class="mc">Mastercard</span><span class="amex">AMEX</span><span class="disc">Discover</span><span class="apay">&#63743;&nbsp;Pay</span><span class="gpay">G&nbsp;Pay</span><span class="cash">Cash&nbsp;App</span>
@@ -339,6 +345,10 @@ const CONFIG = {
   aiEndpoint:   "https://fastlane-reader.floridianpolicypros.workers.dev",
   submitEndpoint: "https://fastlane-submit.floridianpolicypros.workers.dev",
   insuranceQuoteUrl: "https://fpp-quote.floridianpolicypros.workers.dev/auto",
+  // Promo / family / cash codes. A student who enters one of these SKIPS Stripe
+  // and lands on a thank-you page; you collect cash in person or it's a comp.
+  // Codes are matched case-insensitively. Edit this list anytime.  <-- EDIT THESE
+  promoCodes: ["FAMILY"],
   // Stripe Payment Link for the court records / case search. Charged in addition to the course.
   courtSearchLink: { url:"https://buy.stripe.com/9B600j3w35uO8Ys8uw5Ne0b", price:"$17.50" },
   // Optional clerk e-file of the completion certificate. Only offered for BDI & 8-hr.
@@ -387,6 +397,9 @@ function noCitation(){const c=$("#noCitation");return !!(c&&c.checked);}
 function eFileEligible(){const c=val("courseType");return c.startsWith("BDI")||c.startsWith("8-Hour");}
 function eFileWanted(){const b=$("#eFileCert");return eFileEligible()&&!!(b&&b.checked);}
 function recordWanted(){const b=$("#wantsRecord");return !!(b&&b.checked);}
+/* Valid promo/family/cash code → skip Stripe, end on thank-you. */
+function promoCode(){return (val("promoCode")||"").trim().toUpperCase();}
+function promoValid(){const c=promoCode();return !!c && (CONFIG.promoCodes||[]).some(x=>String(x).trim().toUpperCase()===c);}
 
 function syncConditionals(){
   const needsCit=courseNeedsCitation();
@@ -458,13 +471,31 @@ function priceBox(){
   if(!c||!info){box.classList.add("hidden");return;}
   box.classList.remove("hidden");
   $("#priceCourse").textContent=c;
+
+  // Promo/family code note (green if valid, muted if typed but unrecognized)
+  const pn=$("#promoNote"), pc=promoCode();
+  if(pn){
+    if(promoValid()){pn.textContent="✓ Code accepted — no online payment. Pay in person / already handled.";pn.style.color="var(--ok)";}
+    else if(pc){pn.textContent="That code isn't recognized — leave blank to pay online.";pn.style.color="var(--muted)";}
+    else{pn.textContent="";}
+  }
+
   const addonBits=[];
   if(courseNeedsCitation()&&noCitation())addonBits.push("+ "+CONFIG.courtSearchLink.price+" court search");
   if(eFileWanted())addonBits.push("+ "+CONFIG.eFileLink.price+" e-file");
   if(recordWanted())addonBits.push("+ "+CONFIG.recordLink.price+" 7-yr record");
+
+  const blocked=!checkEligibility();
+
+  if(promoValid()){
+    $("#priceAmt").innerHTML = '$0.00 <span style="font-size:14px;font-weight:600;color:#5c4600">code applied</span>';
+    $("#priceNote").textContent = "No online payment — your code covers it. You'll go straight to a thank-you page.";
+    $("#submitBtn").textContent = "Submit my enrollment →";
+    return;
+  }
+
   $("#priceAmt").innerHTML = (info.price||"") +
     (addonBits.length?' <span style="font-size:14px;font-weight:600;color:#5c4600">'+addonBits.join(" ")+'</span>':"");
-  const blocked=!checkEligibility();
   const extra=addonBits.length;
   $("#priceNote").textContent = blocked
     ? "We'll review your case first and send you a payment link — you will not be charged yet."
@@ -553,6 +584,7 @@ function buildSummary(){
   if(recordWanted())addons.push(["7-year driving record (+$24.95)","✓ requested"]);
   if($("#wantsInsuranceQuote")&&$("#wantsInsuranceQuote").checked)addons.push(["Auto insurance quote","✓ requested"]);
   if(addons.length){h+=g("Add-ons"); addons.forEach(a=>{h+=r(a[0],a[1]);});}
+  if(promoValid()){h+=g("Payment"); h+=r("Promo code",promoCode()); h+=r("Online payment","Skipped — pay in person");}
   const ups=Object.keys(uploaded);
   if(ups.length){h+=g("Documents ("+ups.length+")"); ups.forEach(k=>{h+=r(DOC_LABELS[k]||k,"✓");});}
   $("#sumBody").innerHTML=h||`<p class="hint">Fill the form and your summary builds here.</p>`;
@@ -603,6 +635,7 @@ function textSummary(){
     line("Vehicles",val("vehicleCount")||"[ASK STUDENT]");
     L.push("Student was handed off to the auto quote form with name/DOB/DL/address prefilled.");
   }
+  if(promoValid()){ S("*** CASH / COMP — PROMO CODE USED ***"); line("Code",promoCode()); L.push("Student did NOT pay online. Collect cash in person or comp per your arrangement."); }
   if(val("notes")){S("NOTES"); L.push(val("notes"));}
   S("DOCUMENTS ATTACHED");
   const ups=Object.keys(uploaded);
@@ -623,6 +656,7 @@ $("#noCitation").addEventListener("change",()=>{syncConditionals();buildSummary(
 $("#wantsInsuranceQuote").addEventListener("change",()=>{syncConditionals();buildSummary();});
 $("#eFileCert").addEventListener("change",()=>{syncConditionals();buildSummary();});
 $("#wantsRecord").addEventListener("change",()=>{syncConditionals();buildSummary();});
+$("#promoCode").addEventListener("input",()=>{syncConditionals();buildSummary();});
 ["speedAlleged","speedPosted"].forEach(n=>{const el=form.elements[n];if(el)el.addEventListener("input",syncConditionals);});
 
 function scrollTo_(el){try{if(el&&el.scrollIntoView)el.scrollIntoView({behavior:"smooth",block:"center"});}catch(_){}}
@@ -652,6 +686,7 @@ form.addEventListener("submit",async e=>{
     courtSearch: noCitation() ? {county:val("searchCounty"), approxDate:val("searchApproxDate"), fee:"17.50"} : null,
     eFileCert: eFileWanted(),
     wantsRecord: recordWanted(),
+    promoCode: promoValid() ? promoCode() : "",
     wantsInsurance: !!($("#wantsInsuranceQuote")&&$("#wantsInsuranceQuote").checked),
     summary:textSummary(),
     files:Object.keys(uploadedData).map(k=>({key:k,label:DOC_LABELS[k]||k,name:uploadedData[k].name,type:uploadedData[k].type,data:uploadedData[k].b64}))
@@ -672,6 +707,9 @@ form.addEventListener("submit",async e=>{
 
   const info=CONFIG.stripeLinks[val("courseType")]||{};
   const blocked=payload.eligibilityFlag;
+
+  // Valid promo/family/cash code → skip Stripe entirely, straight to thank-you.
+  if(promoValid()){ showDone(false, true); return; }
 
   if(blocked || !info.url){ showDone(blocked); return; }
 
@@ -733,15 +771,16 @@ function insBlock(){
     '<a class="submit" style="display:block;text-align:center;text-decoration:none;background:#12657d;color:#fff" target="_blank" rel="noopener" href="'+esc_(insUrl())+'">Finish my auto quote →</a></div>';
 }
 
-function showDone(blocked){
+function showDone(blocked, comp){
+  const msg = comp
+    ? 'You\'re enrolled — <strong>no online payment needed</strong> (your code covers it). We\'ll follow up at <strong>'+esc_(val("email"))+'</strong> with your course access. Thanks!'
+    : (blocked
+        ? 'Your case needs a quick review before we enroll you. <strong>We have not charged you anything.</strong> We\'ll call or email you within one business day at '+esc_(val("phone"))+'.'
+        : 'Your enrollment and documents were sent to Fast Lane Traffic School. We\'ll email you a secure payment link and your course access at <strong>'+esc_(val("email"))+'</strong> shortly.');
   document.querySelector(".layout").innerHTML=
     '<div class="card done-panel" style="grid-column:1/-1">'+
-    '<div class="big">✅</div><h2>We got everything — thank you.</h2>'+
-    '<p style="max-width:520px;margin:0 auto;color:#4a5a6e">'+
-    (blocked
-      ? 'Your case needs a quick review before we enroll you. <strong>We have not charged you anything.</strong> We\'ll call or email you within one business day at '+esc_(val("phone"))+'.'
-      : 'Your enrollment and documents were sent to Fast Lane Traffic School. We\'ll email you a secure payment link and your course access at <strong>'+esc_(val("email"))+'</strong> shortly.')+
-    '</p>'+insBlock()+
+    '<div class="big">✅</div><h2>'+(comp?'You\'re all set — thank you!':'We got everything — thank you.')+'</h2>'+
+    '<p style="max-width:520px;margin:0 auto;color:#4a5a6e">'+msg+'</p>'+insBlock()+
     '<p class="hint" style="margin-top:18px">Questions? westpalmbeachtrafficschool@gmail.com</p></div>';
   window.scrollTo({top:0,behavior:"smooth"});
 }
