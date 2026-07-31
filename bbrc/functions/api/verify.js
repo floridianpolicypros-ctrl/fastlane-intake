@@ -6,7 +6,7 @@ export async function onRequestPost(context) {
   if (provider !== "pbso") return j({ ok:false, error:"No automatic lookup for this jail yet" });
   const lastName = clean(b.lastName), firstName = clean(b.firstName);
   if (!lastName) return j({ ok:false, error:"lastName required" });
-  try { return j({ ok:true, source:"PBSO Booking Blotter", ...(await pbso(lastName, firstName, Number(b.days)||45, !!b.debug, env)) }); }
+  try { return j({ ok:true, source:"PBSO Booking Blotter", ...(await pbso(lastName, firstName, Number(b.days)||45, !!b.debug, env, !!b.probe)) }); }
   catch(e) { return j({ ok:false, source:"PBSO Booking Blotter", error:String(e&&e.message||e) }); }
 }
 export const onRequestOptions = () => new Response(null,{headers:{ "Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type" }});
@@ -16,14 +16,14 @@ const money = v => Number(String(v).replace(/[^0-9.]/g,""))||0;
 const pad = n => String(n).padStart(2,"0");
 const mdy = d => pad(d.getMonth()+1)+"/"+pad(d.getDate())+"/"+d.getFullYear();
 
-async function pbso(lastName, firstName, days, debug, env) {
+async function pbso(lastName, firstName, days, debug, env, probe) {
   /* PBSO sits behind an F5 firewall that rejects server-side clients. Proven:
      it hands out a TS… session cookie and then returns "Request Rejected" with
      a support ID. Headers cannot fix it — F5 fingerprints the TLS handshake,
      and a Worker's handshake is not Chrome's.
      If a ScrapingBee key is configured we go through a REAL browser on a
      RESIDENTIAL ip, which addresses both possible causes at once. */
-  if (env && env.SCRAPINGBEE_KEY) return pbsoViaBee(lastName, firstName, days, debug, env);
+  if (env && env.SCRAPINGBEE_KEY) return pbsoViaBee(lastName, firstName, days, debug, env, probe);
   const base = "https://www3.pbso.org/blotter/";
   /* A bare user-agent is itself a fingerprint. Real Chrome sends a specific
      header set in a specific order; F5 checks for it. Free to try before
@@ -93,29 +93,59 @@ async function pbso(lastName, firstName, days, debug, env) {
   }
   return out;
 }
-async function pbsoViaBee(lastName, firstName, days, debug, env){
+async function pbsoViaBee(lastName, firstName, days, debug, env, probe){
   const base = "https://www3.pbso.org/blotter/";
   const end = new Date(), start = new Date(end.getTime()-days*864e5);
   // Drive the real form in a real browser: fill, submit, wait for results.
+  /* The two date boxes are driven by a datepicker widget. A plain fill sets the
+     value but fires no events, so the page ignores it and searches its default
+     ~1 day window — which is why a 14-day and a 365-day search returned exactly
+     the same single record. Setting the value AND dispatching input/change is
+     what actually registers. */
+  const setDates =
+    "var s=document.querySelector('input[name=start_date]');" +
+    "var e=document.querySelector('input[name=end_date]');" +
+    "function set(el,v){if(!el)return;el.removeAttribute('readonly');el.value=v;" +
+    "el.dispatchEvent(new Event('input',{bubbles:true}));" +
+    "el.dispatchEvent(new Event('change',{bubbles:true}));" +
+    "el.dispatchEvent(new Event('blur',{bubbles:true}));}" +
+    "set(s,'" + mdy(start) + "');set(e,'" + mdy(end) + "');";
+
   const scenario = { instructions: [
-    { wait: 1500 },
-    { fill: ["input[name=start_date]", mdy(start)] },
-    { fill: ["input[name=end_date]",   mdy(end)] },
-    { fill: ["input[name=lastName]",   lastName] },
+    { evaluate: setDates },
+    { fill: ["input[name=lastName]", lastName] },
     ...(firstName ? [{ fill: ["input[name=firstName]", firstName] }] : []),
+    { evaluate: setDates },          // re-apply: filling a field can reset them
     { click: "input[type=submit]" },
-    { wait: 4000 }
+    { wait: 2500 }
   ]};
   const u = new URL("https://app.scrapingbee.com/api/v1/");
   u.searchParams.set("api_key", env.SCRAPINGBEE_KEY);
   u.searchParams.set("url", base + "index.cfm");
-  u.searchParams.set("render_js", "true");
   u.searchParams.set("premium_proxy", "true");   // residential ip
   u.searchParams.set("country_code", "us");
-  u.searchParams.set("js_scenario", JSON.stringify(scenario));
+  /* PROBE MODE: just fetch the page, no JS, no form driving. This answers the
+     only question that matters first — can a residential IP reach PBSO at all?
+     The full scenario costs ~25 credits and 2+ minutes; this costs ~10 and a
+     few seconds. Diagnose cheap before diagnosing expensive. */
+  if (probe) {
+    u.searchParams.set("render_js", "false");
+  } else {
+    u.searchParams.set("render_js", "true");
+    u.searchParams.set("js_scenario", JSON.stringify(scenario));
+  }
 
   const r = await fetch(u.toString());
   const body = await r.text();
+  if (probe) {
+    const t = strip(body);
+    const blocked = /Request Rejected|support ID/i.test(t);
+    return { matches: [], via: "scrapingbee-probe",
+      note: !r.ok ? ("probe HTTP " + r.status)
+           : blocked ? "REACHED but PBSO still rejected the request"
+           : "PBSO ALLOWED the request — automation is possible",
+      debug: { status: r.status, blocked, chars: t.length, head: t.slice(0, 500) } };
+  }
   if (!r.ok) {
     return { matches: [], note: "Lookup service error " + r.status,
              debug: debug ? { via:"scrapingbee", status:r.status, body: body.slice(0,600) } : undefined };
@@ -123,7 +153,8 @@ async function pbsoViaBee(lastName, firstName, days, debug, env){
   const text = strip(body);
   const out = parse(text);
   out.via = "scrapingbee";
-  if (debug) out.debug = { via:"scrapingbee", responseChars:text.length, responseHead:text.slice(0,1200) };
+  out.window = mdy(start) + " - " + mdy(end);
+  if (debug) out.debug = { via:"scrapingbee", requestedWindow: out.window, responseChars:text.length, responseHead:text.slice(0,1200) };
   return out;
 }
 function strip(h){ return h
