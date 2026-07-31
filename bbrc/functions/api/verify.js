@@ -142,8 +142,14 @@ async function pbsoViaBee(lastName, firstName, days, debug, env, probe){
       debug: { status: r.status, blocked, chars: t.length, head: t.slice(0, 500) } };
   }
   if (!r.ok) {
-    return { matches: [], note: "Lookup service error " + r.status,
-             debug: debug ? { via:"scrapingbee", status:r.status, body: body.slice(0,600) } : undefined };
+    /* Critical: do NOT return an empty match list on failure. The form would
+       render that as "no records found for that name", telling the client the
+       person is not in custody when the truth is that we could not check. */
+    const e = new Error(r.status === 524 || r.status === 408
+      ? "The jail site took too long to respond"
+      : ("Lookup service error " + r.status));
+    e.lookupFailed = true;
+    throw e;
   }
   const text = strip(body);
   const out = parse(text);
