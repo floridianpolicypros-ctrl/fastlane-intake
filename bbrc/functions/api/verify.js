@@ -97,27 +97,25 @@ async function pbsoViaBee(lastName, firstName, days, debug, env, probe){
   const base = "https://www3.pbso.org/blotter/";
   const end = new Date(), start = new Date(end.getTime()-days*864e5);
   // Drive the real form in a real browser: fill, submit, wait for results.
-  /* The two date boxes are driven by a datepicker widget. A plain fill sets the
-     value but fires no events, so the page ignores it and searches its default
-     ~1 day window — which is why a 14-day and a 365-day search returned exactly
-     the same single record. Setting the value AND dispatching input/change is
-     what actually registers. */
-  const setDates =
-    "var s=document.querySelector('input[name=start_date]');" +
-    "var e=document.querySelector('input[name=end_date]');" +
-    "function set(el,v){if(!el)return;el.removeAttribute('readonly');el.value=v;" +
-    "el.dispatchEvent(new Event('input',{bubbles:true}));" +
-    "el.dispatchEvent(new Event('change',{bubbles:true}));" +
-    "el.dispatchEvent(new Event('blur',{bubbles:true}));}" +
-    "set(s,'" + mdy(start) + "');set(e,'" + mdy(end) + "');";
+  /* Set every field and submit the form in ONE evaluate. This mirrors exactly
+     what worked when driving the page by hand: assigning values then calling
+     form.submit(). Clicking the submit button through the scenario did not
+     actually post — we got the search page back, and the parser then read the
+     form's own labels ("First", "Street Name") as if they were people. */
+  const q = s => String(s).replace(/'/g, "");
+  const doSearch =
+    "var f=document.forms[0];" +
+    "function set(n,v){var el=f.elements[n];if(!el)return;el.removeAttribute('readonly');el.value=v;}" +
+    "set('start_date','" + mdy(start) + "');" +
+    "set('end_date','"   + mdy(end)   + "');" +
+    "set('lastName','"   + q(lastName) + "');" +
+    "set('firstName','"  + q(firstName || "") + "');" +
+    "set('Address1','');set('City','');set('Statute','');" +
+    "f.submit();";
 
   const scenario = { instructions: [
-    { evaluate: setDates },
-    { fill: ["input[name=lastName]", lastName] },
-    ...(firstName ? [{ fill: ["input[name=firstName]", firstName] }] : []),
-    { evaluate: setDates },          // re-apply: filling a field can reset them
-    { click: "input[type=submit]" },
-    { wait: 2500 }
+    { evaluate: doSearch },
+    { wait: 5000 }
   ]};
   const u = new URL("https://app.scrapingbee.com/api/v1/");
   u.searchParams.set("api_key", env.SCRAPINGBEE_KEY);
@@ -165,7 +163,10 @@ function strip(h){ return h
 function parse(text){
   if (/0 matches retrieved/i.test(text) || /no\s+(records|matches)\s+(found|retrieved)/i.test(text))
     return { matches:[], note:"No booking records found in that date range." };
-  const blocks = text.split(/(?=Name:\s)/g).filter(b=>/Name:\s/.test(b));
+  /* Require evidence this is an actual booking record. Without this, the
+     search form's own labels parse as people. */
+  const blocks = text.split(/(?=Name:\s)/g)
+    .filter(b => /Name:\s/.test(b) && /(Booking Date\/Time|Facility:)/i.test(b));
   const matches = [];
   for (const b of blocks) {
     const get = re => (b.match(re)||[])[1] || "";
