@@ -192,6 +192,14 @@
     <div class="field"><label data-i="home">Home phone</label><input name="phoneHome" type="tel" inputmode="tel"></div>
     <div class="field"><label data-i="workp">Work phone</label><input name="phoneWork" type="tel" inputmode="tel"></div>
     <div class="field"><label data-i="em">Email *</label><input name="email" type="email" inputmode="email" required autocomplete="email"></div>
+    <div class="full" id="emVerify" style="margin-top:-4px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button type="button" class="btn2" id="emSend" data-i="emSendB">Send me a code</button>
+        <input id="emCode" inputmode="numeric" maxlength="6" placeholder="6-digit code" style="max-width:150px;display:none">
+        <button type="button" class="btn2" id="emCheck" style="display:none" data-i="emCheckB">Verify</button>
+        <span id="emMsg" class="hint"></span>
+      </div>
+    </div>
     <div class="full"><label data-i="addr">Current home address *</label><input name="address" required autocomplete="street-address"></div>
     <div class="field"><label data-i="howlong">How long there?</label><input name="addrHowLong" placeholder="e.g. 3 years"></div>
     <div class="field"><label data-i="rentown">Rent or own?</label>
@@ -244,6 +252,10 @@
 <section class="card stp hidden" data-s="4">
   <h2 class="step" data-i="s4t">Work, vehicle &amp; family</h2>
   <p class="sub" data-i="s4s">Skip anything that doesn't apply to you.</p>
+  <div class="socreq hidden" style="margin-bottom:16px">
+    <label class="drop" style="padding:14px"><div class="ico">\U0001F4F1</div><div class="t" data-i="socShot">Screenshot of your social media profile page *</div><div class="hint" data-i="socShotH">Open the profile you named on the last page and screenshot it. It must show your name and photo.</div><div class="status" data-status></div><input type="file" accept="image/*" data-doc="soc_doc"><img class="thumb" data-thumb></label>
+    <div style="background:#fff6f6;border:1px solid #f0c9c9;border-radius:11px;padding:12px;margin-top:10px;font-size:12.5px;color:#8a2b2b" data-i="socWarn"><b>Please read.</b> Your social media is checked. If the profile does not match what you told us, or the information given is false, the bond can be revoked and the defendant returned to custody.</div>
+  </div>
   <div class="grid">
     <div class="field"><label data-i="occ">Occupation</label><input name="occupation"></div>
     <div class="field"><label data-i="empl">Employer</label><input name="employer" autocomplete="organization"></div>
@@ -430,6 +442,7 @@ const CONFIG={
   sendEndpoint:"/api/send",
   payEndpoint:"/api/pay",
   recNoEndpoint:"/api/recno",
+  emailCodeEndpoint:"/api/emailcode",
   cashAppTag:"$key2freedom",   // no processing fee, confirmed manually in the app
   zelleHandle:"",              // add your Zelle email or phone to show it here
   reviewUrl:"https://www.giveratings.com/bail-bonds-release-center",
@@ -489,7 +502,7 @@ const ES={
  mMarried:"Casado", mSingle:"Soltero", mDiv:"Divorciado", mSep:"Separado", mWid:"Viudo", mCoh:"Viviendo juntos",
  spn:"Nombre del cónyuge / pareja", spl:"¿Cuánto tiempo juntos?", spp:"Su teléfono", spe:"Su empleador",
  s5t:"Dos referencias", s5s:"Personas que lo conocen — no la persona en la cárcel.",
- vehT:"Veh\u00edculo", vehYMM:"A\u00f1o, marca, modelo", vehPlate:"Placa #", vehState:"Estado de la placa", vehOwed:"Cantidad que a\u00fan debe", vehDoc:"Foto de la placa, registro, tarjeta de seguro o p\u00e1gina de declaraciones *", vehDocH:"Obligatorio cuando se indica un veh\u00edculo. Cualquiera de estos nos da el VIN y demuestra que el veh\u00edculo es suyo.", assetWarn:"<b>Por favor lea.</b> Se realiza una b\u00fasqueda de bienes sobre la informaci\u00f3n aqu\u00ed indicada. Si algo resulta falso o el veh\u00edculo no es suyo, la fianza puede ser revocada y el acusado devuelto a custodia.", ref1:"Referencia 1", ref2:"Referencia 2", rname:"Nombre", rrel:"Relación", rphone:"Teléfono", raddr:"Dirección",
+ emSendB:"Env\u00edeme un c\u00f3digo", emCheckB:"Verificar", socShot:"Captura de pantalla de su perfil de redes sociales *", socShotH:"Abra el perfil que indic\u00f3 en la p\u00e1gina anterior y tome una captura. Debe mostrar su nombre y su foto.", socWarn:"<b>Por favor lea.</b> Se verifican sus redes sociales. Si el perfil no coincide con lo que nos indic\u00f3, o la informaci\u00f3n es falsa, la fianza puede ser revocada y el acusado devuelto a custodia.", vehT:"Veh\u00edculo", vehYMM:"A\u00f1o, marca, modelo", vehPlate:"Placa #", vehState:"Estado de la placa", vehOwed:"Cantidad que a\u00fan debe", vehDoc:"Foto de la placa, registro, tarjeta de seguro o p\u00e1gina de declaraciones *", vehDocH:"Obligatorio cuando se indica un veh\u00edculo. Cualquiera de estos nos da el VIN y demuestra que el veh\u00edculo es suyo.", assetWarn:"<b>Por favor lea.</b> Se realiza una b\u00fasqueda de bienes sobre la informaci\u00f3n aqu\u00ed indicada. Si algo resulta falso o el veh\u00edculo no es suyo, la fianza puede ser revocada y el acusado devuelto a custodia.", ref1:"Referencia 1", ref2:"Referencia 2", rname:"Nombre", rrel:"Relación", rphone:"Teléfono", raddr:"Dirección",
  finT:"Finanzas (opcional)", cash:"Efectivo a mano", bank:"Efectivo en el banco", reV:"Valor de bienes raíces",
  reM:"Hipoteca de bienes raíces", title:"¿Título a nombre de quién?", sal:"Ingreso mensual", notes:"¿Algo que debamos saber?",
  hasAtt:"¿El acusado tiene abogado?", attN:"Nombre del abogado", wantA:"Que un abogado me contacte",
@@ -527,8 +540,8 @@ function setLang(l){LANG=l;document.documentElement.lang=l;
   $('#ack').textContent=ACK[l]; buildRel(); flagState(); jailInfo(); bar(); review();}
 
 const ACK={
- en:"By signing below, I, the co-signer (indemnitor), agree to guarantee the appearance of the named defendant at all required court dates. I understand the amount due is a bail premium equal to ten percent (10%) of the bond amount, subject to a minimum total charge of one hundred fifty dollars ($150.00); where ten percent is less than that minimum, the difference is charged as an agent fee. I understand the final amount due is based on the bond amount as confirmed with the jail or court, and that if the actual bond differs from the amount I stated, the premium will be adjusted accordingly. I understand this amount is fully earned and NON-REFUNDABLE once the bond is posted. I agree to be financially responsible for the full bond amount if the defendant fails to appear, plus all recovery, investigative, court and attorney costs. If any premium or financed balance is not paid in full, I agree it remains owed after the bond is discharged and shall bear interest at the maximum rate permitted by Florida law. I authorize Bail Bond Release Center of the Palm Beaches, Inc. to verify all information provided, including an investigative consumer report. I agree that the defendant will come to the Bail Bond Release Center office WITHIN 24 HOURS of release to complete the remaining paperwork, and I accept responsibility for making that happen. I understand an asset search will be conducted on the information I have provided, including any vehicle or property listed, and that if any information is found to be false or an asset listed is not mine, the bond may be REVOKED and the defendant returned to custody. I certify the identification and photos I submitted are my own and accurate. This electronic signature, together with my captured location, timestamp, IP address and device information, has the same legal effect as a handwritten signature under the U.S. E-SIGN Act and Florida UETA (Ch. 668, F.S.).",
- es:"Al firmar abajo, yo, el co-firmante (indemnizador), acepto garantizar la comparecencia del acusado nombrado en todas las fechas de corte requeridas. Entiendo que el monto a pagar es una prima de fianza igual al diez por ciento (10%) del monto de la fianza, sujeto a un cargo mínimo total de ciento cincuenta dólares ($150.00); cuando el diez por ciento sea menor que ese mínimo, la diferencia se cobra como cargo de agente. Entiendo que el monto final se basa en la fianza confirmada con la cárcel o la corte, y que si la fianza real difiere del monto que indiqué, la prima se ajustará. Entiendo que este monto se gana totalmente y NO ES REEMBOLSABLE una vez publicada la fianza. Acepto ser responsable financieramente del monto total de la fianza si el acusado no comparece, más todos los costos de recuperación, investigación, corte y abogados. Si alguna prima o saldo financiado no se paga en su totalidad, acepto que sigue debiéndose después de la descarga de la fianza y generará intereses a la tasa máxima permitida por la ley de Florida. Autorizo a Bail Bond Release Center of the Palm Beaches, Inc. a verificar toda la información, incluyendo un informe de consumidor investigativo. Acepto que el acusado se presentará en la oficina de Bail Bond Release Center DENTRO DE 24 HORAS de su liberación para completar el papeleo restante, y acepto la responsabilidad de que así suceda. Entiendo que se realizará una búsqueda de bienes sobre la información que he proporcionado, incluido cualquier vehículo o propiedad indicada, y que si alguna información resulta falsa o un bien indicado no es mío, la fianza puede ser REVOCADA y el acusado devuelto a custodia. Certifico que la identificación y las fotos que envié son mías y correctas. Esta firma electrónica, junto con mi ubicación, fecha/hora, dirección IP y datos del dispositivo, tiene el mismo efecto legal que una firma manuscrita bajo la Ley E-SIGN de EE.UU. y la UETA de Florida (Cap. 668, F.S.)."
+ en:"By signing below, I, the co-signer (indemnitor), agree to guarantee the appearance of the named defendant at all required court dates. I understand the amount due is a bail premium equal to ten percent (10%) of the bond amount, subject to a minimum total charge of one hundred fifty dollars ($150.00); where ten percent is less than that minimum, the difference is charged as an agent fee. I understand the final amount due is based on the bond amount as confirmed with the jail or court, and that if the actual bond differs from the amount I stated, the premium will be adjusted accordingly. I understand this amount is fully earned and NON-REFUNDABLE once the bond is posted. I agree to be financially responsible for the full bond amount if the defendant fails to appear, plus all recovery, investigative, court and attorney costs. If any premium or financed balance is not paid in full, I agree it remains owed after the bond is discharged and shall bear interest at the maximum rate permitted by Florida law. I authorize Bail Bond Release Center of the Palm Beaches, Inc. to verify all information provided, including an investigative consumer report. I agree that the defendant will come to the Bail Bond Release Center office WITHIN 24 HOURS of release to complete the remaining paperwork, and I accept responsibility for making that happen. I understand an asset search will be conducted on the information I have provided, including any vehicle, property or social media account listed, and that if any information is found to be false or an asset listed is not mine, the bond may be REVOKED and the defendant returned to custody. I certify the identification and photos I submitted are my own and accurate. This electronic signature, together with my captured location, timestamp, IP address and device information, has the same legal effect as a handwritten signature under the U.S. E-SIGN Act and Florida UETA (Ch. 668, F.S.).",
+ es:"Al firmar abajo, yo, el co-firmante (indemnizador), acepto garantizar la comparecencia del acusado nombrado en todas las fechas de corte requeridas. Entiendo que el monto a pagar es una prima de fianza igual al diez por ciento (10%) del monto de la fianza, sujeto a un cargo mínimo total de ciento cincuenta dólares ($150.00); cuando el diez por ciento sea menor que ese mínimo, la diferencia se cobra como cargo de agente. Entiendo que el monto final se basa en la fianza confirmada con la cárcel o la corte, y que si la fianza real difiere del monto que indiqué, la prima se ajustará. Entiendo que este monto se gana totalmente y NO ES REEMBOLSABLE una vez publicada la fianza. Acepto ser responsable financieramente del monto total de la fianza si el acusado no comparece, más todos los costos de recuperación, investigación, corte y abogados. Si alguna prima o saldo financiado no se paga en su totalidad, acepto que sigue debiéndose después de la descarga de la fianza y generará intereses a la tasa máxima permitida por la ley de Florida. Autorizo a Bail Bond Release Center of the Palm Beaches, Inc. a verificar toda la información, incluyendo un informe de consumidor investigativo. Acepto que el acusado se presentará en la oficina de Bail Bond Release Center DENTRO DE 24 HORAS de su liberación para completar el papeleo restante, y acepto la responsabilidad de que así suceda. Entiendo que se realizará una búsqueda de bienes sobre la información que he proporcionado, incluido cualquier vehículo, propiedad o cuenta de redes sociales indicada, y que si alguna información resulta falsa o un bien indicado no es mío, la fianza puede ser REVOCADA y el acusado devuelto a custodia. Certifico que la identificación y las fotos que envié son mías y correctas. Esta firma electrónica, junto con mi ubicación, fecha/hora, dirección IP y datos del dispositivo, tiene el mismo efecto legal que una firma manuscrita bajo la Ley E-SIGN de EE.UU. y la UETA de Florida (Cap. 668, F.S.)."
 };
 
 /* ===== jails ===== */
@@ -803,6 +816,9 @@ function syncCond(){
      A tag, registration, insurance card or dec page gives us the VIN and
      evidences ownership, which is what an asset search is checked against. */
   $$('.vehreq').forEach(e=>e.classList.toggle('hidden',!vehListed()));
+  /* Deliberately on the FOLLOWING step: by then the platform answer is
+     already recorded, so they cannot quietly change it to dodge the check. */
+  $$('.socreq').forEach(e=>e.classList.toggle('hidden',!val('social')));
   $$('.relother').forEach(e=>e.classList.toggle('hidden',val('relationship')!=='Other'));
   const nc = val('citizen')==='No';
   $$('.noncit').forEach(e=>e.classList.toggle('hidden',!nc));
@@ -938,7 +954,7 @@ async function getGeo(){
 /* ===== uploads + AI prefill ===== */
 const b64=fl=>new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(String(x.result).split(',')[1]);x.onerror=j;x.readAsDataURL(fl);});
 const durl=fl=>new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(String(x.result));x.onerror=j;x.readAsDataURL(fl);});
-const LBL={id_front:'License front',id_back:'License back',blotter:'Blotter',booking:'Booking screenshot',imm_doc:'Immigration document',coll_doc:'Collateral document',veh_doc:'Vehicle proof (tag/registration/insurance)',selfie:'Live selfie'};
+const LBL={id_front:'License front',id_back:'License back',blotter:'Blotter',booking:'Booking screenshot',imm_doc:'Immigration document',soc_doc:'Social media profile screenshot',coll_doc:'Collateral document',veh_doc:'Vehicle proof (tag/registration/insurance)',selfie:'Live selfie'};
 function banner(msg,good){
   const b=$('#readBanner'); if(!b)return;
   b.textContent=msg; b.classList.remove('hidden');
@@ -1026,6 +1042,7 @@ const FIELDMAP={
   imm_doc :['alienNo','immStatus','countryCitizen'],
   coll_doc:['collVehicle','collVIN','collPlate','collValue','collAddress','collMortgage','collDesc'],
   veh_doc :['autoYMM','autoPlate','autoState','autoVIN'],
+  soc_doc :[],
   selfie  :[]
 };
 function apply(o,docType){
@@ -1059,6 +1076,43 @@ function apply(o,docType){
    st.style.color='';st.textContent='✓ '+(LANG==='es'?'Selfie capturada':'Live selfie captured');
    stop();bA.classList.remove('hidden');review();}
  bS.addEventListener('click',start);bA.addEventListener('click',start);window.addEventListener('beforeunload',stop);
+})();
+
+/* ===== email verification =====
+   Confirms the client actually controls the inbox. The code is generated and
+   compared on the server; generating it in the browser would put the answer in
+   the page where anyone could read it. */
+let emailVerified=false, emailVerifiedFor='';
+(function(){
+  const bS=$('#emSend'), bC=$('#emCheck'), inp=$('#emCode'), msg=$('#emMsg');
+  if(!bS)return;
+  const say=(t,c)=>{ if(msg){msg.textContent=t; msg.style.color=c||''; } };
+  bS.addEventListener('click',async()=>{
+    const em=val('email');
+    if(!em){ say(LANG==='es'?'Escriba su correo primero':'Type your email first','#c0392b'); return; }
+    bS.disabled=true; say(LANG==='es'?'Enviando…':'Sending…','');
+    try{
+      const r=await fetch(CONFIG.emailCodeEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'send',email:em})});
+      const d=await r.json();
+      if(d&&d.ok){ inp.style.display='';bC.style.display='';inp.focus();
+        say(LANG==='es'?'Revise su correo e ingrese el código':'Check your email and enter the code','#0a7c34'); }
+      else say((d&&d.error)||(LANG==='es'?'No se pudo enviar':'Could not send'),'#c0392b');
+    }catch(e){ say(String(e.message||e),'#c0392b'); }
+    bS.disabled=false;});
+  bC.addEventListener('click',async()=>{
+    const em=val('email');
+    bC.disabled=true; say(LANG==='es'?'Comprobando…':'Checking…','');
+    try{
+      const r=await fetch(CONFIG.emailCodeEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'check',email:em,code:inp.value})});
+      const d=await r.json();
+      if(d&&d.verified){ emailVerified=true; emailVerifiedFor=em;
+        say(LANG==='es'?'✓ Correo verificado':'✓ Email verified','#0a7c34');
+        inp.style.display='none'; bC.style.display='none'; bS.style.display='none'; }
+      else say((d&&d.error)||(LANG==='es'?'Código incorrecto':'Wrong code'),'#c0392b');
+    }catch(e){ say(String(e.message||e),'#c0392b'); }
+    bC.disabled=false;});
 })();
 
 /* ===== signature ===== */
@@ -1121,6 +1175,11 @@ $('#bNext').addEventListener('click',()=>{
     toast(LANG==='es'?'Agregue una foto de la placa, registro o seguro del vehículo'
                      :'Please add a photo of the tag, registration or insurance for the vehicle');
     const t=document.querySelector('.vehreq'); if(t)t.scrollIntoView({behavior:'smooth',block:'center'});
+    return; }
+  if(step===4 && val('social') && !imgs.soc_doc){
+    toast(LANG==='es'?'Agregue la captura de su perfil de redes sociales'
+                     :'Please add the screenshot of your social media profile');
+    const t=document.querySelector('.socreq'); if(t)t.scrollIntoView({behavior:'smooth',block:'center'});
     return; }
   if(step===6 && val('collType')==='Vehicle' && !imgs.coll_doc){
     toast(LANG==='es'?'Agregue la foto de la placa o registro del vehículo en garantía'
@@ -1305,7 +1364,7 @@ function auditPage(d){
     row('Document','Bail Bond Application — Indemnitor (Co-Signer)');
     row('Receipt number',recNo());
     row('Signer (typed name)',val('signName'));
-    row('Signer email',val('email'));
+    row('Signer email',val('email')+((emailVerified&&emailVerifiedFor===val('email'))?'  [VERIFIED by emailed code]':'  [not verified]'));
     row('Signer phone',val('phone'));
     row('Defendant',val('defName'));
     row('Signed (device time)',new Date().toString());
