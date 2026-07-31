@@ -151,6 +151,7 @@
 <section class="card stp hidden" data-s="2">
   <h2 class="step" data-i="s2t">Take a photo of your ID</h2>
   <p class="sub" data-i="s2s">Front, then back, then a quick selfie. We fill in your details for you.</p>
+  <div id="readBanner" class="hidden" style="background:#eaf3ff;border:1px solid #cfe0f5;border-radius:11px;padding:11px 13px;margin-bottom:12px;font-weight:700;color:var(--brand)"></div>
   <div class="capstep" id="cF">
     <div class="capttl" data-i="p1">Photo 1 of 3 · License FRONT</div>
     <label class="drop"><div class="ico">🪪</div><div class="t" data-i="tapF">Tap to photograph the FRONT</div><div class="status" data-status></div><input type="file" accept="image/*" capture="environment" data-doc="id_front" id="iF"><img class="thumb" data-thumb></label>
@@ -922,6 +923,12 @@ async function getGeo(){
 const b64=fl=>new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(String(x.result).split(',')[1]);x.onerror=j;x.readAsDataURL(fl);});
 const durl=fl=>new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(String(x.result));x.onerror=j;x.readAsDataURL(fl);});
 const LBL={id_front:'License front',id_back:'License back',blotter:'Blotter',booking:'Booking screenshot',imm_doc:'Immigration document',coll_doc:'Collateral document',selfie:'Live selfie'};
+function banner(msg,good){
+  const b=$('#readBanner'); if(!b)return;
+  b.textContent=msg; b.classList.remove('hidden');
+  b.style.background = good?'#e8f7ee':'#eaf3ff';
+  b.style.borderColor= good?'#9ad9b4':'#cfe0f5';
+  b.style.color      = good?'#0a7c34':'var(--brand)';}
 async function ingest(fl,k,box){
   if(!fl)return; files[k]=fl.name||'pasted-image.png';
   const st=box.querySelector('[data-status]'), th=box.querySelector('[data-thumb]');
@@ -930,10 +937,17 @@ async function ingest(fl,k,box){
   st.style.color=''; st.textContent='✓';
   if(CONFIG.aiEndpoint.indexOf('REPLACE')<0){
     st.textContent=LANG==='es'?'Leyendo…':'Reading…';
+    /* The capture tiles hide themselves the instant a photo is taken, so any
+       progress written onto the tile is invisible. This banner sits on the step
+       itself and stays put. */
+    banner(LANG==='es'?'⏳ Leyendo su documento…':'⏳ Reading your document…');
     try{const res=await fetch(CONFIG.aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({docType:(k==='booking'?'blotter':k),mimeType:fl.type||'image/png',dataBase64:await b64(fl)})});
       const dd=await res.json(); const n=apply(dd.fields||{}, (k==='booking'?'blotter':k));
       st.textContent=n>0?('✓ '+(LANG==='es'?'Llenó ':'Filled ')+n):'✓';
+      banner(n>0
+        ? (LANG==='es'?('✅ Llenamos '+n+' campos de su documento'):('✅ Filled '+n+' fields from your document'))
+        : (LANG==='es'?'⚠️ No pudimos leerlo — escriba sus datos':'⚠️ Could not read it — please type your details'), n>0);
       if(n>0)toast((LANG==='es'?'✨ Llenamos ':'✨ Filled ')+n+(LANG==='es'?' campos':' fields')+(k==='booking'||k==='blotter'?(LANG==='es'?' del blotter':' from the booking page'):(LANG==='es'?' de su ID':' from your ID')));
     }catch(_){st.textContent='✓';}
   }
@@ -958,9 +972,14 @@ document.addEventListener('paste',async e=>{
     }
   }
 });
+/* Only a value the CLIENT actually typed blocks an AI fill. Previously any
+   non-empty value blocked it, so if the reader came back while they were
+   part-way through typing their details, the scanned licence data was thrown
+   away silently and it looked like the scan had done nothing. */
 function setF(n,v){const e=f.elements[n];if(!e||v==null||v==='')return false;
+  const typed = !!(e.dataset && e.dataset.userTyped==='1');
   if(e.tagName==='SELECT'){
-    if(e.value&&n!=='dlState')return false;
+    if(e.value&&typed&&n!=='dlState')return false;
     const want=String(v).trim().toLowerCase();let hit=null;
     for(const o of e.options){const ov=(o.value||'').trim().toLowerCase(),ot=(o.textContent||'').trim().toLowerCase();
       if(ov===want||ot===want){hit=o.value;break;}}
@@ -968,7 +987,7 @@ function setF(n,v){const e=f.elements[n];if(!e||v==null||v==='')return false;
       if(ot&&(ot.indexOf(want)>-1||want.indexOf(ot)>-1)){hit=o.value;break;}}
     if(hit==null)return false;e.value=hit;
   } else {
-    if(e.value&&n!=='dlState')return false;e.value=v;
+    if(e.value&&typed&&n!=='dlState')return false;e.value=v;
   }
   e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),1100);
   if(n==='dlState')flagState();
@@ -1083,7 +1102,11 @@ $('#bNext').addEventListener('click',()=>{
   if(step<TOTAL){step++;show();return;}
   submit();
 });
-f.addEventListener('input',()=>{calc();syncPay();flagState();review();});
+f.addEventListener('input',e=>{
+  /* isTrusted is true only for real human typing, never for our own scripted
+     fills — so this marks exactly the fields the client entered themselves. */
+  if(e.isTrusted&&e.target&&e.target.name&&e.target.dataset)e.target.dataset.userTyped='1';
+  calc();syncPay();flagState();review();});
 f.addEventListener('change',()=>{calc();review();updatePins();});
 
 /* ===== review ===== */
