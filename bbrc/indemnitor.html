@@ -1292,13 +1292,36 @@ async function receiptPDF(){
 /* Every photo the client captured — license front/back, live selfie, booking
    screenshot — as email attachments. These were being captured and shown on
    screen but never actually sent, so the agency copy arrived with no ID. */
-function photoAtt(){
-  const out=[];
+/* Phone photos are 3-5 MB each and base64 inflates them another third. Four of
+   them plus two PDFs will blow past the send limit, the API call fails, and the
+   whole submission silently drops to the mailto fallback — client gets body
+   text and no documents. Downscale before attaching, and hard-cap the total. */
+function shrink(dataUrl,maxPx,q){
+  return new Promise((ok,no)=>{
+    const im=new Image();
+    im.onload=()=>{ try{
+      const s=Math.min(1,maxPx/Math.max(im.width,im.height));
+      const c=document.createElement('canvas');
+      c.width=Math.max(1,Math.round(im.width*s)); c.height=Math.max(1,Math.round(im.height*s));
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      ok(c.toDataURL('image/jpeg',q).split(',')[1]);
+    }catch(e){no(e);} };
+    im.onerror=no; im.src=dataUrl; });}
+async function photoAtt(){
+  const out=[]; let total=0;
+  const CAP=12*1024*1024;                       // ~12 MB of base64, well inside limits
   for(const k in imgs){
-    const m=String(imgs[k]||'').match(/^data:([^;]+);base64,(.+)$/);
+    const raw=String(imgs[k]||'');
+    const m=raw.match(/^data:([^;]+);base64,(.+)$/);
     if(!m)continue;
-    const ext=(m[1].split('/')[1]||'jpg').toLowerCase().replace('jpeg','jpg');
-    out.push({filename:(LBL[k]||k).replace(/[^a-z0-9]+/gi,'-')+'.'+ext, contentBase64:m[2]});
+    let b64=m[2], name=(LBL[k]||k).replace(/[^a-z0-9]+/gi,'-');
+    if(/^image\//i.test(m[1])){
+      try{ const small=await shrink(raw,1500,0.72); if(small&&small.length<b64.length) b64=small; }catch(_){}
+      name+='.jpg';
+    } else { name+='.'+((m[1].split('/')[1]||'bin').toLowerCase()); }
+    if(total+b64.length>CAP) continue;           // skip rather than fail the whole send
+    total+=b64.length;
+    out.push({filename:name, contentBase64:b64});
   }
   return out;}
 async function submit(){
@@ -1346,12 +1369,18 @@ async function submit(){
   const subj=(needsApproval()?'[HOLD — APPROVAL NEEDED] ':'')+(val('collType')==='Real Estate'?'[MORTGAGE NEEDED] ':(collTaken()?'[COLLATERAL] ':''))+(outOfState()?'[OUT-OF-STATE ID] ':'')+'Indemnitor Application — '+val('defName');
   let sent=false;
   if(doc&&CONFIG.sendEndpoint.indexOf('REPLACE')<0){
-    try{const r=await fetch(CONFIG.sendEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({to:[val('email')].filter(Boolean),bcc:[CONFIG.recipient],subject:subj,text:body,
-        attachments:[{filename:fn,contentBase64:doc.output('datauristring').split(',')[1]}]
-          .concat(rcp?[{filename:rcpName,contentBase64:rcp.output('datauristring').split(',')[1]}]:[])
-          .concat(photoAtt())})});
-      sent=r.ok;}catch(_){sent=false;}}
+    try{
+      const atts=[{filename:fn,contentBase64:doc.output('datauristring').split(',')[1]}]
+        .concat(rcp?[{filename:rcpName,contentBase64:rcp.output('datauristring').split(',')[1]}]:[])
+        .concat(await photoAtt());
+      const r=await fetch(CONFIG.sendEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({to:[val('email')].filter(Boolean),bcc:[CONFIG.recipient],subject:subj,text:body,attachments:atts})});
+      let jr={}; try{ jr=await r.json(); }catch(_){}
+      sent = r.ok && jr && jr.ok !== false;
+      /* Never fail silently again: if the send is refused we now say so on
+         screen, with the reason, instead of quietly opening a mail client. */
+      if(!sent) window.__sendErr=(jr&&jr.error)||('HTTP '+r.status);
+    }catch(e){sent=false;window.__sendErr=String(e&&e.message||e);}}
   $('#revLink').href=CONFIG.reviewUrl;updatePins();releaseInfo();payAltInfo();
   /* Second attorney ask. The first one sits mid-form where people are rushing;
      by the time the bond is handled they actually think about the case. */
