@@ -109,10 +109,12 @@
     <div class="full">
       <label data-i="bond">Total bond amount *</label>
       <input name="bond" type="number" min="0" step="1" inputmode="numeric" placeholder="1000" required>
+      <label style="margin-top:8px;font-weight:600;display:block"><input type="checkbox" id="bondUnknown" name="bondUnknown" style="width:auto;margin-right:9px;transform:scale(1.25)"> <span data-i="bondUnk">I don\u2019t know the bond amount</span></label>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button type="button" class="btn2" id="vBtn" data-i="vBtn">Open jail records</button>
         <a href="#" id="blot" target="_blank" rel="noopener" style="font-size:13px;color:var(--brand);font-weight:800" data-i="blot">Open blotter &rarr;</a>
       </div>
+      <div id="bondHelp" class="hint hidden" style="margin-top:6px;background:#eaf3ff;border:1px solid #cfe0f5;border-radius:9px;padding:9px" data-i="bondHelpT">No problem — tap <b>Open jail records</b> and we\u2019ll look it up. If it can\u2019t be found, we will confirm the amount with the jail before anything is charged.</div>
       <div id="vStat" class="hint" style="margin-top:6px"></div>
       <div id="vRes" class="hidden" style="margin-top:8px"></div>
       <p class="hint" data-i="bondHint" style="margin-top:7px">Enter the total bond. Not sure? Use the lookup, or upload the blotter on the next step and we'll confirm it.</p>
@@ -502,7 +504,7 @@ const ES={
  mMarried:"Casado", mSingle:"Soltero", mDiv:"Divorciado", mSep:"Separado", mWid:"Viudo", mCoh:"Viviendo juntos",
  spn:"Nombre del cónyuge / pareja", spl:"¿Cuánto tiempo juntos?", spp:"Su teléfono", spe:"Su empleador",
  s5t:"Dos referencias", s5s:"Personas que lo conocen — no la persona en la cárcel.",
- emSendB:"Env\u00edeme un c\u00f3digo", emCheckB:"Verificar", socShot:"Captura de pantalla de su perfil de redes sociales *", socShotH:"Abra el perfil que indic\u00f3 en la p\u00e1gina anterior y tome una captura. Debe mostrar su nombre y su foto.", socWarn:"<b>Por favor lea.</b> Se verifican sus redes sociales. Si el perfil no coincide con lo que nos indic\u00f3, o la informaci\u00f3n es falsa, la fianza puede ser revocada y el acusado devuelto a custodia.", vehT:"Veh\u00edculo", vehYMM:"A\u00f1o, marca, modelo", vehPlate:"Placa #", vehState:"Estado de la placa", vehOwed:"Cantidad que a\u00fan debe", vehDoc:"Foto de la placa, registro, tarjeta de seguro o p\u00e1gina de declaraciones *", vehDocH:"Obligatorio cuando se indica un veh\u00edculo. Cualquiera de estos nos da el VIN y demuestra que el veh\u00edculo es suyo.", assetWarn:"<b>Por favor lea.</b> Se realiza una b\u00fasqueda de bienes sobre la informaci\u00f3n aqu\u00ed indicada. Si algo resulta falso o el veh\u00edculo no es suyo, la fianza puede ser revocada y el acusado devuelto a custodia.", ref1:"Referencia 1", ref2:"Referencia 2", rname:"Nombre", rrel:"Relación", rphone:"Teléfono", raddr:"Dirección",
+ bondUnk:"No s\u00e9 el monto de la fianza", bondHelpT:"No hay problema — toque <b>Abrir registros de la c\u00e1rcel</b> y lo buscamos. Si no aparece, confirmaremos el monto con la c\u00e1rcel antes de cobrar.", emSendB:"Env\u00edeme un c\u00f3digo", emCheckB:"Verificar", socShot:"Captura de pantalla de su perfil de redes sociales *", socShotH:"Abra el perfil que indic\u00f3 en la p\u00e1gina anterior y tome una captura. Debe mostrar su nombre y su foto.", socWarn:"<b>Por favor lea.</b> Se verifican sus redes sociales. Si el perfil no coincide con lo que nos indic\u00f3, o la informaci\u00f3n es falsa, la fianza puede ser revocada y el acusado devuelto a custodia.", vehT:"Veh\u00edculo", vehYMM:"A\u00f1o, marca, modelo", vehPlate:"Placa #", vehState:"Estado de la placa", vehOwed:"Cantidad que a\u00fan debe", vehDoc:"Foto de la placa, registro, tarjeta de seguro o p\u00e1gina de declaraciones *", vehDocH:"Obligatorio cuando se indica un veh\u00edculo. Cualquiera de estos nos da el VIN y demuestra que el veh\u00edculo es suyo.", assetWarn:"<b>Por favor lea.</b> Se realiza una b\u00fasqueda de bienes sobre la informaci\u00f3n aqu\u00ed indicada. Si algo resulta falso o el veh\u00edculo no es suyo, la fianza puede ser revocada y el acusado devuelto a custodia.", ref1:"Referencia 1", ref2:"Referencia 2", rname:"Nombre", rrel:"Relación", rphone:"Teléfono", raddr:"Dirección",
  finT:"Finanzas (opcional)", cash:"Efectivo a mano", bank:"Efectivo en el banco", reV:"Valor de bienes raíces",
  reM:"Hipoteca de bienes raíces", title:"¿Título a nombre de quién?", sal:"Ingreso mensual", notes:"¿Algo que debamos saber?",
  hasAtt:"¿El acusado tiene abogado?", attN:"Nombre del abogado", wantA:"Que un abogado me contacte",
@@ -819,6 +821,13 @@ function syncCond(){
   /* Deliberately on the FOLLOWING step: by then the platform answer is
      already recorded, so they cannot quietly change it to dodge the check. */
   $$('.socreq').forEach(e=>e.classList.toggle('hidden',!val('social')));
+  /* The jail lookup costs money per search, so it is opt-in: it appears only
+     when the client says they don't know the bond. Everyone who already knows
+     the number costs nothing. */
+  const bu=bondUnknown(), vb=$('#vBtn');
+  if(vb)vb.style.display=bu?'':'none';
+  const bl=$('#blot'); if(bl)bl.style.display=bu?'':'none';
+  const bh=$('#bondHelp'); if(bh)bh.classList.toggle('hidden',!bu);
   $$('.relother').forEach(e=>e.classList.toggle('hidden',val('relationship')!=='Other'));
   const nc = val('citizen')==='No';
   $$('.noncit').forEach(e=>e.classList.toggle('hidden',!nc));
@@ -1189,7 +1198,14 @@ function buildPreview(){
     box.classList.remove('hidden');
     prevBuilt=true;
   }catch(e){ box.classList.add('hidden'); prevBuilt=false; }}
-function firstMissing(){const need=REQ[step]||[];for(const n of need){if(!val(n))return n;}return null;}
+function bondUnknown(){const c=$('#bondUnknown');return !!(c&&c.checked);}
+function firstMissing(){const need=REQ[step]||[];
+  for(const n of need){
+    /* If they have told us they don't know the bond, stop demanding it —
+       otherwise they invent a number and we price the wrong bond. */
+    if(n==='bond'&&bondUnknown())continue;
+    if(!val(n))return n;}
+  return null;}
 $('#bBack').addEventListener('click',()=>{if(step>1){step--;show();}});
 $('#bNext').addEventListener('click',()=>{
   /* The reader takes a few seconds. Letting them walk to the next step
@@ -1566,6 +1582,9 @@ async function submit(){
         +'\n>>> Issue the pre-numbered collateral receipt.'):'')
     +(outOfState()?('\n\n*** FLAG: OUT-OF-STATE ID ***\nLicense issued in '+val('dlState').toUpperCase()+' (not Florida).\nIndemnitor address: '+val('address')+'\nConsider extra verification / collection risk.'):'')
     +(needsApproval()?('\n\n*** HOLD PRESENT — AGENT APPROVAL REQUIRED ***\nHold type: '+val('hold')+'\nDo NOT proceed until approved. May require FULL bond amount rather than premium.'):'')
+    +(bondUnknown()?('\n\n*** CLIENT DOES NOT KNOW THE BOND AMOUNT ***\nStated figure is unconfirmed. Verify with the jail or the Clerk of Court before posting and before charging.'):'')
+    +((Number(val('bond'))>0&&bondVerified&&verifiedInfo&&String(verifiedInfo).indexOf(String(Number(val('bond'))))<0)
+        ? '\n\n*** BOND MISMATCH — CHECK BEFORE POSTING ***\nClient stated $'+(Number(val('bond'))||0).toLocaleString()+'\nLookup returned: '+verifiedInfo : '')
     +'\n\nReceipt No: '+recNo()+(collTaken()?('\nCollateral Receipt No: '+collNo()):'')
     +(val('payMethod')==='Already Paid'
         ? ('\n\nPAYMENT: ALREADY RECEIVED — no payment was requested from this client.'
