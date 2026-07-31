@@ -6,7 +6,6 @@
 <title>Bail Application — Co-Signer | Bail Bond Release Center</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root{--brand:#243a6b;--gold:#c9a24b;--bg:#eef3f9;--card:#fff;--line:#dbe4ef;--muted:#6b7a90;--ok:#1a7f43}
   *{box-sizing:border-box}
@@ -393,7 +392,13 @@
   <div class="ack" id="ack"></div>
   <div id="appPrev" class="hidden" style="margin:16px 0">
     <label style="font-weight:700" data-i="prevH">Your completed application — read it, then tap the yellow box to sign</label>
-    <div id="pdfView" style="max-height:460px;overflow:auto;border:1px solid #cfe0f5;border-radius:12px;background:#f4f6fa;margin-top:8px;padding:10px"></div>
+    <iframe id="prevFrame" title="Completed application" style="width:100%;height:430px;border:1px solid #cfe0f5;border-radius:12px;background:#fff;margin-top:8px"></iframe>
+    <button type="button" id="signHere" style="width:100%;margin-top:10px;padding:17px;border:0;border-radius:12px;background:#ffd600;color:#4a3800;font-weight:900;font-size:17px;cursor:pointer">✍️ <span data-i="signHereT">Tap here to sign this document</span></button>
+    <div id="sigDone" class="hidden" style="margin-top:10px;background:#e8f7ee;border:1px solid #9ad9b4;border-radius:11px;padding:11px;text-align:center">
+      <div style="font-weight:800;color:#0a7c34" data-i="sigOkT">✓ Signature applied to the document</div>
+      <img id="sigThumb" style="max-height:52px;margin-top:6px">
+      <div><button type="button" class="btn2 ghost" id="sigRedo" style="margin-top:8px" data-i="sigRedoT">Change signature</button></div>
+    </div>
     <a id="prevOpen" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;padding:13px;margin-top:9px;border-radius:11px;background:#eaf3ff;color:var(--brand);text-decoration:none;font-weight:800;border:1px solid #cfe0f5" data-i="prevOpenT">📄 Open full size</a>
   </div>
 
@@ -1221,49 +1226,23 @@ async function buildPreview(){
   const box=$('#appPrev'); if(!box)return;
   try{
     const doc=pdf(calc());
-    const fields=(window.__sigFields||[]).slice();
     const blob=doc.output('blob');
     if(prevUrl)URL.revokeObjectURL(prevUrl);
     prevUrl=URL.createObjectURL(blob);
+    const fr=$('#prevFrame'); if(fr)fr.src=prevUrl;
     const op=$('#prevOpen'); if(op)op.href=prevUrl;
     box.classList.remove('hidden');
-    await renderPages(await doc.output('arraybuffer'), fields);
+    paintSigState();
     prevBuilt=true;
   }catch(e){ box.classList.add('hidden'); prevBuilt=false; }}
+function paintSigState(){
+  const signed=!!(inked||typedSigData);
+  const b=$('#signHere'), okBox=$('#sigDone'), th=$('#sigThumb');
+  if(b)b.style.display=signed?'none':'';
+  if(okBox)okBox.classList.toggle('hidden',!signed);
+  if(signed&&th){ try{ th.src=sigImage(); }catch(_){} }}
 
-async function renderPages(buf, fields){
-  const host=$('#pdfView'); if(!host||!window.pdfjsLib)return;
-  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  host.innerHTML='';
-  const pdfDoc=await pdfjsLib.getDocument({data:buf}).promise;
-  const wide=Math.min(host.clientWidth-20, 820);
-  for(let n=1;n<=pdfDoc.numPages;n++){
-    const page=await pdfDoc.getPage(n);
-    const base=page.getViewport({scale:1});
-    const scale=wide/base.width;
-    const vp=page.getViewport({scale});
-    const wrap=document.createElement('div');
-    wrap.style.cssText='position:relative;margin:0 auto 12px;width:'+Math.round(vp.width)+'px;box-shadow:0 1px 6px rgba(0,0,0,.18);background:#fff';
-    const cvs=document.createElement('canvas');
-    cvs.width=Math.round(vp.width); cvs.height=Math.round(vp.height);
-    cvs.style.cssText='display:block;width:100%';
-    wrap.appendChild(cvs); host.appendChild(wrap);
-    await page.render({canvasContext:cvs.getContext('2d'),viewport:vp}).promise;
-    /* Tap targets. PDF y is measured from the bottom, the canvas from the top. */
-    fields.filter(f=>f.page===n).forEach(f=>{
-      const t=document.createElement('button');
-      t.type='button'; t.className='sigtarget';
-      t.style.cssText='position:absolute;left:'+(f.x*scale)+'px;top:'+((f.ph-f.y-f.h)*scale)+'px;width:'+(f.w*scale)+'px;height:'+(f.h*scale)+'px;'
-        +'background:rgba(255,214,0,.34);border:2px dashed #d8a800;border-radius:7px;cursor:pointer;'
-        +'display:flex;align-items:center;justify-content:center;font-weight:800;color:#7a5c00;font-size:13px;padding:0';
-      if(inked||typedSigData){ t.style.background='transparent'; t.style.border='2px solid #9ad9b4';
-        const im=document.createElement('img'); im.src=sigImage(); im.style.cssText='max-width:100%;max-height:100%';
-        t.appendChild(im); }
-      else t.textContent=f.label||'Sign here';
-      t.addEventListener('click',()=>openAdopt());
-      wrap.appendChild(t);
-    });
-  }}
+
 
 let typedSigData='';
 function sigImage(){
@@ -1278,6 +1257,9 @@ function closeAdopt(){ const w=$('#adoptWrap'); if(w)w.classList.add('hidden'); 
     dT.classList.remove('ghost');tT.classList.add('ghost'); setTimeout(()=>{if(!cv.width||!cv.height)fit();},50);});
   tT.addEventListener('click',()=>{tP.classList.remove('hidden');dP.classList.add('hidden');
     tT.classList.remove('ghost');dT.classList.add('ghost');});
+  const sh=$('#signHere'); if(sh)sh.addEventListener('click',openAdopt);
+  const sr=$('#sigRedo'); if(sr)sr.addEventListener('click',()=>{ inked=false; typedSigData='';
+    try{cx.clearRect(0,0,cv.width,cv.height);}catch(_){} openAdopt(); });
   $('#adoptCancel').addEventListener('click',closeAdopt);
   $('#adoptOk').addEventListener('click',async()=>{
     const typed=(($('#typedSig')||{}).value||'').trim();
