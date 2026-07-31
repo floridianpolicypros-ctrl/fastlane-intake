@@ -1,12 +1,12 @@
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 export async function onRequestPost(context) {
-  const { request } = context;
+  const { request, env } = context;
   let b; try { b = await request.json(); } catch { return j({ ok:false, error:"Bad JSON" }); }
   const provider = String(b.provider||"pbso").toLowerCase();
   if (provider !== "pbso") return j({ ok:false, error:"No automatic lookup for this jail yet" });
   const lastName = clean(b.lastName), firstName = clean(b.firstName);
   if (!lastName) return j({ ok:false, error:"lastName required" });
-  try { return j({ ok:true, source:"PBSO Booking Blotter", ...(await pbso(lastName, firstName, Number(b.days)||45, !!b.debug)) }); }
+  try { return j({ ok:true, source:"PBSO Booking Blotter", ...(await pbso(lastName, firstName, Number(b.days)||45, !!b.debug, env)) }); }
   catch(e) { return j({ ok:false, source:"PBSO Booking Blotter", error:String(e&&e.message||e) }); }
 }
 export const onRequestOptions = () => new Response(null,{headers:{ "Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Allow-Headers":"Content-Type" }});
@@ -16,7 +16,14 @@ const money = v => Number(String(v).replace(/[^0-9.]/g,""))||0;
 const pad = n => String(n).padStart(2,"0");
 const mdy = d => pad(d.getMonth()+1)+"/"+pad(d.getDate())+"/"+d.getFullYear();
 
-async function pbso(lastName, firstName, days, debug) {
+async function pbso(lastName, firstName, days, debug, env) {
+  /* PBSO sits behind an F5 firewall that rejects server-side clients. Proven:
+     it hands out a TS… session cookie and then returns "Request Rejected" with
+     a support ID. Headers cannot fix it — F5 fingerprints the TLS handshake,
+     and a Worker's handshake is not Chrome's.
+     If a ScrapingBee key is configured we go through a REAL browser on a
+     RESIDENTIAL ip, which addresses both possible causes at once. */
+  if (env && env.SCRAPINGBEE_KEY) return pbsoViaBee(lastName, firstName, days, debug, env);
   const base = "https://www3.pbso.org/blotter/";
   /* A bare user-agent is itself a fingerprint. Real Chrome sends a specific
      header set in a specific order; F5 checks for it. Free to try before
@@ -84,6 +91,39 @@ async function pbso(lastName, firstName, days, debug) {
       responseHead: text.slice(0, 1200)
     };
   }
+  return out;
+}
+async function pbsoViaBee(lastName, firstName, days, debug, env){
+  const base = "https://www3.pbso.org/blotter/";
+  const end = new Date(), start = new Date(end.getTime()-days*864e5);
+  // Drive the real form in a real browser: fill, submit, wait for results.
+  const scenario = { instructions: [
+    { wait: 1500 },
+    { fill: ["input[name=start_date]", mdy(start)] },
+    { fill: ["input[name=end_date]",   mdy(end)] },
+    { fill: ["input[name=lastName]",   lastName] },
+    ...(firstName ? [{ fill: ["input[name=firstName]", firstName] }] : []),
+    { click: "input[type=submit]" },
+    { wait: 4000 }
+  ]};
+  const u = new URL("https://app.scrapingbee.com/api/v1/");
+  u.searchParams.set("api_key", env.SCRAPINGBEE_KEY);
+  u.searchParams.set("url", base + "index.cfm");
+  u.searchParams.set("render_js", "true");
+  u.searchParams.set("premium_proxy", "true");   // residential ip
+  u.searchParams.set("country_code", "us");
+  u.searchParams.set("js_scenario", JSON.stringify(scenario));
+
+  const r = await fetch(u.toString());
+  const body = await r.text();
+  if (!r.ok) {
+    return { matches: [], note: "Lookup service error " + r.status,
+             debug: debug ? { via:"scrapingbee", status:r.status, body: body.slice(0,600) } : undefined };
+  }
+  const text = strip(body);
+  const out = parse(text);
+  out.via = "scrapingbee";
+  if (debug) out.debug = { via:"scrapingbee", responseChars:text.length, responseHead:text.slice(0,1200) };
   return out;
 }
 function strip(h){ return h
