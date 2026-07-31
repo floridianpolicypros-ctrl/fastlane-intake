@@ -185,14 +185,19 @@ async function clerk(lastName, firstName, debug, env){
                 "if(!g){g=[].slice.call(document.querySelectorAll('button,a,input[type=submit]'))" +
                 ".filter(function(x){return /guest/i.test(x.textContent||x.value||'');})[0];}" +
                 "if(g)g.click();" },
-    { wait: 3500 },
+    { wait: 2500 },
+    /* Guest login lands on the HOMEPAGE, not the search form. Without this
+       explicit hop the fill step ran against a page with no search fields and
+       silently did nothing. */
+    { evaluate: "location.href='https://appsgp.mypalmbeachclerk.com/eCaseView/Search';" },
+    { wait: 3000 },
     { evaluate:
         "var f=document.forms[0];" +
         "function set(id,v){var el=document.getElementById(id); if(el){el.value=v;}}" +
         "set('SearchRequest_LastName','" + q(lastName) + "');" +
         "set('SearchRequest_FirstName','" + q(firstName) + "');" +
         "if(f)f.submit();" },
-    { wait: 5000 },
+    { wait: 4000 },
     /* Take the newest criminal case: felony/misdemeanour rows carry -CF- or -MM-. */
     { evaluate:
         "var ls=[].slice.call(document.querySelectorAll('a')).filter(function(x){return /-(CF|MM)-/.test(x.textContent||'');});" +
