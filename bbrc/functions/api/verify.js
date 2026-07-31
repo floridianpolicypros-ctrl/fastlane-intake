@@ -178,7 +178,13 @@ async function clerk(lastName, firstName, debug, env){
   const q = s => String(s||"").replace(/['\\]/g,"");
   const steps = [
     { wait: 2000 },
-    { evaluate: "var a=[].slice.call(document.querySelectorAll('a')).filter(function(x){return /guest/i.test(x.textContent+' '+(x.getAttribute('href')||''));}); if(a[0])a[0].click();" },
+    /* Guest entry is a BUTTON (class login-btn-guest), not a link. Looking only
+       at <a> tags meant this never fired, the session never authenticated, and
+       every later step ran against the homepage. */
+    { evaluate: "var g=document.querySelector('button.login-btn-guest');" +
+                "if(!g){g=[].slice.call(document.querySelectorAll('button,a,input[type=submit]'))" +
+                ".filter(function(x){return /guest/i.test(x.textContent||x.value||'');})[0];}" +
+                "if(g)g.click();" },
     { wait: 3500 },
     { evaluate:
         "var f=document.forms[0];" +
