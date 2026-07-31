@@ -3,6 +3,13 @@ export async function onRequestPost(context) {
   const { request, env } = context;
   let b; try { b = await request.json(); } catch { return j({ ok:false, error:"Bad JSON" }); }
   const provider = String(b.provider||"pbso").toLowerCase();
+  if (provider === "clerk") {
+    if (!env || !env.SCRAPINGBEE_KEY) return j({ ok:false, error:"Court lookup is not configured" });
+    const lastName = clean(b.lastName), firstName = clean(b.firstName);
+    if (!lastName) return j({ ok:false, error:"lastName required" });
+    try { return j({ ok:true, source:"PBC Clerk of Court", ...(await clerk(lastName, firstName, !!b.debug, env)) }); }
+    catch(e){ return j({ ok:false, source:"PBC Clerk of Court", error:String(e&&e.message||e) }); }
+  }
   if (provider !== "pbso") return j({ ok:false, error:"No automatic lookup for this jail yet" });
   const lastName = clean(b.lastName), firstName = clean(b.firstName);
   if (!lastName) return j({ ok:false, error:"lastName required" });
@@ -157,6 +164,77 @@ async function pbsoViaBee(lastName, firstName, days, debug, env, probe){
   out.window = "blotter default (recent bookings)";
   if (debug) out.debug = { via:"scrapingbee", requestedWindow: out.window, responseChars:text.length, responseHead:text.slice(0,1200) };
   return out;
+}
+/* ---------- Palm Beach County Clerk of Court ----------
+   The clerk is AUTHORITATIVE where the jail blotter is only a snapshot. Proven
+   on a live case: the blotter showed $25,000, the clerk showed a judge's order
+   of $25,000 on EACH of two counts — $50,000 actually owed. The blotter had
+   also not reflected that the original scheduled bonds were closed out at $0.
+
+   One ScrapingBee session walks: guest entry -> name search -> open case ->
+   Arrests & Bonds tab. It must be a single session because eCaseView keeps the
+   selected case in server-side state, not in the URL. */
+async function clerk(lastName, firstName, debug, env){
+  const q = s => String(s||"").replace(/['\\]/g,"");
+  const steps = [
+    { wait: 2000 },
+    { evaluate: "var a=[].slice.call(document.querySelectorAll('a')).filter(function(x){return /guest/i.test(x.textContent+' '+(x.getAttribute('href')||''));}); if(a[0])a[0].click();" },
+    { wait: 3500 },
+    { evaluate:
+        "var f=document.forms[0];" +
+        "function set(id,v){var el=document.getElementById(id); if(el){el.value=v;}}" +
+        "set('SearchRequest_LastName','" + q(lastName) + "');" +
+        "set('SearchRequest_FirstName','" + q(firstName) + "');" +
+        "if(f)f.submit();" },
+    { wait: 5000 },
+    /* Take the newest criminal case: felony/misdemeanour rows carry -CF- or -MM-. */
+    { evaluate:
+        "var ls=[].slice.call(document.querySelectorAll('a')).filter(function(x){return /-(CF|MM)-/.test(x.textContent||'');});" +
+        "if(ls[0])ls[0].click();" },
+    { wait: 5000 },
+    { evaluate: "var t=[].slice.call(document.querySelectorAll('a')).filter(function(x){return /Arrests\\s*&\\s*Bonds|Arrests and Bonds/i.test(x.textContent||'');}); if(t[0])t[0].click();" },
+    { wait: 5000 }
+  ];
+  const u = new URL("https://app.scrapingbee.com/api/v1/");
+  u.searchParams.set("api_key", env.SCRAPINGBEE_KEY);
+  u.searchParams.set("url", "https://appsgp.mypalmbeachclerk.com/eCaseView/");
+  u.searchParams.set("render_js", "true");
+  u.searchParams.set("premium_proxy", "true");
+  u.searchParams.set("country_code", "us");
+  u.searchParams.set("js_scenario", JSON.stringify({ instructions: steps }));
+
+  const r = await fetch(u.toString());
+  const body = await r.text();
+  if (!r.ok) { const e=new Error("Court site took too long or refused ("+r.status+")"); e.lookupFailed=true; throw e; }
+  const text = strip(body);
+  const out = parseClerk(text);
+  out.via = "clerk";
+  if (debug) out.debug = { chars:text.length, head:text.slice(0,1500) };
+  return out;
+}
+function parseClerk(text){
+  const caseNo = (text.match(/CASE NUMBER:\s*([0-9A-Z\-]+)/i)||[])[1] || "";
+  const name   = (text.match(/CASE STYLE:\s*([^\n]+)/i)||[])[1] || "";
+  /* Bond rows look like:  Crt Order Plus SOR II 1 $25,000.00 7/30/2026 Open
+     Only OPEN bonds are owed; closed rows are superseded history. */
+  const rows=[]; let m;
+  const re=/([A-Za-z][A-Za-z \/\.]*?)\s+(\d+)\s+\$([\d,]+\.\d{2})\s+(\d{1,2}\/\d{1,2}\/\d{4})\s+(Open|Closed)/gi;
+  while((m=re.exec(text))) rows.push({ type:m[1].trim(), count:Number(m[2]), bond:money(m[3]), effective:m[4], status:m[5] });
+  const open = rows.filter(r=>/open/i.test(r.status));
+  const bondTotal = open.reduce((a,r)=>a+r.bond,0);
+  const charges = open.map(r=>({ desc:(r.type+" — count "+r.count).slice(0,160), bond:r.bond }));
+  return {
+    matches: caseNo ? [{
+      name: name.trim(), facility:"", bookingDate:"", holds:"Unknown",
+      caseNumber: caseNo, charges, bondTotal,
+      zeroBondCount: open.filter(r=>r.bond===0).length,
+      needsReview: bondTotal===0 || !open.length,
+      allBonds: rows
+    }] : [],
+    note: caseNo
+      ? "Court record — bond as ordered by the judge. Only OPEN bonds are counted; closed rows are superseded."
+      : "No open criminal case found under that name at the Clerk."
+  };
 }
 function strip(h){ return h
   .replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ")
