@@ -110,7 +110,7 @@
       <label data-i="bond">Total bond amount *</label>
       <input name="bond" type="number" min="0" step="1" inputmode="numeric" placeholder="1000" required>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button type="button" class="btn2" id="vBtn" data-i="vBtn">Verify Bond</button>
+        <button type="button" class="btn2" id="vBtn" data-i="vBtn">Open jail records</button>
         <a href="#" id="blot" target="_blank" rel="noopener" style="font-size:13px;color:var(--brand);font-weight:800" data-i="blot">Open blotter &rarr;</a>
       </div>
       <div id="vStat" class="hint" style="margin-top:6px"></div>
@@ -277,21 +277,21 @@
   <div class="grid">
     <div class="full"><label style="color:var(--brand)" data-i="ref1">Reference 1</label></div>
     <div class="field"><label data-i="rname">Name</label><input name="ref1Name"></div>
-    <div class="field"><label data-i="rrel">Relation</label><input name="ref1Relation"></div>
+    <div class="field"><label data-i="rrel">Relation</label><select name="ref1Relation" class="relsel"></select></div>
     <div class="field"><label data-i="rphone">Phone</label><input name="ref1Phone" type="tel" inputmode="tel"></div>
     <div class="field"><label data-i="raddr">Address</label><input name="ref1Address"></div>
     <div class="full"><label style="color:var(--brand);margin-top:6px" data-i="ref2">Reference 2</label></div>
     <div class="field"><label data-i="rname">Name</label><input name="ref2Name"></div>
-    <div class="field"><label data-i="rrel">Relation</label><input name="ref2Relation"></div>
+    <div class="field"><label data-i="rrel">Relation</label><select name="ref2Relation" class="relsel"></select></div>
     <div class="field"><label data-i="rphone">Phone</label><input name="ref2Phone" type="tel" inputmode="tel"></div>
     <div class="field"><label data-i="raddr">Address</label><input name="ref2Address"></div>
     <div class="full" style="margin-top:8px"><label style="color:var(--brand)" data-i="finT">Financial (optional)</label></div>
-    <div class="field"><label data-i="cash">Cash on hand</label><input name="cashHand" inputmode="numeric"></div>
-    <div class="field"><label data-i="bank">Cash in bank</label><input name="cashBank" inputmode="numeric"></div>
-    <div class="field"><label data-i="reV">Real estate value</label><input name="realEstateValue" inputmode="numeric"></div>
-    <div class="field"><label data-i="reM">Real estate mortgage</label><input name="realEstateMortgage" inputmode="numeric"></div>
+    <div class="field"><label data-i="cash">Cash on hand</label><input name="cashHand" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
+    <div class="field"><label data-i="bank">Cash in bank</label><input name="cashBank" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
+    <div class="field"><label data-i="reV">Real estate value</label><input name="realEstateValue" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
+    <div class="field"><label data-i="reM">Real estate mortgage</label><input name="realEstateMortgage" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
     <div class="field"><label data-i="title">Title in whose name?</label><input name="titleName"></div>
-    <div class="field"><label data-i="sal">Monthly income</label><input name="monthlyIncome" inputmode="numeric"></div>
+    <div class="field"><label data-i="sal">Monthly income</label><input name="monthlyIncome" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
     <div class="full"><label data-i="notes">Anything we should know?</label><textarea name="notes" rows="2"></textarea></div>
     <div class="full"><label data-i="hasAtt">Does the defendant have an attorney?</label>
       <div class="chips" data-chip="hasAttorney"><div class="chip" data-v="Yes" data-i="yes">Yes</div><div class="chip" data-v="No" data-i="no">No</div></div>
@@ -323,15 +323,16 @@
     <div class="field collveh hidden"><label data-i="collVeh">Vehicle — year, make, model</label><input name="collVehicle" placeholder="2019 Toyota Camry"></div>
     <div class="field collveh hidden"><label data-i="collVin">VIN</label><input name="collVIN"></div>
     <div class="field collveh hidden"><label data-i="collPlate">Plate #</label><input name="collPlate"></div>
+    <div class="full collveh hidden"><label class="drop" style="padding:14px"><div class="ico">📸</div><div class="t" data-i="collTag">Photo of the tag, registration or insurance card *</div><div class="hint" data-i="collTagH">Required when a vehicle is used as collateral — it proves the plate and the owner.</div><div class="status" data-status></div><input type="file" accept="image/*" capture="environment" data-doc="coll_doc"><img class="thumb" data-thumb></label></div>
     <div class="field collveh hidden"><label data-i="collLien">Lienholder (if financed)</label><input name="collLien"></div>
 
     <div class="full collre hidden"><label data-i="collAddr">Property address</label><input name="collAddress"></div>
-    <div class="field collre hidden"><label data-i="collMtg">Mortgage balance owed</label><input name="collMortgage" inputmode="numeric"></div>
+    <div class="field collre hidden"><label data-i="collMtg">Mortgage balance owed</label><input name="collMortgage" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
     <div class="full collre hidden warn" data-i="collREn">⚠️ Putting up a house requires a recorded mortgage and a notarized signature. We will prepare the documents and contact you — this cannot be completed online.</div>
 
     <div class="field collother hidden"><label data-i="collDesc">Describe the collateral</label><input name="collDesc"></div>
 
-    <div class="field collval hidden"><label data-i="collVal">Estimated value</label><input name="collValue" inputmode="numeric"></div>
+    <div class="field collval hidden"><label data-i="collVal">Estimated value</label><input name="collValue" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
     <div class="field collval hidden"><label data-i="collTitle">Title / ownership in whose name?</label><input name="collTitleName"></div>
     <div class="full collany hidden"><label class="drop" style="padding:14px"><div class="ico">📄</div><div class="t" data-i="collDoc">Photo of title / deed / document</div><div class="hint" data-i="collDocH">Optional — speeds up processing.</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" capture="environment" data-doc="coll_doc"><img class="thumb" data-thumb></label></div>
   </div>
@@ -403,8 +404,8 @@
   <div class="sbtns">
     <a class="a-pay hidden" id="payBtn" href="#">💳 Pay now by card</a>
     <a class="a-txt" id="attyBtn" href="#" data-i="attyB">⚖️ Yes — have an attorney call me</a>
+    <a class="a-rev" id="revLink" href="#" target="_blank" rel="noopener" data-i="leaveR" style="font-size:17px;padding:18px">⭐ Leave us a 5-star review</a>
     <a class="a-txt" id="rcpBtn" href="#" data-i="getRcp">🧾 View / save your receipt</a>
-    <a class="a-rev" id="revLink" href="#" target="_blank" data-i="leaveR">⭐ Leave us a 5-star review</a>
     <a class="a-txt" id="gmap" href="#" target="_blank" data-i="gmapT">📍 Directions — Google Maps</a>
     <a class="a-txt" id="amap" href="#" target="_blank" data-i="amapT">🍎 Directions — Apple Maps</a>
     <a class="a-call" href="tel:5618334388" data-i="callU">📞 Call us: 561-833-4388</a>
@@ -438,7 +439,7 @@ const CONFIG={
 const TOTAL=7;
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 const f=document.getElementById('f');
-let step=1, LANG='en', ip='', geo='', inked=false;
+let step=1, LANG='en', ip='', geo='', inked=false, reading=0;
 const imgs={}, files={};
 const val=n=>{const e=f.elements[n];return e?(e.value||'').trim():''};
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3200);}
@@ -448,7 +449,7 @@ const ES={
  ttl:"Solicitud de Fianza — Co-firmante", sub2:"Bail Bond Release Center of the Palm Beaches",
  s1t:"¿A quién va a sacar de la cárcel?", s1s:"Solo lo básico. Calculamos su costo automáticamente.",
  defName:"Nombre completo de la persona en la cárcel *", jail:"¿Cuál cárcel?", bond:"Monto total de la fianza *",
- blot:"Abrir blotter →", vBtn:"Verificar Fianza",
+ blot:"Abrir blotter →", vBtn:"Abrir registros de la cárcel",
  holdQ:"¿Hay una retención (hold) sobre esta persona? *", hNo:"Sin retención", hIce:"Retención de inmigración / ICE",
  hAgency:"Otro condado o agencia", hVop:"Probación / VOP", hUnk:"No estoy seguro",
  holdH:"Una \"retención\" significa que otra agencia también lo quiere en custodia. Si no sabe, elija \"No estoy seguro\" — lo verificamos.",
@@ -519,8 +520,8 @@ function setLang(l){LANG=l;document.documentElement.lang=l;
   $('#ack').textContent=ACK[l]; buildRel(); flagState(); jailInfo(); bar(); review();}
 
 const ACK={
- en:"By signing below, I, the co-signer (indemnitor), agree to guarantee the appearance of the named defendant at all required court dates. I understand the amount due is a bail premium equal to ten percent (10%) of the bond amount, subject to a minimum total charge of one hundred fifty dollars ($150.00); where ten percent is less than that minimum, the difference is charged as an agent fee. I understand the final amount due is based on the bond amount as confirmed with the jail or court, and that if the actual bond differs from the amount I stated, the premium will be adjusted accordingly. I understand this amount is fully earned and NON-REFUNDABLE once the bond is posted. I agree to be financially responsible for the full bond amount if the defendant fails to appear, plus all recovery, investigative, court and attorney costs. If any premium or financed balance is not paid in full, I agree it remains owed after the bond is discharged and shall bear interest at the maximum rate permitted by Florida law. I authorize Bail Bond Release Center of the Palm Beaches, Inc. to verify all information provided, including an investigative consumer report. I certify the identification and photos I submitted are my own and accurate. This electronic signature, together with my captured location, timestamp, IP address and device information, has the same legal effect as a handwritten signature under the U.S. E-SIGN Act and Florida UETA (Ch. 668, F.S.).",
- es:"Al firmar abajo, yo, el co-firmante (indemnizador), acepto garantizar la comparecencia del acusado nombrado en todas las fechas de corte requeridas. Entiendo que el monto a pagar es una prima de fianza igual al diez por ciento (10%) del monto de la fianza, sujeto a un cargo mínimo total de ciento cincuenta dólares ($150.00); cuando el diez por ciento sea menor que ese mínimo, la diferencia se cobra como cargo de agente. Entiendo que el monto final se basa en la fianza confirmada con la cárcel o la corte, y que si la fianza real difiere del monto que indiqué, la prima se ajustará. Entiendo que este monto se gana totalmente y NO ES REEMBOLSABLE una vez publicada la fianza. Acepto ser responsable financieramente del monto total de la fianza si el acusado no comparece, más todos los costos de recuperación, investigación, corte y abogados. Si alguna prima o saldo financiado no se paga en su totalidad, acepto que sigue debiéndose después de la descarga de la fianza y generará intereses a la tasa máxima permitida por la ley de Florida. Autorizo a Bail Bond Release Center of the Palm Beaches, Inc. a verificar toda la información, incluyendo un informe de consumidor investigativo. Certifico que la identificación y las fotos que envié son mías y correctas. Esta firma electrónica, junto con mi ubicación, fecha/hora, dirección IP y datos del dispositivo, tiene el mismo efecto legal que una firma manuscrita bajo la Ley E-SIGN de EE.UU. y la UETA de Florida (Cap. 668, F.S.)."
+ en:"By signing below, I, the co-signer (indemnitor), agree to guarantee the appearance of the named defendant at all required court dates. I understand the amount due is a bail premium equal to ten percent (10%) of the bond amount, subject to a minimum total charge of one hundred fifty dollars ($150.00); where ten percent is less than that minimum, the difference is charged as an agent fee. I understand the final amount due is based on the bond amount as confirmed with the jail or court, and that if the actual bond differs from the amount I stated, the premium will be adjusted accordingly. I understand this amount is fully earned and NON-REFUNDABLE once the bond is posted. I agree to be financially responsible for the full bond amount if the defendant fails to appear, plus all recovery, investigative, court and attorney costs. If any premium or financed balance is not paid in full, I agree it remains owed after the bond is discharged and shall bear interest at the maximum rate permitted by Florida law. I authorize Bail Bond Release Center of the Palm Beaches, Inc. to verify all information provided, including an investigative consumer report. I agree that the defendant will come to the Bail Bond Release Center office WITHIN 24 HOURS of release to complete the remaining paperwork, and I accept responsibility for making that happen. I certify the identification and photos I submitted are my own and accurate. This electronic signature, together with my captured location, timestamp, IP address and device information, has the same legal effect as a handwritten signature under the U.S. E-SIGN Act and Florida UETA (Ch. 668, F.S.).",
+ es:"Al firmar abajo, yo, el co-firmante (indemnizador), acepto garantizar la comparecencia del acusado nombrado en todas las fechas de corte requeridas. Entiendo que el monto a pagar es una prima de fianza igual al diez por ciento (10%) del monto de la fianza, sujeto a un cargo mínimo total de ciento cincuenta dólares ($150.00); cuando el diez por ciento sea menor que ese mínimo, la diferencia se cobra como cargo de agente. Entiendo que el monto final se basa en la fianza confirmada con la cárcel o la corte, y que si la fianza real difiere del monto que indiqué, la prima se ajustará. Entiendo que este monto se gana totalmente y NO ES REEMBOLSABLE una vez publicada la fianza. Acepto ser responsable financieramente del monto total de la fianza si el acusado no comparece, más todos los costos de recuperación, investigación, corte y abogados. Si alguna prima o saldo financiado no se paga en su totalidad, acepto que sigue debiéndose después de la descarga de la fianza y generará intereses a la tasa máxima permitida por la ley de Florida. Autorizo a Bail Bond Release Center of the Palm Beaches, Inc. a verificar toda la información, incluyendo un informe de consumidor investigativo. Acepto que el acusado se presentará en la oficina de Bail Bond Release Center DENTRO DE 24 HORAS de su liberación para completar el papeleo restante, y acepto la responsabilidad de que así suceda. Certifico que la identificación y las fotos que envié son mías y correctas. Esta firma electrónica, junto con mi ubicación, fecha/hora, dirección IP y datos del dispositivo, tiene el mismo efecto legal que una firma manuscrita bajo la Ley E-SIGN de EE.UU. y la UETA de Florida (Cap. 668, F.S.)."
 };
 
 /* ===== jails ===== */
@@ -770,13 +771,16 @@ const RELS=[
    ['Acquaintance','Conocido/a'],['Self','Yo mismo'],['Other','Otro']]}
 ];
 const RELG={partner:['Spouse / Partner','Esposo / Pareja'],family:['Family','Familia'],other:['Other','Otro']};
-function buildRel(){const sel=$('#relSel');if(!sel)return;const cur=sel.value;
+function fillRel(sel){ if(!sel)return; const cur=sel.value;
   sel.innerHTML='<option value=""></option>';
   RELS.forEach(grp=>{const og=document.createElement('optgroup');
     og.label=RELG[grp.g][LANG==='es'?1:0];
     grp.o.forEach(([en,es])=>{const op=document.createElement('option');op.value=en;op.textContent=(LANG==='es'?es:en);og.appendChild(op);});
     sel.appendChild(og);});
   if(cur)sel.value=cur;}
+/* Same relationship list on the indemnitor AND on both references — the
+   references were free text, which produced unusable answers like "friend?" */
+function buildRel(){ fillRel($('#relSel')); $$('.relsel').forEach(fillRel); }
 function relText(){const r=val('relationship');return r==='Other'?(val('relOther')||'Other'):r;}
 
 /* ===== chips ===== */
@@ -940,7 +944,7 @@ async function ingest(fl,k,box){
     /* The capture tiles hide themselves the instant a photo is taken, so any
        progress written onto the tile is invisible. This banner sits on the step
        itself and stays put. */
-    banner(LANG==='es'?'⏳ Leyendo su documento…':'⏳ Reading your document…');
+    reading++; banner(LANG==='es'?'⏳ Leyendo su documento…':'⏳ Reading your document…');
     try{const res=await fetch(CONFIG.aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({docType:(k==='booking'?'blotter':k),mimeType:fl.type||'image/png',dataBase64:await b64(fl)})});
       const dd=await res.json(); const n=apply(dd.fields||{}, (k==='booking'?'blotter':k));
@@ -950,6 +954,7 @@ async function ingest(fl,k,box){
         : (LANG==='es'?'⚠️ No pudimos leerlo — escriba sus datos':'⚠️ Could not read it — please type your details'), n>0);
       if(n>0)toast((LANG==='es'?'✨ Llenamos ':'✨ Filled ')+n+(LANG==='es'?' campos':' fields')+(k==='booking'||k==='blotter'?(LANG==='es'?' del blotter':' from the booking page'):(LANG==='es'?' de su ID':' from your ID')));
     }catch(_){st.textContent='✓';}
+    finally{ reading=Math.max(0,reading-1); }
   }
   review();
 }
@@ -999,8 +1004,11 @@ function setF(n,v){const e=f.elements[n];if(!e||v==null||v==='')return false;
    afterwards appeared to do nothing because setF() will not overwrite a
    field that already has a value. */
 const FIELDMAP={
-  id_front:['firstName','lastName','middleName','nickname','dob','address','dlNumber','dlState','sex','race','nationality','whereBorn','ssn'],
-  id_back :['address','dlNumber','dlState','dob','sex'],
+  /* Address deliberately excluded: the address printed on a licence is very
+     often out of date, and a wrong address on a signed indemnity agreement is
+     worse than a blank one. Name and DOB only, plus licence identifiers. */
+  id_front:['firstName','lastName','middleName','nickname','dob','dlNumber','dlState','sex'],
+  id_back :['dlNumber','dlState','dob','sex'],
   blotter :['defName','bond','bondList','charges'],
   booking :['defName','bond','bondList','charges'],
   imm_doc :['alienNo','immStatus','countryCitizen'],
@@ -1093,6 +1101,9 @@ function buildPreview(){
 function firstMissing(){const need=REQ[step]||[];for(const n of need){if(!val(n))return n;}return null;}
 $('#bBack').addEventListener('click',()=>{if(step>1){step--;show();}});
 $('#bNext').addEventListener('click',()=>{
+  /* The reader takes a few seconds. Letting them walk to the next step
+     mid-read is how the scanned data used to get lost. */
+  if(reading>0){ toast(LANG==='es'?'Un momento — estamos leyendo su documento…':'One moment — still reading your document…'); return; }
   const m=firstMissing();
   if(m){const lbls={defName:LANG==='es'?'nombre del acusado':'name of person in jail',bond:LANG==='es'?'monto total de la fianza':'total bond amount',hold:LANG==='es'?'si hay una retención (hold)':'whether there is a hold',payMethod:LANG==='es'?'forma de pago':'how you are paying',collType:LANG==='es'?'si hay garantía (colateral)':'whether collateral is being put up',
       relationship:LANG==='es'?'su relación':'your relationship',firstName:LANG==='es'?'nombre':'first name',lastName:LANG==='es'?'apellido':'last name',
@@ -1208,7 +1219,101 @@ function pdf(prem){const{jsPDF}=window.jspdf;const d=new jsPDF({unit:'pt',format
   if(imgs.imm_doc){if(iy>600){d.addPage();iy=58;}try{d.setFontSize(9);d.text('Immigration document',M,iy);d.addImage(imgs.imm_doc,'JPEG',M,iy+6,250,166);}catch(_){}iy+=196;}
   if(imgs.booking){if(iy>600){d.addPage();iy=58;}try{d.setFontSize(9);d.text('Booking page screenshot',M,iy);d.addImage(imgs.booking,'JPEG',M,iy+6,250,166);}catch(_){}iy+=196;}
   if(imgs.blotter){if(iy>600){d.addPage();iy=58;}try{d.setFontSize(9);d.text('Blotter / bond sheet',M,iy);d.addImage(imgs.blotter,'JPEG',M,iy+6,250,166);}catch(_){}}
+  if(val('payMethod')==='Credit Card') ccAuthPage(d,prem);
+  auditPage(d);
   return d;}
+
+/* ---------- Card authorization ----------
+   Deliberately records only the LAST FOUR digits. Capturing a full card number
+   on our own form and emailing it would put this business inside PCI DSS scope
+   and turn an inbox into cardholder-data storage. Clover's hosted checkout
+   takes the actual number; this page is the signed authorization to charge. */
+function ccAuthPage(d,prem){
+  try{
+    const M=40; d.addPage(); let y=58;
+    d.setFontSize(14);d.setTextColor(36,58,107);
+    d.text('CREDIT CARD AUTHORIZATION',M,y); y+=6;
+    d.setDrawColor(36,58,107);d.setLineWidth(1);d.line(M,y,572,y);d.setLineWidth(.5); y+=22;
+    d.setFontSize(9.5);d.setTextColor(20);
+    const P=syncPay();
+    const row=(k,v)=>{ d.setFont(undefined,'bold');d.text(String(k),M,y);
+      d.setFont(undefined,'normal');d.text(String(v==null||v===''?'—':v),M+188,y); y+=15; };
+    row('Cardholder',[val('firstName'),val('middleName'),val('lastName')].filter(Boolean).join(' '));
+    row('Billing address',val('address'));
+    row('Card on file (last 4)',val('ccLast4')?('**** **** **** '+val('ccLast4')):'to be entered on secure checkout');
+    row('Amount authorized','$'+(P.due||prem||0).toLocaleString());
+    row('Defendant',val('defName'));
+    row('Receipt number',recNo());
+    y+=8; d.setFontSize(8.5); d.setTextColor(60);
+    const t=d.splitTextToSize(
+      'I authorize Bail Bond Release Center of the Palm Beaches, Inc. to charge the card identified above for the '
+      +'amount shown, representing the bail premium and any agent fee and refundable collateral stated in this '
+      +'application. I confirm I am the authorized cardholder. I understand the premium is fully earned and '
+      +'NON-REFUNDABLE once the bond is posted, and I agree not to initiate a chargeback for a bond that has been '
+      +'posted. If any balance remains unpaid it continues to be owed after the bond is discharged and bears '
+      +'interest at the maximum rate permitted by Florida law. The full card number is never collected or stored '
+      +'by this office; payment is processed on the card processor\u2019s secure hosted page.',520);
+    d.text(t,M,y); y+=t.length*10.5+18;
+    d.setFontSize(9.5);d.setTextColor(20);
+    try{ if(inked) d.addImage(cv.toDataURL('image/png'),'PNG',M,y,190,52); }catch(_){}
+    y+=58; d.setDrawColor(150); d.line(M,y,M+240,y); d.line(M+300,y,M+520,y); y+=12;
+    d.setFontSize(8);d.setTextColor(90);
+    d.text('Cardholder signature',M,y); d.text('Date: '+(val('signDate')||new Date().toLocaleDateString()),M+300,y);
+  }catch(_){}}
+
+/* ---------- Certificate of Completion ----------
+   This is the page that makes an electronic signature defensible. The signature
+   itself is already binding under the E-SIGN Act and Florida UETA (Ch. 668);
+   what wins an actual dispute is being able to show WHO signed, WHEN, FROM
+   WHERE, and that the document has not been altered since. The fingerprint
+   below is a SHA-256 of the signed content — change one character of the
+   document afterwards and it no longer matches. */
+function auditPage(d){
+  try{
+    const M=40; d.addPage(); let y=58;
+    d.setFontSize(14);d.setTextColor(36,58,107);
+    d.text('CERTIFICATE OF COMPLETION',M,y); y+=6;
+    d.setDrawColor(36,58,107);d.setLineWidth(1);d.line(M,y,572,y);d.setLineWidth(.5); y+=22;
+    d.setFontSize(9.5);d.setTextColor(20);
+    const row=(k,v)=>{ if(v==null||v==='')v='—';
+      d.setFont(undefined,'bold'); d.text(String(k),M,y);
+      d.setFont(undefined,'normal');
+      const t=d.splitTextToSize(String(v),352); d.text(t,M+168,y);
+      y+=Math.max(14,t.length*11.5); };
+    row('Document','Bail Bond Application — Indemnitor (Co-Signer)');
+    row('Receipt number',recNo());
+    row('Signer (typed name)',val('signName'));
+    row('Signer email',val('email'));
+    row('Signer phone',val('phone'));
+    row('Defendant',val('defName'));
+    row('Signed (device time)',new Date().toString());
+    row('Signed (UTC)',new Date().toISOString());
+    row('IP address',ip||'not captured');
+    row('Approximate location',geo||'not captured');
+    row('Browser / device',(navigator.userAgent||'').slice(0,150));
+    row('Language',LANG==='es'?'Spanish':'English');
+    row('Signature method','Drawn on touchscreen or mouse, captured as an image and embedded in this document');
+    row('Documents attached',(Object.keys(files).map(k=>LBL[k]||k).join(', ')||'none'));
+    row('Document fingerprint',window.__docHash||'(computing)');
+    y+=6; d.setDrawColor(210); d.line(M,y,572,y); y+=14;
+    d.setFontSize(8); d.setTextColor(90);
+    const note=d.splitTextToSize(
+      'This record was generated automatically at the moment of signing. Under the federal ESIGN Act '
+      +'(15 U.S.C. ch. 96) and the Florida Uniform Electronic Transaction Act (Ch. 668, F.S.), an electronic '
+      +'signature has the same legal effect as a handwritten one. The fingerprint above is a SHA-256 hash of '
+      +'the signed content; if any part of this document is altered after signing, the hash will no longer '
+      +'match and the alteration is detectable. Retain this page with the signed agreement.',520);
+    d.text(note,M,y);
+  }catch(_){}}
+
+/* SHA-256 of the signed payload, computed before the PDF is built. */
+async function makeDocHash(){
+  try{
+    const payload=[val('signName'),val('defName'),val('bond'),val('email'),val('phone'),
+                   recNo(),new Date().toISOString(),ip,geo].join('|');
+    const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(payload));
+    window.__docHash=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase().replace(/(.{8})/g,'$1 ').trim();
+  }catch(_){ window.__docHash='(unavailable on this device)'; }}
 
 /* ===== RECEIPT PDF (producer-signed) ===== */
 /* ---------- Premium receipt ----------
@@ -1330,6 +1435,7 @@ async function submit(){
   if(!$('#agree').checked){toast(LANG==='es'?'Marque la casilla':'Please check the agreement box');return;}
   const b=$('#bNext');b.disabled=true;b.textContent=LANG==='es'?'Enviando…':'Sending…';
   await reserveNumbers();   // consecutive PR-/CR- numbers, before anything renders
+  await makeDocHash();      // fingerprint for the Certificate of Completion
   const prem=calc();
   const name=(val('defName')||'defendant').replace(/[^a-z0-9]/gi,'_');
   const fn='Indemnitor-Application-'+name+'.pdf';
