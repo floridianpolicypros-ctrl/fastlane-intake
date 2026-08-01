@@ -66,17 +66,24 @@ const PACKETS = {
    PDF bottom-left y, so these were converted: yTop = height - y.
    Each box is parked just above its printed rule so the ink sits
    on the line rather than through it.                            */
+/* Field types must match BoldSign's API enum, NOT the labels on the
+   web app's field palette. The palette shows "Name"; the API rejects
+   it with "The input was not valid." Valid types are Signature,
+   Initial, TextBox, DateSigned, EditableDate, Title, Company,
+   CheckBox, RadioButton, DropDown, Label, Image, Attachment.
+   Printed name is a TextBox prefilled with the signer's name — we
+   already know it, so there is no reason to make them type it. */
 const H = 22;                                   // standard field height
 const FIELDS = {
   8: [                                          // Florida Addendum — Indemnitor
-    { k: "sig",   type: "Signature", x: 145, ruleTop: 624, w: 250 },
-    { k: "print", type: "Name",      x: 163, ruleTop: 647, w: 250 },
-    { k: "date",  type: "DateSigned",x: 312, ruleTop: 601, w: 150 }
+    { k: "sig",   type: "Signature",  x: 145, ruleTop: 624, w: 250 },
+    { k: "print", type: "TextBox",    x: 163, ruleTop: 647, w: 250, fillName: true },
+    { k: "date",  type: "DateSigned", x: 312, ruleTop: 601, w: 150 }
   ],
   9: [                                          // Bail Bond Agreement, page 1 of 4
-    { k: "sig2",   type: "Signature", x: 385, ruleTop: 372, w: 190 },
-    { k: "print2", type: "Name",      x: 385, ruleTop: 393, w: 190 },
-    { k: "date2",  type: "DateSigned",x: 341, ruleTop: 332, w: 150 }
+    { k: "sig2",   type: "Signature",  x: 385, ruleTop: 372, w: 190 },
+    { k: "print2", type: "TextBox",    x: 385, ruleTop: 393, w: 190, fillName: true },
+    { k: "date2",  type: "DateSigned", x: 341, ruleTop: 332, w: 150 }
   ]
 };
 
@@ -86,20 +93,22 @@ function pageIn(packet, sourcePage) {
   return i < 0 ? null : i + 1;
 }
 
-function buildFields(packet) {
+function buildFields(packet, signerName) {
   const out = [];
   for (const src of Object.keys(FIELDS)) {
     const pageNumber = pageIn(packet, Number(src));
     if (!pageNumber) continue;                  // page not in this variant
     for (const f of FIELDS[src]) {
-      out.push({
+      const fld = {
         id: f.k,
         name: f.k,
         fieldType: f.type,
         pageNumber,
         bounds: { x: f.x, y: f.ruleTop - H, width: f.w, height: H },
         isRequired: true
-      });
+      };
+      if (f.fillName && signerName) fld.value = signerName;
+      out.push(fld);
     }
   }
   return out;
@@ -132,7 +141,7 @@ export async function onRequestPost(context) {
 
   /* ---------- preview: coordinates only, costs nothing ---------- */
   if (action === "preview") {
-    return j({ ok: true, packet, file: PACKETS[packet].file, pages: PACKETS[packet].pages.length, fields: buildFields(packet) });
+    return j({ ok: true, packet, file: PACKETS[packet].file, pages: PACKETS[packet].pages.length, fields: buildFields(packet, "Preview Name") });
   }
 
   /* ---------- send ---------- */
@@ -160,7 +169,7 @@ export async function onRequestPost(context) {
       emailAddress: email,
       signerType: "Signer",
       locale: "EN",
-      formFields: buildFields(packet)
+      formFields: buildFields(packet, name)
     }],
     /* Both parties get the executed document without anyone remembering to forward it. */
     CC: [{ emailAddress: env.AGENCY_BCC || "bailbondreleasecenter@gmail.com" }],
