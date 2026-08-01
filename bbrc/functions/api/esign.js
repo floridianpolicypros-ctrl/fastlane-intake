@@ -160,6 +160,8 @@ export async function onRequestPost(context) {
   const bytes = new Uint8Array(await pdf.arrayBuffer());
   const b64   = toBase64(bytes);
 
+  const agencyCC = String(env.AGENCY_BCC || "bailbondreleasecenter@gmail.com").trim().toLowerCase();
+
   const payload = {
     Title: PACKETS[packet].label + (b.defendant ? " — " + b.defendant : ""),
     Message: "Please review the full packet and sign. A signed copy is emailed to you automatically.",
@@ -171,8 +173,11 @@ export async function onRequestPost(context) {
       locale: "EN",
       formFields: buildFields(packet, name)
     }],
-    /* Both parties get the executed document without anyone remembering to forward it. */
-    CC: [{ emailAddress: env.AGENCY_BCC || "bailbondreleasecenter@gmail.com" }],
+    /* Both parties get the executed document without anyone remembering to
+       forward it. BoldSign rejects the whole request if a CC address is also
+       a signer ("email(s) are already specified as signers"), which happens
+       whenever the agency signs its own test envelope — so drop it then. */
+    CC: agencyCC && agencyCC !== email ? [{ emailAddress: agencyCC }] : undefined,
     EnableSigningOrder: false,
     /* Ties the envelope back to the receipt number so the audit trail
        and the D1 counter refer to the same transaction. */
