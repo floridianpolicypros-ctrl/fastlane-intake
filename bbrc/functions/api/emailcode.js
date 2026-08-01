@@ -81,6 +81,20 @@ export async function onRequestPost(context) {
 
     if (code && code === String(row.code)) {
       await env.DB.prepare("DELETE FROM verify_codes WHERE email=?").bind(email).run();
+
+      /* Record that this address proved inbox control, and when.
+         /api/esign refuses to hand out an embedded signing link to a
+         contact with no verification on file — BoldSign's audit trail
+         records only that an embedded link was used, not who used it,
+         so this row IS our proof of identity for that signature. */
+      await env.DB.prepare(
+        "CREATE TABLE IF NOT EXISTS verified_contacts (contact TEXT PRIMARY KEY, method TEXT, verified_at INTEGER, ip TEXT)"
+      ).run();
+      await env.DB.prepare(
+        "INSERT INTO verified_contacts (contact,method,verified_at,ip) VALUES (?,?,?,?) " +
+        "ON CONFLICT(contact) DO UPDATE SET method=excluded.method, verified_at=excluded.verified_at, ip=excluded.ip"
+      ).bind(email, "email-code", Date.now(), request.headers.get("CF-Connecting-IP") || "").run();
+
       return j({ ok: true, verified: true });
     }
     return j({ ok: true, verified: false, error: "That code doesn't match" });

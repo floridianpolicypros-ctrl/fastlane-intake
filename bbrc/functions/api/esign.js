@@ -162,6 +162,8 @@ export async function onRequestPost(context) {
      want to text the link for an envelope that already exists.        */
   if (action === "signlink") {
     if (!b.documentId) return j({ ok: false, error: "documentId is required" }, 400);
+    const v = await isVerified(env, b.email || b.phone);
+    if (!v.ok) return j({ ok: false, error: v.why, needsVerification: true }, 403);
     const link = await embedLink(env, request, b.documentId, b.email, b.phone);
     return link.ok ? j(link) : j(link, 502);
   }
@@ -188,6 +190,16 @@ export async function onRequestPost(context) {
     }
   } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return j({ ok: false, error: "A valid signer email is required" }, 400);
+  }
+
+  /* Gate the embedded path BEFORE creating the envelope. Checking after
+     would burn a document credit on a request we were going to refuse,
+     and leave an orphan envelope in the account. Emailed and texted
+     links are self-verifying — the recipient must control the inbox or
+     the handset to open them — so those modes are not gated. */
+  if (mode === "embedded") {
+    const v = await isVerified(env, email);
+    if (!v.ok) return j({ ok: false, error: v.why, needsVerification: true }, 403);
   }
 
   /* The packet PDF is served as a static asset by this same Pages
@@ -256,6 +268,38 @@ export async function onRequestPost(context) {
      delivered. Only the Sent / SendFailed webhook confirms delivery,
      so do not report success to the client off this alone. */
   return j({ ok: true, documentId: d.documentId, mode, note: "Accepted. Await the Sent webhook before telling the client it went out." });
+}
+
+/* ---------- identity gate ----------
+   An embedded signing link is a bearer token: whoever holds it can
+   sign. BoldSign's audit trail will only say "signed via embedded
+   link", so the proof of WHO signed has to come from us. We require
+   a recent /api/emailcode verification for that contact before any
+   link is issued.
+
+   Fail closed. If D1 is unreachable we refuse rather than assume,
+   because the failure mode of guessing wrong is an indemnity
+   agreement nobody can attribute to a person.                     */
+const VERIFY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+async function isVerified(env, contact) {
+  if (!contact) return { ok: false, why: "No contact supplied" };
+  if (env.ESIGN_SKIP_VERIFY === "true") return { ok: true, why: "gate disabled by ESIGN_SKIP_VERIFY" };
+  if (!env.DB) return { ok: false, why: "Verification database is unavailable" };
+  try {
+    await env.DB.prepare(
+      "CREATE TABLE IF NOT EXISTS verified_contacts (contact TEXT PRIMARY KEY, method TEXT, verified_at INTEGER, ip TEXT)"
+    ).run();
+    const row = await env.DB.prepare("SELECT method,verified_at FROM verified_contacts WHERE contact=?")
+      .bind(String(contact).trim().toLowerCase()).first();
+    if (!row) return { ok: false, why: "That contact has not been verified yet" };
+    if (Date.now() - Number(row.verified_at) > VERIFY_WINDOW_MS) {
+      return { ok: false, why: "That verification has expired — send a new code" };
+    }
+    return { ok: true, method: row.method, verifiedAt: Number(row.verified_at) };
+  } catch (e) {
+    return { ok: false, why: "Could not check verification" };
+  }
 }
 
 /* ---------- embedded signing link ---------- */
