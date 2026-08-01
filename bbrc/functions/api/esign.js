@@ -18,8 +18,29 @@
        -> { ok, env, documents } — proves the key authenticates
      { action:"preview", packet }
        -> { ok, packet, pages, fields } — no send, no credit used
-     { action:"send", packet, signer:{name,email}, ... }
+     { action:"send", packet, signer:{name,email}, mode:"email" }
        -> { ok, documentId }
+     { action:"send", ..., mode:"embedded" }
+       -> { ok, documentId, signLink } — sign on our own site, no inbox
+     { action:"send", ..., mode:"sms", signer:{name,phone} }
+       -> { ok, documentId } — BoldSign texts the signing link itself
+     { action:"signlink", documentId, email }
+       -> { ok, signLink } — re-issue a link for an existing envelope, free
+
+   DELIVERY MODES
+   "embedded" is the primary path: the client is already on their
+   phone finishing the intake form, so we create the envelope and
+   drop them straight into signing. No inbox, no SMS, no waiting,
+   nothing to click. "sms" and "email" are for the ones who leave
+   before finishing, or for a second signer.
+
+   IDENTITY IS OUR JOB ON THE EMBEDDED PATH
+   BoldSign is explicit: with an embedded link, the caller is
+   responsible for verifying who the signer is, and the audit trail
+   records only that an embedded link was used. That is exactly what
+   /api/emailcode is for — do not hand out a signLink to anyone whose
+   email or phone has not been verified first, or the signature is
+   materially weaker than an emailed one.
 
    BOLDSIGN_KEY is a Cloudflare Secret. It is never logged and
    never returned in a response, including on error.
@@ -136,6 +157,15 @@ export async function onRequestPost(context) {
     return j({ ok: true, status: r.status, documents: (d.result && d.result.length) || 0, totalRecords: d.totalRecords });
   }
 
+  /* ---------- signlink: re-issue a signing link, costs nothing ----------
+     Useful when the client closes the tab mid-signature, or when you
+     want to text the link for an envelope that already exists.        */
+  if (action === "signlink") {
+    if (!b.documentId) return j({ ok: false, error: "documentId is required" }, 400);
+    const link = await embedLink(env, request, b.documentId, b.email, b.phone);
+    return link.ok ? j(link) : j(link, 502);
+  }
+
   const packet = String(b.packet || "standard");
   if (!PACKETS[packet]) return j({ ok: false, error: "Unknown packet '" + packet + "'. Use one of: " + Object.keys(PACKETS).join(", ") }, 400);
 
@@ -145,10 +175,20 @@ export async function onRequestPost(context) {
   }
 
   /* ---------- send ---------- */
+  const mode  = String(b.mode || "email").toLowerCase();
   const name  = String(b.signer && b.signer.name || "").trim();
   const email = String(b.signer && b.signer.email || "").trim().toLowerCase();
-  if (!name)  return j({ ok: false, error: "Signer name is required" }, 400);
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return j({ ok: false, error: "A valid signer email is required" }, 400);
+  const phone = String(b.signer && b.signer.phone || "").replace(/\D/g, "");
+  if (!name) return j({ ok: false, error: "Signer name is required" }, 400);
+
+  if (mode === "sms") {
+    /* 10 digits for a US number; BoldSign wants the country code split out. */
+    if (phone.replace(/^1/, "").length !== 10) {
+      return j({ ok: false, error: "A 10-digit US mobile number is required for SMS delivery" }, 400);
+    }
+  } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return j({ ok: false, error: "A valid signer email is required" }, 400);
+  }
 
   /* The packet PDF is served as a static asset by this same Pages
      project, so fetch it off our own origin rather than bundling
@@ -162,17 +202,28 @@ export async function onRequestPost(context) {
 
   const agencyCC = String(env.AGENCY_BCC || "bailbondreleasecenter@gmail.com").trim().toLowerCase();
 
+  const signer = {
+    name,
+    signerType: "Signer",
+    locale: "EN",
+    formFields: buildFields(packet, name)
+  };
+  if (mode === "sms") {
+    /* BoldSign sends the text itself. That matters: it means no Twilio
+       account and no A2P 10DLC brand registration, which is a multi-week
+       carrier approval we would otherwise be waiting on. */
+    signer.deliveryMode = "SMS";
+    signer.phoneNumber = { countryCode: "+1", number: phone.replace(/^1/, "") };
+    if (email) signer.emailAddress = email;
+  } else {
+    signer.emailAddress = email;
+  }
+
   const payload = {
     Title: PACKETS[packet].label + (b.defendant ? " — " + b.defendant : ""),
-    Message: "Please review the full packet and sign. A signed copy is emailed to you automatically.",
+    Message: "Please review the full packet and sign. A signed copy is sent to you automatically.",
     Files: ["data:application/pdf;base64," + b64],
-    Signers: [{
-      name,
-      emailAddress: email,
-      signerType: "Signer",
-      locale: "EN",
-      formFields: buildFields(packet, name)
-    }],
+    Signers: [signer],
     /* Both parties get the executed document without anyone remembering to
        forward it. BoldSign rejects the whole request if a CC address is also
        a signer ("email(s) are already specified as signers"), which happens
@@ -193,10 +244,40 @@ export async function onRequestPost(context) {
   if (!r.ok) return j({ ok: false, status: r.status, error: shorten(txt) }, 502);
 
   let d = {}; try { d = JSON.parse(txt); } catch {}
+
+  /* Embedded: hand back a link the client can be redirected into right
+     now, while they still have the phone in their hand. */
+  if (mode === "embedded" && d.documentId) {
+    const link = await embedLink(env, request, d.documentId, email, null);
+    return j({ ok: true, documentId: d.documentId, signLink: link.signLink, linkError: link.error });
+  }
+
   /* Sending is asynchronous — a documentId here means accepted, not
      delivered. Only the Sent / SendFailed webhook confirms delivery,
      so do not report success to the client off this alone. */
-  return j({ ok: true, documentId: d.documentId, note: "Accepted. Await the Sent webhook before telling the client it went out." });
+  return j({ ok: true, documentId: d.documentId, mode, note: "Accepted. Await the Sent webhook before telling the client it went out." });
+}
+
+/* ---------- embedded signing link ---------- */
+async function embedLink(env, request, documentId, email, phone) {
+  const q = new URLSearchParams({ documentId });
+  if (email) q.set("signerEmail", email);
+  if (phone) { q.set("countryCode", "+1"); q.set("phoneNumber", String(phone).replace(/\D/g, "").replace(/^1/, "")); }
+  /* Send them back to our own confirmation screen instead of leaving
+     them stranded on BoldSign's generic "you're done" page. */
+  q.set("redirectUrl", new URL("/indemnitor?signed=1", request.url).toString());
+  /* A signing link that never expires is a signing link someone can
+     use six months later. Two days is generous for a bail packet. */
+  const till = new Date(Date.now() + 2 * 24 * 3600 * 1000);
+  q.set("signLinkValidTill", (till.getMonth() + 1) + "/" + till.getDate() + "/" + till.getFullYear());
+
+  const r = await fetch(API + "/v1/document/getEmbeddedSignLink?" + q.toString(), {
+    headers: { "X-API-KEY": env.BOLDSIGN_KEY }
+  });
+  const t = await r.text();
+  if (!r.ok) return { ok: false, status: r.status, error: shorten(t) };
+  let d = {}; try { d = JSON.parse(t); } catch {}
+  return { ok: true, signLink: d.signLink };
 }
 
 export const onRequestOptions = () => new Response(null, {
