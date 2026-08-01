@@ -157,6 +157,27 @@ export async function onRequestPost(context) {
     return j({ ok: true, status: r.status, documents: (d.result && d.result.length) || 0, totalRecords: d.totalRecords });
   }
 
+  /* ---------- inspect: what did BoldSign ACTUALLY store? ----------
+     Placement bugs are unfixable by guessing. This reads the document
+     back and reports the bounds and values BoldSign kept, so the
+     coordinate system can be measured against what we sent rather
+     than assumed. Costs nothing. */
+  if (action === "inspect") {
+    if (!b.documentId) return j({ ok: false, error: "documentId is required" }, 400);
+    const r = await fetch(API + "/v1/document/properties?documentId=" + encodeURIComponent(b.documentId),
+      { headers: { "X-API-KEY": env.BOLDSIGN_KEY } });
+    const txt = await r.text();
+    if (!r.ok) return j({ ok: false, status: r.status, error: shorten(txt) }, 502);
+    let d = {}; try { d = JSON.parse(txt); } catch {}
+    const fields = [];
+    for (const s of (d.signerDetails || [])) {
+      for (const f of (s.formFields || [])) {
+        fields.push({ id: f.id, type: f.fieldType, page: f.pageNumber, bounds: f.bounds, value: f.value });
+      }
+    }
+    return j({ ok: true, status: d.status, fields });
+  }
+
   /* ---------- signlink: re-issue a signing link, costs nothing ----------
      Useful when the client closes the tab mid-signature, or when you
      want to text the link for an envelope that already exists.        */
