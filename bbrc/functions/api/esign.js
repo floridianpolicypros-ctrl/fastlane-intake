@@ -162,6 +162,9 @@ export async function onRequestPost(context) {
     Message: "Please review the full packet and sign. A signed copy is sent to you automatically.",
     Files: files,
     Signers: [signer],
+    /* Without this BoldSign ignores the tags and rejects the request with
+       "Form fields cannot be null", because it expects explicit bounds. */
+    UseTextTags: true,
     /* BoldSign rejects the entire request if a CC address is also a signer,
        which is exactly what happens when the agency tests on itself. */
     CC: agencyCC && agencyCC !== email ? [{ emailAddress: agencyCC }] : undefined,
