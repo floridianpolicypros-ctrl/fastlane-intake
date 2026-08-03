@@ -69,7 +69,19 @@ const PACKETS = {
 const PT_TO_PX = 96 / 72;
 const px = v => Math.round(v * PT_TO_PX * 100) / 100;
 
-const H = 22;   // field height in points
+/* ---------- VERTICAL ALIGNMENT ----------
+   BoldSign TOP-aligns text inside the field box. With a 22pt box whose
+   bottom sat on the printed rule, every value rendered ~12pt above its
+   line — measured on the live document, consistently across all 15
+   application fields. So text boxes are short and sit just above the
+   rule, which puts the baseline on the line the way a pen would.
+
+   Signatures are different: the image is scaled to fill the box, so it
+   wants the taller box and was already landing correctly. */
+const TEXT_H  = 14;   // text / date box height, points
+const TEXT_UP = 12;   // text box top, points above the rule
+const SIG_H   = 22;   // signature box height, points
+const SIG_UP  = 22;   // signature box top, points above the rule
 
 /* Keyed by SOURCE page of sunsurety-packet.pdf. Field position is the
    TOP of the box in points from the page top; each box is parked just
@@ -118,12 +130,15 @@ function buildFields(packet, data, signerName) {
     const pageNumber = pageIn(packet, Number(src));
     if (!pageNumber) continue;
     for (const f of FIELDS[src]) {
+      const isSig = f.type === "Signature";
+      const h  = isSig ? SIG_H  : TEXT_H;
+      const up = isSig ? SIG_UP : TEXT_UP;
       const fld = {
         id: f.id,
         name: f.id,
         fieldType: f.type || "TextBox",
         pageNumber,
-        bounds: { x: px(f.x), y: px(f.ruleTop - H), width: px(f.w), height: px(H) },
+        bounds: { x: px(f.x), y: px(f.ruleTop - up), width: px(f.w), height: px(h) },
         isRequired: !!f.required
       };
       const v = f.fillName ? signerName : (data && data[f.id]);
