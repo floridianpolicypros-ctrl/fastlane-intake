@@ -6,14 +6,15 @@
    and comes back signed.
 
    ARCHITECTURE — WHY IT LOOKS LIKE THIS
-   1. Fields are positioned by INVISIBLE TEXT TAGS baked into the
-      packet PDFs offline (BBRC-WEBSITE/bake_tags.py). BoldSign
-      builds each field where its tag sits, so placement is
-      controlled in a renderer we can look at. An earlier version
-      used bounds{x,y} and put the signature on the wrong line —
-      BoldSign stored the numbers verbatim but interprets them in
-      units its docs never state. Tags remove that guess entirely.
-   2. The RECEIPT is not in the tagged packet. It is the agency's
+   1. Fields are positioned by explicit bounds, authored in PDF
+      POINTS and converted to BoldSign's 96-DPI pixels on the way
+      out (see THE COORDINATE FIX). A text-tag version was built
+      first as a way to dodge the unknown unit; once the unit was
+      measured, bounds became simpler — values ride inline in the
+      same call, so there is no second prefill request to fail.
+      The packet PDFs still carry the invisible tags; without
+      UseTextTags BoldSign ignores them, and they cost nothing.
+   2. The RECEIPT is not in the packet. It is the agency's
       numbered financial record under Fla. Admin. Code 69B-221.120
       and a client must not be able to edit the premium or the
       receipt number. The site already renders a fully stamped
@@ -40,15 +41,102 @@
 const API = "https://api.boldsign.com";
 
 const PACKETS = {
-  standard:        { file: "BBRC-Tagged-standard.pdf",        label: "Bail Bond Packet" },
-  collateral:      { file: "BBRC-Tagged-collateral.pdf",      label: "Bail Bond Packet — Collateral" },
-  plan:            { file: "BBRC-Tagged-plan.pdf",            label: "Bail Bond Packet — Payment Plan" },
-  collateral_plan: { file: "BBRC-Tagged-collateral_plan.pdf", label: "Bail Bond Packet — Collateral + Payment Plan" }
+  standard:        { file: "BBRC-Tagged-standard.pdf",        label: "Bail Bond Packet",
+                     pages: [4, 5, 6, 7, 8, 9, 10, 11, 12] },
+  collateral:      { file: "BBRC-Tagged-collateral.pdf",      label: "Bail Bond Packet — Collateral",
+                     pages: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
+  plan:            { file: "BBRC-Tagged-plan.pdf",            label: "Bail Bond Packet — Payment Plan",
+                     pages: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13] },
+  collateral_plan: { file: "BBRC-Tagged-collateral_plan.pdf", label: "Bail Bond Packet — Collateral + Payment Plan",
+                     pages: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] }
   /* Real-property collateral is deliberately absent. A recordable
      Florida mortgage needs two witnesses and a notary (Fla. Stat.
      689.01, 695.03); e-signing one produces an instrument the
      Clerk will not record, so it must not be sendable by accident. */
 };
+
+/* ---------- THE COORDINATE FIX ----------
+   BoldSign's bounds are PIXELS AT 96 DPI with a top-left origin. Their
+   docs never say so. Measured on the first signed packet: a signature
+   sent at y=602 landed at ~456pt down the page, and 456/602 = 0.757,
+   i.e. 72/96. Everything we had was rendering at three-quarters scale,
+   which is why placement looked close but always high and left.
+
+   All geometry below is authored in PDF POINTS — the same units as
+   lines-map.json, which is what we can actually measure and render —
+   and converted on the way out. Never hand-convert a coordinate; put
+   points in the table and let px() do it. */
+const PT_TO_PX = 96 / 72;
+const px = v => Math.round(v * PT_TO_PX * 100) / 100;
+
+const H = 22;   // field height in points
+
+/* Keyed by SOURCE page of sunsurety-packet.pdf. Field position is the
+   TOP of the box in points from the page top; each box is parked just
+   above its printed rule so ink sits on the line. */
+const FIELDS = {
+  4: [
+    { id: "def_name",       x: 40,  ruleTop: 227, w: 430 },
+    { id: "bond_amount",    x: 100, ruleTop: 265, w: 160 },
+    { id: "court_name",     x: 275, ruleTop: 265, w: 260 },
+    { id: "county",         x: 55,  ruleTop: 285, w: 280 },
+    { id: "relationship",   x: 215, ruleTop: 341, w: 300 },
+    { id: "indem_name",     x: 90,  ruleTop: 361, w: 260 },
+    { id: "nickname",       x: 395, ruleTop: 361, w: 165 },
+    { id: "phone_home",     x: 168, ruleTop: 388, w: 110 },
+    { id: "phone_work",     x: 320, ruleTop: 388, w: 110 },
+    { id: "phone_mobile",   x: 480, ruleTop: 388, w: 85  },
+    { id: "email",          x: 84,  ruleTop: 408, w: 300 },
+    { id: "address",        x: 165, ruleTop: 428, w: 350 },
+    { id: "how_long",       x: 528, ruleTop: 428, w: 45  },
+    { id: "landlord",       x: 265, ruleTop: 449, w: 300 },
+    { id: "former_address", x: 170, ruleTop: 469, w: 340 }
+  ],
+  8: [
+    { id: "indem_sig_1",   x: 145, ruleTop: 624, w: 250, type: "Signature",  required: true },
+    { id: "indem_print_1", x: 163, ruleTop: 647, w: 250, fillName: true },
+    { id: "indem_date_1",  x: 312, ruleTop: 601, w: 150, type: "DateSigned", required: true }
+  ],
+  9: [
+    { id: "indem_sig_2",   x: 385, ruleTop: 372, w: 190, type: "Signature",  required: true },
+    { id: "indem_print_2", x: 385, ruleTop: 393, w: 190, fillName: true },
+    { id: "indem_date_2",  x: 341, ruleTop: 332, w: 150, type: "DateSigned", required: true }
+  ]
+};
+
+/* Source page -> 1-based position inside this packet variant. The offset is
+   real: the Florida Addendum is source page 8 but page 5 of the no-collateral
+   packet, and hardcoding page numbers would put signatures on Fraud Warnings. */
+function pageIn(packet, sourcePage) {
+  const i = PACKETS[packet].pages.indexOf(sourcePage);
+  return i < 0 ? null : i + 1;
+}
+
+function buildFields(packet, data, signerName) {
+  const out = [];
+  for (const src of Object.keys(FIELDS)) {
+    const pageNumber = pageIn(packet, Number(src));
+    if (!pageNumber) continue;
+    for (const f of FIELDS[src]) {
+      const fld = {
+        id: f.id,
+        name: f.id,
+        fieldType: f.type || "TextBox",
+        pageNumber,
+        bounds: { x: px(f.x), y: px(f.ruleTop - H), width: px(f.w), height: px(H) },
+        isRequired: !!f.required
+      };
+      const v = f.fillName ? signerName : (data && data[f.id]);
+      /* Signature and DateSigned cannot carry a value — only the signer
+         produces those, and BoldSign rejects the field if you try. */
+      if (!f.type && v !== undefined && v !== null && String(v).trim() !== "") {
+        fld.value = String(v);
+      }
+      out.push(fld);
+    }
+  }
+  return out;
+}
 
 /* Tag ids baked into the PDFs. Anything not on this list is ignored
    rather than sent to BoldSign, so a stray form key cannot 400 the
@@ -107,7 +195,9 @@ export async function onRequestPost(context) {
   if (!PACKETS[packet]) return j({ ok: false, error: "Unknown packet '" + packet + "'" }, 400);
 
   if (action === "preview") {
-    return j({ ok: true, packet, file: PACKETS[packet].file, dataFields: DATA_FIELDS });
+    const f = buildFields(packet, b.data || {}, "Preview Name");
+    return j({ ok: true, packet, file: PACKETS[packet].file, pages: PACKETS[packet].pages.length,
+               fieldCount: f.length, fields: f });
   }
 
   /* ---------------- send ---------------- */
@@ -145,7 +235,8 @@ export async function onRequestPost(context) {
   }
   files.push("data:application/pdf;base64," + packetB64);
 
-  const signer = { name, signerType: "Signer", locale: "EN" };
+  const signer = { name, signerType: "Signer", locale: "EN",
+                   formFields: buildFields(packet, b.data || {}, name) };
   if (mode === "sms") {
     /* BoldSign sends the text itself — no Twilio account and no A2P 10DLC
        carrier registration, which would otherwise be a multi-week wait. */
@@ -162,9 +253,6 @@ export async function onRequestPost(context) {
     Message: "Please review the full packet and sign. A signed copy is sent to you automatically.",
     Files: files,
     Signers: [signer],
-    /* Without this BoldSign ignores the tags and rejects the request with
-       "Form fields cannot be null", because it expects explicit bounds. */
-    UseTextTags: true,
     /* BoldSign rejects the entire request if a CC address is also a signer,
        which is exactly what happens when the agency tests on itself. */
     CC: agencyCC && agencyCC !== email ? [{ emailAddress: agencyCC }] : undefined,
@@ -182,12 +270,9 @@ export async function onRequestPost(context) {
   let d = {}; try { d = JSON.parse(t); } catch {}
   const documentId = d.documentId;
 
-  /* Prefill the application. Signature, DateSigned, Name and Title cannot be
-     prefilled by design — only the client can produce those. */
-  let prefill = null;
-  if (documentId && b.data) {
-    prefill = await prefillFields(env, documentId, b.data, name);
-  }
+  /* Values ride along inside formFields, so there is no second prefill call
+     to fail. BoldSign's prefillFields endpoint returned 500 on every attempt. */
+  const prefill = { inline: true };
 
   if (mode === "embedded" && documentId) {
     const link = await embedLink(env, request, documentId, email, null);
