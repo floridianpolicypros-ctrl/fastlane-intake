@@ -1635,6 +1635,75 @@ async function photoAtt(){
     out.push({filename:name, contentBase64:b64});
   }
   return out;}
+/* ===== BoldSign e-sign packet =====
+   Sends the Sun Surety packet for signature with the application already
+   filled in, and the RECEIPT riding as the first file in the envelope.
+
+   Why the receipt travels separately rather than living in the packet:
+   it is the agency's consecutively numbered financial record under Fla.
+   Admin. Code 69B-221.120. If it were a BoldSign form the client could
+   edit the premium or the receipt number before signing. Generated here,
+   stamped and flattened, it cannot be altered — BoldSign just staples it
+   to the front.
+
+   Payment method does NOT pick a different packet. Cash, Zelle, Cash App
+   and paid-in-office change which box is ticked on the receipt and what
+   goes on the "Other" line; not one word of the agreement differs. Four
+   more packet variants for that would be four more things to keep in sync
+   for no change in what actually gets signed. */
+function esignPacket(){
+  const coll = collTaken();
+  const plan = (Number((syncPay()||{}).bal) || 0) > 0;   // balance owed => promissory note page
+  return coll ? (plan ? 'collateral_plan' : 'collateral')
+              : (plan ? 'plan' : 'standard');
+}
+function esignData(){
+  const full = [val('firstName'),val('middleName'),val('lastName')].filter(Boolean).join(' ');
+  const bond = Number(val('bond'))||0;
+  return {
+    def_name:       val('defName'),
+    bond_amount:    bond ? bond.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '',
+    /* Court and county are not asked on the intake form — the client
+       usually does not know them. Left blank on purpose rather than
+       guessed, so the agent fills them rather than trusting a wrong one. */
+    court_name:     '',
+    county:         '',
+    relationship:   relText(),
+    indem_name:     full,
+    nickname:       val('nickname'),
+    phone_home:     val('phoneHome'),
+    phone_work:     val('phoneWork'),
+    phone_mobile:   val('phone'),
+    email:          val('email'),
+    address:        val('address'),
+    how_long:       '',
+    landlord:       val('landlord'),
+    former_address: val('formerAddress')
+  };
+}
+async function sendForSignature(rcp){
+  try{
+    const body = {
+      action:    'send',
+      packet:    esignPacket(),
+      mode:      'email',
+      signer:    { name: [val('firstName'),val('lastName')].filter(Boolean).join(' ') || val('signName'),
+                   email: val('email') },
+      defendant: val('defName'),
+      receiptNo: recNo(),
+      data:      esignData()
+    };
+    /* Flattened receipt as the first file, so the executed packet opens on
+       the statement of charges the way the paper one does. */
+    if(rcp){ try{ body.receiptPdf = rcp.output('datauristring').split(',')[1]; }catch(_){ } }
+    const r = await fetch('/api/esign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j = await r.json().catch(()=>({}));
+    /* A documentId means BoldSign accepted it, not that it was delivered —
+       only the Sent webhook confirms that. Say "on its way", never "sent". */
+    return (r.ok && j.ok) ? {ok:true, id:j.documentId} : {ok:false, err:(j.error||('HTTP '+r.status))};
+  }catch(e){ return {ok:false, err:e.message}; }
+}
+
 async function submit(){
   if(!val('signName')){toast(LANG==='es'?'Escriba su nombre':'Type your name to sign');return;}
   if(!inked){toast(LANG==='es'?'Firme con el dedo':'Please sign with your finger');return;}
@@ -1697,6 +1766,11 @@ async function submit(){
          screen, with the reason, instead of quietly opening a mail client. */
       if(!sent) window.__sendErr=(jr&&jr.error)||('HTTP '+r.status);
     }catch(e){sent=false;window.__sendErr=String(e&&e.message||e);}}
+  /* Send the Sun Surety packet out for signature, receipt stapled to the
+     front. Deliberately AFTER the agency email: if BoldSign is down, the
+     agent still gets the full application and can paper it by hand rather
+     than losing the submission entirely. */
+  window.__esign = await sendForSignature(rcp);
   $('#revLink').href=CONFIG.reviewUrl;updatePins();releaseInfo();payAltInfo();
   /* Second attorney ask. The first one sits mid-form where people are rushing;
      by the time the bond is handled they actually think about the case. */
@@ -1750,7 +1824,19 @@ async function submit(){
   if(needsApproval()){const h=$('#ok').querySelector('[data-i="okT"]');
     if(h)h.textContent=LANG==='es'?'Recibido — pendiente de aprobación':'Received — pending approval';
     if(ob)ob.textContent=LANG==='es'?'Hay una retención (hold) en este caso, así que un agente debe aprobarlo antes de continuar. Puede requerir pagar la fianza completa. Le contactaremos de inmediato.':'There is a hold on this case, so an agent must approve it before we can move forward. It may require paying the full bond. We will contact you right away.';}
-  else if(sent){if(ob)ob.textContent=LANG==='es'?'Enviamos su solicitud firmada por correo a usted y a nuestra oficina. Confirmaremos y publicaremos la fianza.':"We emailed your signed application to you and our office. We'll confirm and post the bond.";}
+  else if(sent){
+    /* The surety packet is a second, separate email the client must act on.
+       If we do not say so here they assume they are finished and the packet
+       sits unsigned — so it gets its own sentence, not a footnote. */
+    const es = window.__esign||{};
+    if(ob)ob.textContent = es.ok
+      ? (LANG==='es'
+          ? 'Enviamos su solicitud firmada a usted y a nuestra oficina. Revise su correo: le llega un segundo mensaje con el paquete de fianza y su recibo para firmar.'
+          : "We emailed your signed application to you and our office. Check your email — a second message is on its way with the bail packet and your receipt to sign.")
+      : (LANG==='es'
+          ? 'Enviamos su solicitud firmada a usted y a nuestra oficina. Le enviaremos el paquete de fianza para firmar en breve.'
+          : "We emailed your signed application to you and our office. We'll send the bail packet for signature shortly.");
+  }
   else{try{doc&&doc.save(fn);}catch(_){}
     if(ob)ob.textContent=LANG==='es'?'Su PDF firmado se descargó y su correo se abrió — adjunte el PDF y envíelo.':'Your signed PDF downloaded and your email opened — attach the PDF and hit send.';
     setTimeout(()=>{location.href='mailto:'+CONFIG.recipient+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body+'\n\n*** Please ATTACH the downloaded PDF ('+fn+') ***');},700);}
