@@ -368,7 +368,26 @@ NOTE: The full card is entered on the Clover terminal — never by email or text
   startBtn.addEventListener("click",openCam);snapBtn.addEventListener("click",snap);retakeBtn.addEventListener("click",openCam);window.addEventListener("beforeunload",stop);
 })();
 function initDate(){const el=form.elements["signDate"];if(el)el.value=new Date().toLocaleDateString();}
-async function initIP(){try{const r=await fetch("https://api.ipify.org?format=json");const j=await r.json();clientIP=j.ip;}catch(_){}}
+/* Location, silently, from the Cloudflare edge — no browser permission
+   prompt. `geoData` was declared and printed on the audit page but nothing
+   ever filled it, so every card authorization recorded "not captured".
+   A card authorization is exactly the document where you want evidence of
+   where the person was when they signed it.
+   Honest limit: IP-derived, so city / postal level, not a street address. */
+async function initIP(){
+  try{const r=await fetch("https://api.ipify.org?format=json");const j=await r.json();clientIP=j.ip;}catch(_){}
+  try{
+    const r=await fetch("/api/geo",{cache:"no-store"});
+    const g=await r.json();
+    if(g&&g.ok){
+      if(g.ip) clientIP=g.ip;                       // edge IP beats ipify, and needs no third party
+      const coords=(g.lat&&g.lon)?(Number(g.lat).toFixed(4)+", "+Number(g.lon).toFixed(4)):"";
+      const place=[g.city,g.region,g.postal].filter(Boolean).join(", ");
+      geoData=[coords,place?("approx. "+place):""].filter(Boolean).join("  ·  ");
+      if(geoData) geoData+=" (from IP, no prompt)";
+    }
+  }catch(_){}
+}
 window.addEventListener("resize",()=>{const data=cv.toDataURL();fitCanvas();const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,cv.getBoundingClientRect().width,cv.getBoundingClientRect().height);img.src=data;});
 /* show alternate-payment buttons only when links are provided */
 (function(){let any=false;
