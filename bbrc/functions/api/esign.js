@@ -40,15 +40,24 @@
 
 const API = "https://api.boldsign.com";
 
+/* The Sun Surety promissory note (source page 13) contains NO interest
+   clause in any of its six paragraphs. The 18% lives in BBRC-PN-ADD,
+   which amends the note under the note's own paragraph 5. Without it a
+   payment plan is silent on interest, and a note silent on interest
+   generally bears none until judgment. It ships as a separate file
+   because page 13 is the LAST page of both plan packets, so appending
+   it lands the addendum directly after the note it amends. */
+const ADDENDUM = "BBRC-Promissory-Note-Addendum.pdf";
+
 const PACKETS = {
   standard:        { file: "BBRC-Tagged-standard.pdf",        label: "Bail Bond Packet",
                      pages: [4, 5, 6, 7, 8, 9, 10, 11, 12] },
   collateral:      { file: "BBRC-Tagged-collateral.pdf",      label: "Bail Bond Packet — Collateral",
                      pages: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
   plan:            { file: "BBRC-Tagged-plan.pdf",            label: "Bail Bond Packet — Payment Plan",
-                     pages: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13] },
+                     pages: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13], addendum: true },
   collateral_plan: { file: "BBRC-Tagged-collateral_plan.pdf", label: "Bail Bond Packet — Collateral + Payment Plan",
-                     pages: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] }
+                     pages: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], addendum: true }
   /* Real-property collateral is deliberately absent. A recordable
      Florida mortgage needs two witnesses and a notary (Fla. Stat.
      689.01, 695.03); e-signing one produces an instrument the
@@ -249,6 +258,17 @@ export async function onRequestPost(context) {
     if (rb.length > 40) files.push("data:application/pdf;base64," + rb);
   }
   files.push("data:application/pdf;base64," + packetB64);
+
+  /* Addendum last, so it lands directly after the promissory note. If it
+     cannot be fetched we refuse rather than send a payment plan with no
+     enforceable interest term - a silently missing page is worse than a
+     failed submission, because nobody notices until collection. */
+  if (PACKETS[packet].addendum) {
+    const au = new URL("/assets/packets/" + ADDENDUM, request.url);
+    const ar = await fetch(au.toString());
+    if (!ar.ok) return j({ ok: false, error: "Promissory note addendum not found at " + au.pathname + " (" + ar.status + ")" }, 500);
+    files.push("data:application/pdf;base64," + toBase64(new Uint8Array(await ar.arrayBuffer())));
+  }
 
   const signer = { name, signerType: "Signer", locale: "EN",
                    formFields: buildFields(packet, b.data || {}, name) };
