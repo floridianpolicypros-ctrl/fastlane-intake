@@ -202,6 +202,21 @@
         <span id="emMsg" class="hint"></span>
       </div>
     </div>
+    <!-- SMS consent. Two separate boxes on purpose. TCPA liability is
+         $500-$1,500 PER MESSAGE and the defence is the consent record, so the
+         exact wording, its version, the timestamp and the IP are all stored
+         with the application. Case updates are transactional - the client
+         asked us to handle their bond. Promotional texts are separate and
+         genuinely optional, because bundling the two is what turns a TCPA
+         claim into a winnable one. Twilio also requires this language be
+         visible on the form before approving an A2P 10DLC campaign. -->
+    <div class="full" id="smsBlock" style="margin-top:2px;border:1px solid var(--line);border-radius:10px;padding:12px;background:#fbfdff">
+      <label style="font-weight:600;display:block"><input type="checkbox" name="smsCase" id="smsCase" style="width:auto;margin-right:9px;transform:scale(1.25)"> <span data-i="smsCaseL">Text me about this bond</span></label>
+      <p class="hint" id="smsCaseTxt" style="margin:6px 0 12px 28px">By checking this box you agree that Bail Bond Release Center of the Palm Beaches, Inc. may send you text messages about this bail bond - court dates, release status, payment reminders and documents to sign - at the mobile number above, including messages sent using an automatic telephone dialing system. Message frequency varies. Message and data rates may apply. Reply STOP to cancel or HELP for help. Consent is not required to obtain a bail bond; if you do not consent we will contact you by phone or email instead.</p>
+      <label style="font-weight:600;display:block"><input type="checkbox" name="smsPromo" id="smsPromo" style="width:auto;margin-right:9px;transform:scale(1.25)"> <span data-i="smsPromoL">Also send me occasional offers and reminders <span class="opt">(optional)</span></span></label>
+      <p class="hint" id="smsPromoTxt" style="margin:6px 0 0 28px">Optional. Promotional texts about our services. Not required to obtain a bail bond and not a condition of any transaction. Message frequency varies. Message and data rates may apply. Reply STOP to cancel.</p>
+      <p class="hint" style="margin:10px 0 0 28px">Carrier is not liable for delayed or undelivered messages.</p>
+    </div>
     <div class="full"><label data-i="addr">Current home address *</label><input name="address" required autocomplete="street-address"></div>
     <div class="field"><label data-i="howlong">How long there?</label><input name="addrHowLong" placeholder="e.g. 3 years"></div>
     <div class="field"><label data-i="rentown">Rent or own?</label>
@@ -1404,6 +1419,15 @@ function pdf(prem){const{jsPDF}=window.jspdf;const d=new jsPDF({unit:'pt',format
   S('8. NOTES / ATTORNEY');
   R('Notes',val('notes'));R('Has attorney',val('hasAttorney'));R('Attorney name',val('attorneyName'));
   R('Attorney referral requested',(f.elements['wantAttorney']&&f.elements['wantAttorney'].checked)?'YES':'');
+  /* The consent record IS the TCPA defence, so it goes in the signed PDF:
+     what was agreed, which version of the wording, and when. */
+  const sc=smsConsent();
+  S('SMS CONSENT');
+  R('Case updates by text',sc.case?'YES - consented':'No');
+  R('Promotional texts',sc.promo?'YES - consented':'No');
+  R('Consent wording version',sc.version);
+  R('Consent recorded',sc.at);
+  if(sc.case||sc.promo)R('Exact language shown',sc.text);
   if(y>560){d.addPage();y=46;}
   y+=6;d.setDrawColor(215);d.line(M,y,572,y);y+=14;
   d.setFontSize(7.6);d.setTextColor(85);const a=d.splitTextToSize(ACK[LANG],530);d.text(a,M,y);y+=a.length*9.4+10;
@@ -1635,6 +1659,22 @@ async function photoAtt(){
     out.push({filename:name, contentBase64:b64});
   }
   return out;}
+/* ===== SMS consent record =====
+   Version the wording. If the language is ever edited, consents captured
+   under the old text must still evidence the OLD text - that is the whole
+   point of the record and what a TCPA defence turns on. Bump this whenever
+   the paragraph on the form changes. */
+const SMS_CONSENT_VERSION = '2026-08-05.1';
+function smsConsent(){
+  const c = !!(f.elements['smsCase'] && f.elements['smsCase'].checked);
+  const p = !!(f.elements['smsPromo'] && f.elements['smsPromo'].checked);
+  const el = document.getElementById('smsCaseTxt');
+  return { case:c, promo:p, version:SMS_CONSENT_VERSION,
+           at: (c||p) ? new Date().toISOString() : '',
+           number: val('phone'),
+           text: (el ? el.textContent.replace(/\s+/g,' ').trim() : '') };
+}
+
 /* ===== BoldSign e-sign packet =====
    Sends the Sun Surety packet for signature with the application already
    filled in, and the RECEIPT riding as the first file in the envelope.
@@ -1729,6 +1769,10 @@ async function submit(){
     +(vehListed()?('\nVEHICLE: '+[val('autoYMM'),val('autoPlate')?('plate '+val('autoPlate')+' '+val('autoState')):'',val('autoOwed')?('owes $'+val('autoOwed')):''].filter(Boolean).join(', ')+'\nProof photo: '+(imgs.veh_doc?'ATTACHED':'NOT PROVIDED')):'')+'\n\n'
     +'Signed by: '+val('signName')+'  Date: '+val('signDate')+'\nGPS: '+(geo||'not captured')+'\nIP: '+(ip||'n/a')+'\n'
     +'Attorney referral: '+((f.elements['wantAttorney']&&f.elements['wantAttorney'].checked)?'YES':'no')+'\n'
+    +(function(){const s=smsConsent();
+        return 'SMS consent: case updates '+(s.case?'YES':'NO')+', promotional '+(s.promo?'YES':'NO')
+             +' (wording v'+s.version+(s.at?(', recorded '+s.at):'')+')'
+             +(s.case?'':'\n>>> DO NOT TEXT THIS NUMBER - no consent on file.')+'\n';})()
     +'Photos: '+(Object.keys(files).map(k=>LBL[k]||k).join(', ')||'none')
     +(val('citizen')==='No'?('\n\nNON-CITIZEN INFO\nStatus: '+val('immStatus')+'\nA#: '+val('alienNo')+'\nCountry: '+val('countryCitizen')+'\nDoc attached: '+(imgs.imm_doc?'YES':'no')):'')
     +(collTaken()?('\n\n*** COLLATERAL TAKEN ***\n'+collSummary()+'\nCollateral Receipt No: '+collNo()
