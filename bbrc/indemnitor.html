@@ -1675,6 +1675,53 @@ function smsConsent(){
            text: (el ? el.textContent.replace(/\s+/g,' ').trim() : '') };
 }
 
+/* Consent as a SIGNED page, not just a stored flag.
+   A database row saying 'they ticked the box' is weak evidence. A page in
+   the executed packet, showing the exact wording they were shown and what
+   they chose, carried under the same signature as the bond paperwork, is
+   what actually answers a TCPA claim. Flattened, so nothing on it can be
+   altered before signing. */
+function consentPDF(){
+  const {jsPDF}=window.jspdf; const d=new jsPDF({unit:'pt',format:[612,792]});
+  const sc=smsConsent(); const M=54; let y=58;
+  const W=(t,size,bold,gap)=>{ d.setFont('helvetica',bold?'bold':'normal'); d.setFontSize(size);
+    const ls=d.splitTextToSize(String(t),504); d.text(ls,M,y); y+=ls.length*(size*1.32)+(gap||0); };
+  d.setTextColor(20,40,120); W('BAIL BOND RELEASE CENTER OF THE PALM BEACHES, INC.',12,true,2);
+  d.setTextColor(60); W('800 S. Congress Ave, West Palm Beach, FL 33406  -  (561) 833-4388',8,false,1);
+  W('Carlos Sevilla  -  Florida Bail Agent License #P204302',8,true,8);
+  d.setDrawColor(200); d.line(M,y,558,y); y+=18;
+  d.setTextColor(20,40,120); W('COMMUNICATIONS CONSENT AND ACKNOWLEDGMENT',13,true,10);
+  d.setTextColor(30);
+  const R=(k,v)=>{ d.setFont('helvetica','bold'); d.setFontSize(9); d.text(String(k),M,y);
+    d.setFont('helvetica','normal'); const ls=d.splitTextToSize(String(v==null?'':v),330);
+    d.text(ls,222,y); y+=Math.max(1,ls.length)*12; };
+  R('Defendant',val('defName')); R('Applicant',[val('firstName'),val('lastName')].filter(Boolean).join(' '));
+  R('Mobile number given',sc.number); R('Receipt no.',recNo()); y+=8;
+  d.setFont('helvetica','bold'); d.setFontSize(10); d.text('WHAT YOU CHOSE',M,y); y+=15;
+  R('Text me about this bond', sc.case?'YES - CONSENTED':'NO - declined');
+  R('Promotional texts', sc.promo?'YES - CONSENTED':'NO - declined');
+  R('Recorded', sc.at||'not applicable'); R('Wording version', sc.version);
+  R('IP address', ip||'n/a'); R('Approximate location', geo||'not captured'); y+=10;
+  d.setFont('helvetica','bold'); d.setFontSize(10); d.text('THE EXACT LANGUAGE SHOWN TO YOU',M,y); y+=14;
+  d.setFont('helvetica','normal'); d.setFontSize(8.4); d.setTextColor(55);
+  const box=d.splitTextToSize(sc.text||'(no consent language displayed)',492);
+  d.setFillColor(245,247,251); d.rect(M-6,y-10,516,box.length*11+16,'F');
+  d.text(box,M,y); y+=box.length*11+18; d.setTextColor(30);
+  d.setFontSize(8.4);
+  W('Consent to receive text messages is NOT required to obtain a bail bond and is not a condition of any '+
+    'transaction. You may reply STOP to any message to cancel, or HELP for help. Message frequency varies. '+
+    'Message and data rates may apply. Carriers are not liable for delayed or undelivered messages. '+
+    'Stopping text messages does not cancel your bond or any obligation under it.',8.4,false,10);
+  W('If you gave up or changed this mobile number, tell us immediately - reassigned numbers are how the '+
+    'wrong person ends up receiving messages about your case.',8.4,false,14);
+  d.setDrawColor(200); d.line(M,y,558,y); y+=16;
+  d.setFontSize(9); W('Signed by: '+val('signName')+'    Date: '+val('signDate'),9,false,4);
+  try{ if(inked) d.addImage(cv.toDataURL('image/png'),'PNG',M,y,240,54); }catch(_){ }
+  y+=62; d.setFontSize(7.4); d.setTextColor(120);
+  d.text('BBRC-CONSENT (v'+sc.version+')  -  generated '+new Date().toISOString(),M,y);
+  return d;
+}
+
 /* ===== BoldSign e-sign packet =====
    Sends the Sun Surety packet for signature with the application already
    filled in, and the RECEIPT riding as the first file in the envelope.
@@ -1736,6 +1783,10 @@ async function sendForSignature(rcp){
     /* Flattened receipt as the first file, so the executed packet opens on
        the statement of charges the way the paper one does. */
     if(rcp){ try{ body.receiptPdf = rcp.output('datauristring').split(',')[1]; }catch(_){ } }
+    /* Consent page last: it is an acknowledgment, not part of the bond
+       agreement, and keeping it out of the middle leaves the Sun Surety
+       packet and its addendum contiguous. */
+    try{ body.consentPdf = consentPDF().output('datauristring').split(',')[1]; }catch(_){ }
     const r = await fetch('/api/esign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const j = await r.json().catch(()=>({}));
     /* A documentId means BoldSign accepted it, not that it was delivered —
