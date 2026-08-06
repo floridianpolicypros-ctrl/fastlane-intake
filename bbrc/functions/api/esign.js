@@ -33,7 +33,7 @@
      { action:"preview", packet }           -> page count + field ids
      { action:"inspect", documentId }       -> what BoldSign stored
      { action:"signlink", documentId,email} -> re-issue signing link
-     { action:"send", packet, signer, mode, data, receiptPdf }
+     { action:"send", packet, signer, mode, data, receiptPdf, consentPdf }
 
    BOLDSIGN_KEY is a Cloudflare Secret, never logged or returned.
    ============================================================ */
@@ -263,6 +263,17 @@ export async function onRequestPost(context) {
      cannot be fetched we refuse rather than send a payment plan with no
      enforceable interest term - a silently missing page is worse than a
      failed submission, because nobody notices until collection. */
+  /* Communications consent, generated and flattened by the form so the
+     client cannot alter what it says they agreed to. Placed after the
+     packet and its addendum: it is an acknowledgment, not part of the
+     bond agreement, and keeping it out of the middle leaves the Sun
+     Surety packet contiguous. Optional by design - a missing consent
+     page must never block a bond going out. */
+  if (b.consentPdf) {
+    const cb = String(b.consentPdf).replace(/^data:[^,]*,/, "");
+    if (cb.length > 40) files.push("data:application/pdf;base64," + cb);
+  }
+
   if (PACKETS[packet].addendum) {
     const au = new URL("/assets/packets/" + ADDENDUM, request.url);
     const ar = await fetch(au.toString());
