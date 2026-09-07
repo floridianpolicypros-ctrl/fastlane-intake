@@ -109,12 +109,12 @@
     <div class="full">
       <label data-i="bond">Total bond amount *</label>
       <input name="bond" type="number" min="0" step="1" inputmode="numeric" placeholder="1000" required>
-      <label style="margin-top:8px;font-weight:600;display:block"><input type="checkbox" id="bondUnknown" name="bondUnknown" style="width:auto;margin-right:9px;transform:scale(1.25)"> <span data-i="bondUnk">I don\u2019t know the bond amount</span></label>
+      <label style="margin-top:8px;font-weight:600;display:block"><input type="checkbox" id="bondUnknown" name="bondUnknown" style="width:auto;margin-right:9px;transform:scale(1.25)"> <span data-i="bondUnk">I don’t know the bond amount</span></label>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button type="button" class="btn2" id="vBtn" data-i="vBtn">Open jail records</button>
         <a href="#" id="blot" target="_blank" rel="noopener" style="font-size:13px;color:var(--brand);font-weight:800" data-i="blot">Open blotter &rarr;</a>
       </div>
-      <div id="bondHelp" class="hint hidden" style="margin-top:6px;background:#eaf3ff;border:1px solid #cfe0f5;border-radius:9px;padding:9px" data-i="bondHelpT">No problem — tap <b>Open jail records</b> and we\u2019ll look it up. If it can\u2019t be found, we will confirm the amount with the jail before anything is charged.</div>
+      <div id="bondHelp" class="hint hidden" style="margin-top:6px;background:#eaf3ff;border:1px solid #cfe0f5;border-radius:9px;padding:9px" data-i="bondHelpT">No problem — tap <b>Open jail records</b> and we’ll look it up. If it can’t be found, we will confirm the amount with the jail before anything is charged.</div>
       <div id="vStat" class="hint" style="margin-top:6px"></div>
       <div id="vRes" class="hidden" style="margin-top:8px"></div>
       <p class="hint" data-i="bondHint" style="margin-top:7px">Enter the total bond. Not sure? Use the lookup, or upload the blotter on the next step and we'll confirm it.</p>
@@ -202,20 +202,38 @@
         <span id="emMsg" class="hint"></span>
       </div>
     </div>
-    <!-- SMS consent. Two separate boxes on purpose. TCPA liability is
-         $500-$1,500 PER MESSAGE and the defence is the consent record, so the
-         exact wording, its version, the timestamp and the IP are all stored
-         with the application. Case updates are transactional - the client
-         asked us to handle their bond. Promotional texts are separate and
-         genuinely optional, because bundling the two is what turns a TCPA
-         claim into a winnable one. Twilio also requires this language be
-         visible on the form before approving an A2P 10DLC campaign. -->
+    <!-- SMS consent. Two separate checkboxes on purpose.
+         TCPA liability is $500-$1,500 PER MESSAGE, and the defence is the
+         consent record - so the exact wording, the version, the timestamp and
+         the IP all get stored with the application.
+         Case-update texts are transactional: the client asked us to handle
+         their bond and needs court dates and release times. Promotional texts
+         are a separate, genuinely optional box, because bundling them is what
+         turns a TCPA claim into a winnable one. Twilio also requires this
+         opt-in language be visible on the form before it will approve an
+         A2P 10DLC campaign. -->
     <div class="full" id="smsBlock" style="margin-top:2px;border:1px solid var(--line);border-radius:10px;padding:12px;background:#fbfdff">
-      <label style="font-weight:600;display:block"><input type="checkbox" name="smsCase" id="smsCase" style="width:auto;margin-right:9px;transform:scale(1.25)"> <span data-i="smsCaseL">Text me about this bond</span></label>
-      <p class="hint" id="smsCaseTxt" style="margin:6px 0 12px 28px">By checking this box you agree that Bail Bond Release Center of the Palm Beaches, Inc. may send you text messages about this bail bond - court dates, release status, payment reminders and documents to sign - at the mobile number above, including messages sent using an automatic telephone dialing system. Message frequency varies. Message and data rates may apply. Reply STOP to cancel or HELP for help. Consent is not required to obtain a bail bond; if you do not consent we will contact you by phone or email instead.</p>
-      <label style="font-weight:600;display:block"><input type="checkbox" name="smsPromo" id="smsPromo" style="width:auto;margin-right:9px;transform:scale(1.25)"> <span data-i="smsPromoL">Also send me occasional offers and reminders <span class="opt">(optional)</span></span></label>
-      <p class="hint" id="smsPromoTxt" style="margin:6px 0 0 28px">Optional. Promotional texts about our services. Not required to obtain a bail bond and not a condition of any transaction. Message frequency varies. Message and data rates may apply. Reply STOP to cancel.</p>
-      <p class="hint" style="margin:10px 0 0 28px">Carrier is not liable for delayed or undelivered messages. <a href="/sms-terms" target="_blank" rel="noopener">SMS Terms</a> &middot; <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a></p>
+      <label style="font-weight:600;display:block"><input type="checkbox" name="smsCase" id="smsCase" style="width:auto;margin-right:9px;transform:scale(1.25)">
+        <span data-i="smsCaseL">Text me about this bond</span></label>
+      <p class="hint" id="smsCaseTxt" style="margin:6px 0 12px 28px">
+        By checking this box you agree that Bail Bond Release Center of the Palm Beaches, Inc. may send you
+        text messages about this bail bond - court dates, release status, payment reminders and documents to
+        sign - at the mobile number above, including messages sent using an automatic telephone dialing
+        system. Message frequency varies. Message and data rates may apply. Reply STOP to cancel or HELP for
+        help. Consent is not required to obtain a bail bond; if you do not consent we will contact you by
+        phone or email instead.
+      </p>
+      <label style="font-weight:600;display:block"><input type="checkbox" name="smsPromo" id="smsPromo" style="width:auto;margin-right:9px;transform:scale(1.25)">
+        <span data-i="smsPromoL">Also send me occasional offers and reminders <span class="opt">(optional)</span></span></label>
+      <p class="hint" id="smsPromoTxt" style="margin:6px 0 0 28px">
+        Optional. Promotional texts about our services. Not required to obtain a bail bond and not a condition
+        of any transaction. Message frequency varies. Message and data rates may apply. Reply STOP to cancel.
+      </p>
+      <p class="hint" style="margin:10px 0 0 28px">
+        Carrier is not liable for delayed or undelivered messages.
+        <a href="/sms-terms" target="_blank" rel="noopener">SMS Terms</a> ·
+        <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>
+      </p>
     </div>
     <div class="full"><label data-i="addr">Current home address *</label><input name="address" required autocomplete="street-address"></div>
     <div class="field"><label data-i="howlong">How long there?</label><input name="addrHowLong" placeholder="e.g. 3 years"></div>
@@ -266,11 +284,11 @@
 </section>
 
 <!-- STEP 4 : WORK / VEHICLE / FAMILY -->
-<section class="card stp hidden" data-s="4">
-  <h2 class="step" data-i="s4t">Work, vehicle &amp; family</h2>
+<section class="card stp hidden" data-s="5">
+  <h2 class="step" data-i="s4t">Work &amp; family</h2>
   <p class="sub" data-i="s4s">Skip anything that doesn't apply to you.</p>
   <div class="socreq hidden" style="margin-bottom:16px">
-    <label class="drop" style="padding:14px"><div class="ico">\U0001F4F1</div><div class="t" data-i="socShot">Screenshot of your social media profile page *</div><div class="hint" data-i="socShotH">Open the profile you named on the last page and screenshot it. It must show your name and photo.</div><div class="status" data-status></div><input type="file" accept="image/*" data-doc="soc_doc"><img class="thumb" data-thumb></label>
+    <label class="drop" style="padding:14px"><div class="ico">📱</div><div class="t" data-i="socShot">Screenshot of your social media profile page *</div><div class="hint" data-i="socShotH">Open the profile you named on the last page and screenshot it. It must show your name and photo.</div><div class="status" data-status></div><input type="file" accept="image/*" data-doc="soc_doc"><img class="thumb" data-thumb></label>
     <div style="background:#fff6f6;border:1px solid #f0c9c9;border-radius:11px;padding:12px;margin-top:10px;font-size:12.5px;color:#8a2b2b" data-i="socWarn"><b>Please read.</b> Your social media is checked. If the profile does not match what you told us, or the information given is false, the bond can be revoked and the defendant returned to custody.</div>
   </div>
   <div class="grid">
@@ -282,10 +300,6 @@
     <div class="field"><label data-i="sup">Supervisor's name</label><input name="supervisor"></div>
     <div class="field"><label data-i="uni">Union / Local #</label><input name="union"></div>
     <div class="full"><label data-i="mil">Military service <span class="opt">(branch, active?, discharge date)</span></label><input name="military"></div>
-    <div class="field"><label data-i="vyr">Vehicle year / make / model</label><input name="vehicle" placeholder="2019 Toyota Camry"></div>
-    <div class="field"><label data-i="vcol">Color &amp; plate #</label><input name="vehiclePlate"></div>
-    <div class="field"><label data-i="vfin">Where financed?</label><input name="vehicleFinanced"></div>
-    <div class="field"><label data-i="vowe">Amount owed</label><input name="vehicleOwed" inputmode="numeric"></div>
     <div class="full"><label data-i="mar">Marital status</label>
       <div class="chips" data-chip="marital">
         <div class="chip" data-v="Married" data-i="mMarried">Married</div><div class="chip" data-v="Single" data-i="mSingle">Single</div>
@@ -300,7 +314,7 @@
 </section>
 
 <!-- STEP 5 : REFERENCES -->
-<section class="card stp hidden" data-s="5">
+<section class="card stp hidden" data-s="6">
   <h2 class="step" data-i="s5t">Two references</h2>
   <p class="sub" data-i="s5s">People who know you — not the person in jail.</p>
   <div class="grid">
@@ -326,7 +340,7 @@
     <div class="field"><label data-i="vehPlate">Plate #</label><input name="autoPlate"></div>
     <div class="field"><label data-i="vehState">Plate state</label><input name="autoState" maxlength="2" placeholder="FL"></div>
     <div class="field"><label data-i="vehOwed">Amount still owed</label><input name="autoOwed" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
-    <div class="full vehreq hidden"><label class="drop" style="padding:14px"><div class="ico">\U0001F4F8</div><div class="t" data-i="vehDoc">Photo of the tag, registration, insurance card or dec page *</div><div class="hint" data-i="vehDocH">Required once a vehicle is listed. Any one of these gives us the VIN and shows the vehicle is yours.</div><div class="status" data-status></div><input type="file" accept="image/*" capture="environment" data-doc="veh_doc"><img class="thumb" data-thumb></label></div>
+    <div class="full vehreq hidden"><label class="drop" style="padding:14px"><div class="ico">📸</div><div class="t" data-i="vehDoc">Photo of the tag, registration, insurance card or dec page *</div><div class="hint" data-i="vehDocH">Required once a vehicle is listed. Any one of these gives us the VIN and shows the vehicle is yours.</div><div class="status" data-status></div><input type="file" accept="image/*" capture="environment" data-doc="veh_doc"><img class="thumb" data-thumb></label></div>
     <div class="full vehreq hidden"><div style="background:#fff6f6;border:1px solid #f0c9c9;border-radius:11px;padding:12px;font-size:12.5px;color:#8a2b2b" data-i="assetWarn"><b>Please read.</b> An asset search is run on the information given here. If anything is found to be false or the vehicle is not yours, the bond can be revoked and the defendant returned to custody.</div></div>
     <div class="full"><label data-i="notes">Anything we should know?</label><textarea name="notes" rows="2"></textarea></div>
     <div class="full"><label data-i="hasAtt">Does the defendant have an attorney?</label>
@@ -338,9 +352,9 @@
 </section>
 
 <!-- STEP 6 : REVIEW -->
-<section class="card stp hidden" data-s="6">
-  <h2 class="step" data-i="s6t">Payment &amp; review</h2>
-  <p class="sub" data-i="s6s">Tell us how you're paying, check your answers, then continue to sign.</p>
+<section class="card stp hidden" data-s="4">
+  <h2 class="step" data-i="s6t">How you’re paying</h2>
+  <p class="sub" data-i="s6s">Payment is taken now. The rest of the paperwork follows.</p>
   <div class="grid" style="margin-bottom:14px">
     <div class="full"><label data-i="collQ">Is collateral being put up? *</label>
       <select name="collType" id="collType">
@@ -403,7 +417,7 @@
 <!-- STEP 7 : SIGN -->
 <section class="card stp hidden" data-s="7">
   <h2 class="step" data-i="s7t">Sign to finish</h2>
-  <p class="sub" data-i="s7s">Read the agreement, type your name, then sign with your finger.</p>
+  <p class="sub" data-i="s7s">Read the agreement and type your name. You will sign the actual documents in the next step, in our secure signing system.</p>
   <div class="ack" id="ack"></div>
   <div id="appPrev" class="hidden" style="margin:16px 0">
     <label style="font-weight:700" data-i="prevH">Your completed application — read it, then tap the yellow box to sign</label>
@@ -463,14 +477,16 @@
   <p data-i="okB">We received your signed application. We'll confirm and post the bond.</p>
   <div id="payAlt" class="hidden" style="text-align:left;background:#fffbe8;border:2px solid #e6c34a;border-radius:12px;padding:15px;margin:18px auto 0;max-width:340px;font-size:14px;line-height:1.55"></div>
   <div id="relInfo" style="text-align:left;background:#f4f8ff;border:1px solid #cfe0f5;border-radius:12px;padding:14px;margin:18px auto 0;max-width:340px;font-size:14px;line-height:1.5"></div>
-  <p class="hint" data-i="pickL">Pick-up / jail location — tap for directions:</p>
+  <p class="hint" data-i="pickL">Directions to the <b>jail</b> where the defendant is held:</p>
   <div class="sbtns">
     <a class="a-pay hidden" id="payBtn" href="#">💳 Pay now by card</a>
     <a class="a-txt" id="attyBtn" href="#" data-i="attyB">⚖️ Yes — have an attorney call me</a>
     <a class="a-rev" id="revLink" href="#" target="_blank" rel="noopener" data-i="leaveR" style="font-size:17px;padding:18px">⭐ Leave us a 5-star review</a>
     <a class="a-txt" id="rcpBtn" href="#" data-i="getRcp">🧾 View / save your receipt</a>
-    <a class="a-txt" id="gmap" href="#" target="_blank" data-i="gmapT">📍 Directions — Google Maps</a>
-    <a class="a-txt" id="amap" href="#" target="_blank" data-i="amapT">🍎 Directions — Apple Maps</a>
+    <a class="a-txt" id="gmap" href="#" target="_blank" data-i="gmapT">📍 Directions to the JAIL — Google Maps</a>
+    <a class="a-txt" id="amap" href="#" target="_blank" data-i="amapT">🍎 Directions to the JAIL — Apple Maps</a>
+    <p class="hint" style="margin-top:10px">Our office is a different address:</p>
+    <a class="a-txt" id="offmap" href="https://maps.google.com/?q=800+S+Congress+Ave+Suite+102+West+Palm+Beach+FL+33406" target="_blank" rel="noopener">🏢 Directions to OUR OFFICE — 800 S. Congress Ave, West Palm Beach</a>
     <a class="a-call" href="tel:5618334388" data-i="callU">📞 Call us: 561-833-4388</a>
     <a class="a-txt" href="sms:5615318622" data-i="textU">💬 Text us: 561-531-8622</a>
   </div>
@@ -1203,7 +1219,9 @@ cv.addEventListener('touchstart',dn,{passive:false});cv.addEventListener('touchm
 $('#clr').addEventListener('click',()=>{cx.clearRect(0,0,cv.width,cv.height);inked=false;});
 
 /* ===== steps ===== */
-const REQ={1:['defName','bond','hold'],6:['collType','payMethod'],3:['relationship','firstName','lastName','phone','email','address']};
+/* Payment sits at step 4 now: the client pays before the long sections,
+   so the paperwork gets finished instead of abandoned halfway. */
+const REQ={1:['defName','bond','hold'],4:['collType','payMethod'],3:['relationship','firstName','lastName','phone','email','address']};
 function bar(){const pct=Math.round((step-1)/(TOTAL-1)*100);$('#bf').style.width=pct+'%';
   $('#bl').textContent=(LANG==='es'?'Paso ':'Step ')+step+(LANG==='es'?' de ':' of ')+TOTAL;}
 function show(){$$('.stp').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==step));
@@ -1419,12 +1437,13 @@ function pdf(prem){const{jsPDF}=window.jspdf;const d=new jsPDF({unit:'pt',format
   S('8. NOTES / ATTORNEY');
   R('Notes',val('notes'));R('Has attorney',val('hasAttorney'));R('Attorney name',val('attorneyName'));
   R('Attorney referral requested',(f.elements['wantAttorney']&&f.elements['wantAttorney'].checked)?'YES':'');
-  /* The consent record IS the TCPA defence, so it goes in the signed PDF:
-     what was agreed, which version of the wording, and when. */
+  /* The consent record IS the TCPA defence, so it goes in the signed PDF -
+     what was agreed to, which version of the wording, and when. A checkbox
+     with no record of the language shown is worth very little in a claim. */
   const sc=smsConsent();
   S('SMS CONSENT');
-  R('Case updates by text',sc.case?'YES - consented':'No');
-  R('Promotional texts',sc.promo?'YES - consented':'No');
+  R('Case updates by text',sc.case?'YES — consented':'No');
+  R('Promotional texts',sc.promo?'YES — consented':'No');
   R('Consent wording version',sc.version);
   R('Consent recorded',sc.at);
   if(sc.case||sc.promo)R('Exact language shown',sc.text);
@@ -1482,7 +1501,7 @@ function ccAuthPage(d,prem){
       +'NON-REFUNDABLE once the bond is posted, and I agree not to initiate a chargeback for a bond that has been '
       +'posted. If any balance remains unpaid it continues to be owed after the bond is discharged and bears '
       +'interest at the maximum rate permitted by Florida law. The full card number is never collected or stored '
-      +'by this office; payment is processed on the card processor\u2019s secure hosted page.',520);
+      +'by this office; payment is processed on the card processor’s secure hosted page.',520);
     d.text(t,M,y); y+=t.length*10.5+18;
     d.setFontSize(9.5);d.setTextColor(20);
     try{ if(inked) d.addImage(cv.toDataURL('image/png'),'PNG',M,y,190,52); }catch(_){}
@@ -1661,9 +1680,9 @@ async function photoAtt(){
   return out;}
 /* ===== SMS consent record =====
    Version the wording. If the language is ever edited, consents captured
-   under the old text must still evidence the OLD text - that is the whole
-   point of the record and what a TCPA defence turns on. Bump this whenever
-   the paragraph on the form changes. */
+   under the old text must still evidence the old text - that is the entire
+   point of the record, and it is what a TCPA defence turns on. Bump
+   SMS_CONSENT_VERSION whenever the paragraph on the form changes. */
 const SMS_CONSENT_VERSION = '2026-08-05.1';
 function smsConsent(){
   const c = !!(f.elements['smsCase'] && f.elements['smsCase'].checked);
@@ -1673,53 +1692,6 @@ function smsConsent(){
            at: (c||p) ? new Date().toISOString() : '',
            number: val('phone'),
            text: (el ? el.textContent.replace(/\s+/g,' ').trim() : '') };
-}
-
-/* Consent as a SIGNED page, not just a stored flag.
-   A database row saying 'they ticked the box' is weak evidence. A page in
-   the executed packet, showing the exact wording they were shown and what
-   they chose, carried under the same signature as the bond paperwork, is
-   what actually answers a TCPA claim. Flattened, so nothing on it can be
-   altered before signing. */
-function consentPDF(){
-  const {jsPDF}=window.jspdf; const d=new jsPDF({unit:'pt',format:[612,792]});
-  const sc=smsConsent(); const M=54; let y=58;
-  const W=(t,size,bold,gap)=>{ d.setFont('helvetica',bold?'bold':'normal'); d.setFontSize(size);
-    const ls=d.splitTextToSize(String(t),504); d.text(ls,M,y); y+=ls.length*(size*1.32)+(gap||0); };
-  d.setTextColor(20,40,120); W('BAIL BOND RELEASE CENTER OF THE PALM BEACHES, INC.',12,true,2);
-  d.setTextColor(60); W('800 S. Congress Ave, West Palm Beach, FL 33406  -  (561) 833-4388',8,false,1);
-  W('Carlos Sevilla  -  Florida Bail Agent License #P204302',8,true,8);
-  d.setDrawColor(200); d.line(M,y,558,y); y+=18;
-  d.setTextColor(20,40,120); W('COMMUNICATIONS CONSENT AND ACKNOWLEDGMENT',13,true,10);
-  d.setTextColor(30);
-  const R=(k,v)=>{ d.setFont('helvetica','bold'); d.setFontSize(9); d.text(String(k),M,y);
-    d.setFont('helvetica','normal'); const ls=d.splitTextToSize(String(v==null?'':v),330);
-    d.text(ls,222,y); y+=Math.max(1,ls.length)*12; };
-  R('Defendant',val('defName')); R('Applicant',[val('firstName'),val('lastName')].filter(Boolean).join(' '));
-  R('Mobile number given',sc.number); R('Receipt no.',recNo()); y+=8;
-  d.setFont('helvetica','bold'); d.setFontSize(10); d.text('WHAT YOU CHOSE',M,y); y+=15;
-  R('Text me about this bond', sc.case?'YES - CONSENTED':'NO - declined');
-  R('Promotional texts', sc.promo?'YES - CONSENTED':'NO - declined');
-  R('Recorded', sc.at||'not applicable'); R('Wording version', sc.version);
-  R('IP address', ip||'n/a'); R('Approximate location', geo||'not captured'); y+=10;
-  d.setFont('helvetica','bold'); d.setFontSize(10); d.text('THE EXACT LANGUAGE SHOWN TO YOU',M,y); y+=14;
-  d.setFont('helvetica','normal'); d.setFontSize(8.4); d.setTextColor(55);
-  const box=d.splitTextToSize(sc.text||'(no consent language displayed)',492);
-  d.setFillColor(245,247,251); d.rect(M-6,y-10,516,box.length*11+16,'F');
-  d.text(box,M,y); y+=box.length*11+18; d.setTextColor(30);
-  d.setFontSize(8.4);
-  W('Consent to receive text messages is NOT required to obtain a bail bond and is not a condition of any '+
-    'transaction. You may reply STOP to any message to cancel, or HELP for help. Message frequency varies. '+
-    'Message and data rates may apply. Carriers are not liable for delayed or undelivered messages. '+
-    'Stopping text messages does not cancel your bond or any obligation under it.',8.4,false,10);
-  W('If you gave up or changed this mobile number, tell us immediately - reassigned numbers are how the '+
-    'wrong person ends up receiving messages about your case.',8.4,false,14);
-  d.setDrawColor(200); d.line(M,y,558,y); y+=16;
-  d.setFontSize(9); W('Signed by: '+val('signName')+'    Date: '+val('signDate'),9,false,4);
-  try{ if(inked) d.addImage(cv.toDataURL('image/png'),'PNG',M,y,240,54); }catch(_){ }
-  y+=62; d.setFontSize(7.4); d.setTextColor(120);
-  d.text('BBRC-CONSENT (v'+sc.version+')  -  generated '+new Date().toISOString(),M,y);
-  return d;
 }
 
 /* ===== BoldSign e-sign packet =====
@@ -1773,7 +1745,10 @@ async function sendForSignature(rcp){
     const body = {
       action:    'send',
       packet:    esignPacket(),
-      mode:      'email',
+      /* Embedded when we can prove who they are, because it keeps them in
+         one flow. The gate in /api/esign refuses an embedded link without a
+         recent verification, so fall back to email delivery otherwise. */
+      mode:      (emailVerified && emailVerifiedFor===val('email')) ? 'embedded' : 'email',
       signer:    { name: [val('firstName'),val('lastName')].filter(Boolean).join(' ') || val('signName'),
                    email: val('email') },
       defendant: val('defName'),
@@ -1783,10 +1758,6 @@ async function sendForSignature(rcp){
     /* Flattened receipt as the first file, so the executed packet opens on
        the statement of charges the way the paper one does. */
     if(rcp){ try{ body.receiptPdf = rcp.output('datauristring').split(',')[1]; }catch(_){ } }
-    /* Consent page last: it is an acknowledgment, not part of the bond
-       agreement, and keeping it out of the middle leaves the Sun Surety
-       packet and its addendum contiguous. */
-    try{ body.consentPdf = consentPDF().output('datauristring').split(',')[1]; }catch(_){ }
     const r = await fetch('/api/esign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const j = await r.json().catch(()=>({}));
     /* A documentId means BoldSign accepted it, not that it was delivered —
@@ -1797,7 +1768,11 @@ async function sendForSignature(rcp){
 
 async function submit(){
   if(!val('signName')){toast(LANG==='es'?'Escriba su nombre':'Type your name to sign');return;}
-  if(!inked){toast(LANG==='es'?'Firme con el dedo':'Please sign with your finger');return;}
+  /* No drawn signature required here any more. The client signs in BoldSign,
+     where the signature carries an audit trail, a document hash and a
+     certificate of completion. A finger-drawn mark on our own page added a
+     second, weaker signature for no benefit. The typed name plus the agree
+     box remain as the application attestation. */
   if(!$('#agree').checked){toast(LANG==='es'?'Marque la casilla':'Please check the agreement box');return;}
   const b=$('#bNext');b.disabled=true;b.textContent=LANG==='es'?'Enviando…':'Sending…';
   await reserveNumbers();   // consecutive PR-/CR- numbers, before anything renders
@@ -1823,7 +1798,7 @@ async function submit(){
     +(function(){const s=smsConsent();
         return 'SMS consent: case updates '+(s.case?'YES':'NO')+', promotional '+(s.promo?'YES':'NO')
              +' (wording v'+s.version+(s.at?(', recorded '+s.at):'')+')'
-             +(s.case?'':'\n>>> DO NOT TEXT THIS NUMBER - no consent on file.')+'\n';})()
+             +(s.case?'':'\n>>> DO NOT TEXT THIS NUMBER — no consent on file.')+'\n';})()
     +'Photos: '+(Object.keys(files).map(k=>LBL[k]||k).join(', ')||'none')
     +(val('citizen')==='No'?('\n\nNON-CITIZEN INFO\nStatus: '+val('immStatus')+'\nA#: '+val('alienNo')+'\nCountry: '+val('countryCitizen')+'\nDoc attached: '+(imgs.imm_doc?'YES':'no')):'')
     +(collTaken()?('\n\n*** COLLATERAL TAKEN ***\n'+collSummary()+'\nCollateral Receipt No: '+collNo()
@@ -1920,6 +1895,17 @@ async function submit(){
     if(h)h.textContent=LANG==='es'?'Recibido — pendiente de aprobación':'Received — pending approval';
     if(ob)ob.textContent=LANG==='es'?'Hay una retención (hold) en este caso, así que un agente debe aprobarlo antes de continuar. Puede requerir pagar la fianza completa. Le contactaremos de inmediato.':'There is a hold on this case, so an agent must approve it before we can move forward. It may require paying the full bond. We will contact you right away.';}
   else if(sent){
+    /* If BoldSign gave us a signing link, put it front and centre: the
+       packet is not executed until they sign it, and an unsigned packet is
+       the thing that actually stops a bond going out. */
+    const es0=window.__esign||{};
+    if(es0.ok && es0.signLink){
+      const sb=document.createElement('a');
+      sb.href=es0.signLink; sb.target='_blank'; sb.rel='noopener';
+      sb.style.cssText='display:block;text-align:center;padding:18px;margin:14px auto 0;max-width:340px;border-radius:12px;background:#ffd600;color:#4a3800;text-decoration:none;font-weight:900;font-size:17px';
+      sb.textContent=LANG==='es'?'✍️ Firme sus documentos ahora':'✍️ Sign your documents now';
+      const okc=$('#ok').querySelector('.card')||$('#ok'); okc.appendChild(sb);
+    }
     /* The surety packet is a second, separate email the client must act on.
        If we do not say so here they assume they are finished and the packet
        sits unsigned — so it gets its own sentence, not a footnote. */
