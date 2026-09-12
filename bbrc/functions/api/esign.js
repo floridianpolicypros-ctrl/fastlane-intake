@@ -40,13 +40,13 @@
 
 const API = "https://api.boldsign.com";
 
-/* The Sun Surety promissory note (source page 13) contains NO interest
-   clause in any of its six paragraphs. The 18% lives in BBRC-PN-ADD,
-   which amends the note under the note's own paragraph 5. Without it a
-   payment plan is silent on interest, and a note silent on interest
-   generally bears none until judgment. It ships as a separate file
-   because page 13 is the LAST page of both plan packets, so appending
-   it lands the addendum directly after the note it amends. */
+/* The Sun Surety promissory note (source page 13) contains NO interest clause
+   in any of its six paragraphs. The 18% lives in BBRC-PN-ADD, which amends
+   the note under the note's own paragraph 5 — without it a payment plan is
+   silent on interest, and a note silent on interest generally bears none
+   until judgment. It ships as a separate file rather than baked in: page 13
+   is the LAST page of both plan packets, so appending it puts the addendum
+   immediately after the note it amends, which is where it has to be. */
 const ADDENDUM = "BBRC-Promissory-Note-Addendum.pdf";
 
 const PACKETS = {
@@ -57,7 +57,20 @@ const PACKETS = {
   plan:            { file: "BBRC-Tagged-plan.pdf",            label: "Bail Bond Packet — Payment Plan",
                      pages: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13], addendum: true },
   collateral_plan: { file: "BBRC-Tagged-collateral_plan.pdf", label: "Bail Bond Packet — Collateral + Payment Plan",
-                     pages: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], addendum: true }
+                     pages: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], addendum: true },
+
+  /* The DEFENDANT application has no tagged packet, because the Sun Surety
+     SSIC-DAA we hold is a 12-page SCAN with no extractable text — there is
+     nothing to measure field positions against without doing it by eye,
+     page by page. So the defendant form renders its own fully-prefilled
+     application and sends that as the document.
+
+     The form knows exactly where it drew the signature rule, so it TELLS us
+     (sigPage / sigTop) instead of us guessing. That is strictly more
+     reliable than a hand-measured map and it cannot drift when the form
+     changes: whoever moves the line moves the field with it. */
+  defendant:       { clientDoc: true, label: "Defendant Application" }
+
   /* Real-property collateral is deliberately absent. A recordable
      Florida mortgage needs two witnesses and a notary (Fla. Stat.
      689.01, 695.03); e-signing one produces an instrument the
@@ -131,6 +144,28 @@ const FIELDS = {
 function pageIn(packet, sourcePage) {
   const i = PACKETS[packet].pages.indexOf(sourcePage);
   return i < 0 ? null : i + 1;
+}
+
+/* Fields for a document the CLIENT rendered. The form reports the page and
+   the top of its own signature rule in PDF points, so the same px()/TEXT_UP
+   geometry that lands ink on the Sun Surety packet lands it here too. */
+function buildClientDocFields(sig, signerName) {
+  const page = Math.max(1, Number(sig && sig.page) || 1);
+  const top  = Number(sig && sig.top);
+  /* Refuse to guess. A signature dropped at an invented y is worse than no
+     envelope at all, because it looks executed and is not. */
+  if (!isFinite(top)) return null;
+  const x    = Number(sig && sig.x) || 40;
+  const w    = Number(sig && sig.w) || 230;
+  return [
+    { id: "def_sig",   name: "def_sig",   fieldType: "Signature",  pageNumber: page,
+      bounds: { x: px(x), y: px(top - SIG_UP), width: px(w), height: px(SIG_H) }, isRequired: true },
+    { id: "def_print", name: "def_print", fieldType: "TextBox",    pageNumber: page,
+      bounds: { x: px(x), y: px(top + 16 - TEXT_UP), width: px(w), height: px(TEXT_H) },
+      isRequired: false, value: signerName },
+    { id: "def_date",  name: "def_date",  fieldType: "DateSigned", pageNumber: page,
+      bounds: { x: px(x + w + 30), y: px(top - TEXT_UP), width: px(140), height: px(TEXT_H) }, isRequired: true }
+  ];
 }
 
 function buildFields(packet, data, signerName) {
@@ -219,6 +254,10 @@ export async function onRequestPost(context) {
   if (!PACKETS[packet]) return j({ ok: false, error: "Unknown packet '" + packet + "'" }, 400);
 
   if (action === "preview") {
+    if (PACKETS[packet].clientDoc) {
+      const f = buildClientDocFields(b.sig || { page: 1, top: 600 }, "Preview Name") || [];
+      return j({ ok: true, packet, clientDoc: true, pages: null, fieldCount: f.length, fields: f });
+    }
     const f = buildFields(packet, b.data || {}, "Preview Name");
     return j({ ok: true, packet, file: PACKETS[packet].file, pages: PACKETS[packet].pages.length,
                fieldCount: f.length, fields: f });
@@ -245,24 +284,36 @@ export async function onRequestPost(context) {
     if (!v.ok) return j({ ok: false, error: v.why, needsVerification: true }, 403);
   }
 
-  const url = new URL("/assets/packets/" + PACKETS[packet].file, request.url);
-  const pdf = await fetch(url.toString());
-  if (!pdf.ok) return j({ ok: false, error: "Packet not found at " + url.pathname + " (" + pdf.status + ")" }, 500);
-  const packetB64 = toBase64(new Uint8Array(await pdf.arrayBuffer()));
-
-  /* Receipt first so the executed PDF opens on the statement of charges,
-     the way the paper packet does. */
   const files = [];
-  if (b.receiptPdf) {
-    const rb = String(b.receiptPdf).replace(/^data:[^,]*,/, "");
-    if (rb.length > 40) files.push("data:application/pdf;base64," + rb);
+  let clientDocFields = null;
+
+  if (PACKETS[packet].clientDoc) {
+    /* Client-rendered document: the application itself, already prefilled
+       with every answer, is the thing being signed. */
+    const ab = String(b.appPdf || "").replace(/^data:[^,]*,/, "");
+    if (ab.length < 40) return j({ ok: false, error: "appPdf is required for this packet" }, 400);
+    clientDocFields = buildClientDocFields(b.sig, name);
+    if (!clientDocFields) return j({ ok: false, error: "sig.page and sig.top are required for this packet" }, 400);
+    files.push("data:application/pdf;base64," + ab);
+  } else {
+    const url = new URL("/assets/packets/" + PACKETS[packet].file, request.url);
+    const pdf = await fetch(url.toString());
+    if (!pdf.ok) return j({ ok: false, error: "Packet not found at " + url.pathname + " (" + pdf.status + ")" }, 500);
+    const packetB64 = toBase64(new Uint8Array(await pdf.arrayBuffer()));
+
+    /* Receipt first so the executed PDF opens on the statement of charges,
+       the way the paper packet does. */
+    if (b.receiptPdf) {
+      const rb = String(b.receiptPdf).replace(/^data:[^,]*,/, "");
+      if (rb.length > 40) files.push("data:application/pdf;base64," + rb);
+    }
+    files.push("data:application/pdf;base64," + packetB64);
   }
-  files.push("data:application/pdf;base64," + packetB64);
 
   /* Addendum last, so it lands directly after the promissory note. If it
      cannot be fetched we refuse rather than send a payment plan with no
-     enforceable interest term - a silently missing page is worse than a
-     failed submission, because nobody notices until collection. */
+     enforceable interest term — a silently-missing page is worse than a
+     failed submission, because nobody would notice until collection. */
   /* Communications consent, generated and flattened by the form so the
      client cannot alter what it says they agreed to. Placed after the
      packet and its addendum: it is an acknowledgment, not part of the
@@ -282,7 +333,7 @@ export async function onRequestPost(context) {
   }
 
   const signer = { name, signerType: "Signer", locale: "EN",
-                   formFields: buildFields(packet, b.data || {}, name) };
+                   formFields: clientDocFields || buildFields(packet, b.data || {}, name) };
   if (mode === "sms") {
     /* BoldSign sends the text itself — no Twilio account and no A2P 10DLC
        carrier registration, which would otherwise be a multi-week wait. */
