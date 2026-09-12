@@ -102,17 +102,17 @@
       <h2><span class="num">&#9733;</span> Snap a photo &mdash; we read it for you</h2>
       <p class="sub">Take a picture or upload your documents. We'll read them and fill this form in automatically. Your <strong>ticket</strong> and <strong>driver license</strong> are required.</p>
       <div class="uploads">
-        <label class="drop reqd" data-tile="citation"><div class="ico">&#128220;</div><div class="t">Traffic Ticket (UTC) <span class="req">*</span></div><div class="d">All four corners visible</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="citation" capture="environment"></label>
+        <label class="drop reqd" data-tile="citation"><div class="ico">&#128220;</div><div class="t">Traffic Ticket (UTC) <span class="req">*</span></div><div class="d">All four corners visible</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="citation"></label>
 
-        <label class="drop reqd" data-tile="dl"><div class="ico">&#127991;&#65039;</div><div class="t">Driver License &mdash; FRONT <span class="req">*</span></div><div class="d">Required. This is what the state matches</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="dl" capture="environment"></label>
+        <label class="drop reqd" data-tile="dl"><div class="ico">&#127991;&#65039;</div><div class="t">Driver License &mdash; FRONT <span class="req">*</span></div><div class="d">Required. This is what the state matches</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="dl"></label>
 
-        <label class="drop"><div class="ico">&#127974;</div><div class="t">Court notice / clerk receipt</div><div class="d">If the clerk already processed your ticket</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="courtNotice" capture="environment"></label>
+        <label class="drop"><div class="ico">&#127974;</div><div class="t">Court notice / clerk receipt</div><div class="d">If the clerk already processed your ticket</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="courtNotice"></label>
 
-        <label class="drop" id="tileCourtOrder"><div class="ico">&#9878;&#65039;</div><div class="t">Court order / judge's order</div><div class="d">Required for 12-hr ADI &amp; court-ordered classes</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="courtOrder" capture="environment"></label>
+        <label class="drop" id="tileCourtOrder"><div class="ico">&#9878;&#65039;</div><div class="t">Court order / judge's order</div><div class="d">Required for 12-hr ADI &amp; court-ordered classes</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="courtOrder"></label>
 
-        <label class="drop"><div class="ico">&#128721;</div><div class="t">Suspension / reinstatement notice</div><div class="d">If your license is suspended</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="suspensionNotice" capture="environment"></label>
+        <label class="drop"><div class="ico">&#128721;</div><div class="t">Suspension / reinstatement notice</div><div class="d">If your license is suspended</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="suspensionNotice"></label>
 
-        <label class="drop"><div class="ico">&#128206;</div><div class="t">Other / second ticket</div><div class="d">Anything else &mdash; we'll read it &amp; add it</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="misc" capture="environment"></label>
+        <label class="drop"><div class="ico">&#128206;</div><div class="t">Other / second ticket</div><div class="d">Anything else &mdash; we'll read it &amp; add it</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="misc"></label>
       </div>
       <div class="note" id="aiNote"><strong>Smart auto-fill is ON.</strong> Upload your ticket and license &mdash; fields flash green as they fill. Check everything before you submit; we don't guess.</div>
 
@@ -631,6 +631,20 @@ function textSummary(){
     line("Speed alleged / posted",[val("speedAlleged"),val("speedPosted")].filter(Boolean).join(" / "));
     line("Crash involved",val("crashInvolved")); line("CDL holder",val("cdlHolder")); line("Commercial vehicle",val("commercialVehicle"));
     line("Court due date",val("courtDueDate")); line("Court payment status",val("courtPaymentStatus")); line("Prior BDI",val("priorBdi"));
+  }
+  // Staff court-records verification: one-click clerk link + echoed numbers
+  {
+    const vCounty=val("citationCounty")||val("searchCounty");
+    const vCit=val("citationNumber"), vCase=val("caseNumber");
+    if(vCounty||vCit||vCase){
+      const CLERK={"Palm Beach":"https://appsgp.mypalmbeachclerk.com/eCaseView/","Broward":"https://www.browardclerk.org/web2","Miami-Dade":"https://www.miamidadeclerk.gov/clerk/traffic-parking.page"};
+      const url=CLERK[vCounty]||"https://www.myfloridacounty.com/traffic_tickets/";
+      S("COURT-RECORDS VERIFICATION (staff)");
+      line("Citation / UTC #",vCit); line("Case / docket #",vCase); line("County",vCounty);
+      line("Clerk case search",url);
+      line("Statewide citation lookup","https://www.myfloridacounty.com/traffic_tickets/");
+      L.push("Verify the citation in the clerk portal above (search by citation or case number). Confirm the charge, disposition, and any court-ordered school, then save/print the case page and reply-attach it here for the certification file.");
+    }
   }
   if(eFileWanted()){ S("*** e-FILE CERTIFICATE ADD-ON — $21.50 ***"); L.push("Student requested clerk e-file of the completion certificate. Bill separately."); }
   if(recordWanted()){ S("*** 7-YEAR DRIVING RECORD ADD-ON — $24.95 ***"); L.push("Student authorized and requested their 7-year FL driving record. Pull it from the MyDMV Portal and email the PDF."+(CONFIG.recordLink.url?"":" NOTE: no Stripe link set yet — send them a payment link.")); }
