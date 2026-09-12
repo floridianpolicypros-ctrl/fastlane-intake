@@ -60,9 +60,6 @@
   .done{border-color:var(--ok);background:#f4fbf6;border-style:solid}
   #vid{display:none;width:100%;max-height:280px;border-radius:12px;margin-top:10px;background:#000}
   #smile{font-weight:900;color:var(--brand);font-size:22px;min-height:26px;margin-top:6px}
-  .sigwrap{border:1.5px solid var(--line);border-radius:12px;background:#fff;margin-top:6px}
-  #sig{width:100%;height:190px;touch-action:none;display:block;border-radius:12px}
-  .sigbar{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid var(--line)}
   .ack{background:#fbfaf5;border:1px solid #ece3c8;border-radius:12px;padding:13px;font-size:12.5px;color:#5c5230;max-height:190px;overflow:auto}
   .rev{font-size:13.5px}
   .rev .r{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed #eef2f7}
@@ -117,17 +114,7 @@
       <div id="bondHelp" class="hint hidden" style="margin-top:6px;background:#eaf3ff;border:1px solid #cfe0f5;border-radius:9px;padding:9px" data-i="bondHelpT">No problem — tap <b>Open jail records</b> and we’ll look it up. If it can’t be found, we will confirm the amount with the jail before anything is charged.</div>
       <div id="vStat" class="hint" style="margin-top:6px"></div>
       <div id="vRes" class="hidden" style="margin-top:8px"></div>
-      <p class="hint" data-i="bondHint" style="margin-top:7px">Enter the total bond. Not sure? Use the lookup, or upload the blotter on the next step and we'll confirm it.</p>
-    </div>
-    <div class="full">
-      <div class="drop" id="pz" style="padding:16px">
-        <div class="ico">📋</div>
-        <div class="t" data-i="pasteT">Paste a screenshot of the booking page</div>
-        <div class="hint" data-i="pasteH">Screenshot the jail/booking page, then press paste (&#8984;V or Ctrl+V) anywhere on this page — or tap here to pick the image. We'll read the bond amount for you.</div>
-        <div class="status" data-status></div>
-        <img class="thumb" data-thumb>
-        <input type="file" accept="image/*" data-doc="booking" id="pzFile">
-      </div>
+      <p class="hint" data-i="bondHint" style="margin-top:7px">Enter the total bond. Not sure? Tap Open jail records — and we confirm the amount with the jail before anything is charged.</p>
     </div>
     <div class="full premium hidden" id="premBox"><span data-i="premT">Estimated cost today</span><b id="premAmt">$0</b><span class="hint" id="premBreak"></span><span class="hint" data-i="premH">10% of the bond, $150 minimum. We confirm the bond with the jail before any charge — your final amount is based on the verified bond. Non-refundable once the bond is posted.</span></div>
     <div class="full">
@@ -154,15 +141,18 @@
   <h2 class="step" data-i="s2t">Take a photo of your ID</h2>
   <p class="sub" data-i="s2s">Front, then back, then a quick selfie. We fill in your details for you.</p>
   <div id="readBanner" class="hidden" style="background:#eaf3ff;border:1px solid #cfe0f5;border-radius:11px;padding:11px 13px;margin-bottom:12px;font-weight:700;color:var(--brand)"></div>
+  <!-- All three tiles stay on screen. The old version hid the FRONT tile the
+       instant a file was chosen, so anyone coming back to this step saw only
+       "photograph the BACK" and thought we never wanted the front. -->
   <div class="capstep" id="cF">
     <div class="capttl" data-i="p1">Photo 1 of 3 · License FRONT</div>
     <label class="drop"><div class="ico">🪪</div><div class="t" data-i="tapF">Tap to photograph the FRONT</div><div class="status" data-status></div><input type="file" accept="image/*" capture="environment" data-doc="id_front" id="iF"><img class="thumb" data-thumb></label>
   </div>
-  <div class="capstep hidden" id="cB">
+  <div class="capstep" id="cB">
     <div class="capttl" data-i="p2">Photo 2 of 3 · License BACK</div>
     <label class="drop"><div class="ico">🪪</div><div class="t" data-i="tapB">Tap to photograph the BACK</div><div class="status" data-status></div><input type="file" accept="image/*" capture="environment" data-doc="id_back" id="iB"><img class="thumb" data-thumb></label>
   </div>
-  <div class="capstep hidden" id="cS">
+  <div class="capstep" id="cS">
     <div class="capttl" data-i="p3">Photo 3 of 3 · Live selfie</div>
     <div class="drop" id="sTile" style="cursor:default">
       <div class="ico">🤳</div><div class="t" data-i="selfT">Look at the camera — we'll say “smile” and snap it</div>
@@ -174,7 +164,6 @@
       </div>
     </div>
   </div>
-  <label class="drop" style="margin-top:14px;padding:14px"><div class="ico">🧾</div><div class="t" data-i="blotU">Blotter / bond sheet (optional)</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" capture="environment" data-doc="blotter"><img class="thumb" data-thumb></label>
   <div class="note"><strong data-i="afOn">Auto-fill is on.</strong> <span data-i="afD">Your license fills your name, birthday and address — fields flash green.</span></div>
 </section>
 
@@ -422,43 +411,19 @@
   <div id="appPrev" class="hidden" style="margin:16px 0">
     <label style="font-weight:700" data-i="prevH">Your completed application — read it, then tap the yellow box to sign</label>
     <iframe id="prevFrame" title="Completed application" style="width:100%;height:430px;border:1px solid #cfe0f5;border-radius:12px;background:#fff;margin-top:8px"></iframe>
-    <button type="button" id="signHere" style="width:100%;margin-top:10px;padding:17px;border:0;border-radius:12px;background:#ffd600;color:#4a3800;font-weight:900;font-size:17px;cursor:pointer">✍️ <span data-i="signHereT">Tap here to sign this document</span></button>
-    <div id="sigDone" class="hidden" style="margin-top:10px;background:#e8f7ee;border:1px solid #9ad9b4;border-radius:11px;padding:11px;text-align:center">
-      <div style="font-weight:800;color:#0a7c34" data-i="sigOkT">✓ Signature applied to the document</div>
-      <img id="sigThumb" style="max-height:52px;margin-top:6px">
-      <div><button type="button" class="btn2 ghost" id="sigRedo" style="margin-top:8px" data-i="sigRedoT">Change signature</button></div>
-    </div>
     <a id="prevOpen" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;padding:13px;margin-top:9px;border-radius:11px;background:#eaf3ff;color:var(--brand);text-decoration:none;font-weight:800;border:1px solid #cfe0f5" data-i="prevOpenT">📄 Open full size</a>
   </div>
 
-  <div id="adoptWrap" class="hidden" style="position:fixed;inset:0;background:rgba(12,20,40,.62);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px">
-    <div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:18px;box-shadow:0 12px 40px rgba(0,0,0,.3)">
-      <h3 style="margin:0 0 4px" data-i="adoptT">Adopt your signature</h3>
-      <p class="hint" style="margin:0 0 12px" data-i="adoptS">Draw it once. We&#39;ll place it wherever the document needs it.</p>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <button type="button" class="btn2" id="tabDraw" data-i="tabDraw">✍️ Draw</button>
-        <button type="button" class="btn2 ghost" id="tabType" data-i="tabType">⌨️ Type</button>
-      </div>
-      <div id="drawPane"><div class="sigwrap"><canvas id="sig"></canvas>
-        <div class="sigbar"><span class="hint" data-i="sigH">Use your finger or mouse</span><button type="button" class="btn2 ghost" id="clr" data-i="clear">Clear</button></div></div></div>
-      <div id="typePane" class="hidden">
-        <input id="typedSig" placeholder="Type your full name" style="font-family:Georgia,serif;font-size:26px;font-style:italic;text-align:center">
-        <p class="hint" style="margin-top:6px" data-i="typeH">This becomes your signature.</p>
-      </div>
-      <div style="display:flex;gap:9px;margin-top:14px">
-        <button type="button" class="btn2 ghost" id="adoptCancel" style="flex:1" data-i="cancelB">Cancel</button>
-        <button type="button" class="btn2" id="adoptOk" style="flex:2;background:var(--brand);color:#fff" data-i="adoptB">Adopt and sign</button>
-      </div>
-    </div>
-  </div>
   <div class="grid" style="margin-top:14px">
     <div class="field"><label data-i="typeN">Type your full legal name *</label><input name="signName" required></div>
     <div class="field"><label data-i="sdate">Date</label><input name="signDate" readonly></div>
   </div>
-  <label style="margin-top:14px" data-i="drawS">Sign here *</label>
-  <div class="sigwrap"><canvas id="sig"></canvas>
-    <div class="sigbar"><span class="hint" data-i="sigH">Use your finger or mouse</span><button type="button" class="btn2 ghost" id="clr" data-i="clear">Clear</button></div>
-  </div>
+  <!-- There is no signature pad here on purpose. The bail packet is executed
+       in our e-signature system, where the signature carries an audit trail,
+       a document hash and a certificate of completion. A finger-drawn mark
+       captured in a web form has none of that. -->
+  <div class="note" style="margin-top:14px"><strong data-i="esignT">Next: you sign the real documents.</strong>
+    <span data-i="esignB">When you tap Submit we prepare your bail packet with your answers already filled in, and open it for signature in our secure signing system. Nothing is signed here.</span></div>
   <label style="margin-top:14px;font-weight:600"><input type="checkbox" id="agree" style="width:auto;margin-right:9px;transform:scale(1.3)"> <span data-i="agreeB">I have read and agree, and everything I entered is true.</span></label>
   <div class="warn" data-i="locD">🔒 By signing, you consent to us capturing your device location, IP address and the date &amp; time to verify this signature. This protects you and us.</div>
 </section>
@@ -474,7 +439,8 @@
 <div class="wrap hidden" id="ok"><div class="card success">
   <div class="big">✅</div>
   <h2 data-i="okT">All done!</h2>
-  <p data-i="okB">We received your signed application. We'll confirm and post the bond.</p>
+  <p data-i="okB">We received your application. We'll confirm and post the bond.</p>
+  <p class="hint" id="okRef"></p>
   <div id="payAlt" class="hidden" style="text-align:left;background:#fffbe8;border:2px solid #e6c34a;border-radius:12px;padding:15px;margin:18px auto 0;max-width:340px;font-size:14px;line-height:1.55"></div>
   <div id="relInfo" style="text-align:left;background:#f4f8ff;border:1px solid #cfe0f5;border-radius:12px;padding:14px;margin:18px auto 0;max-width:340px;font-size:14px;line-height:1.5"></div>
   <p class="hint" data-i="pickL">Directions to the <b>jail</b> where the defendant is held:</p>
@@ -519,7 +485,10 @@ const CONFIG={
 const TOTAL=7;
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 const f=document.getElementById('f');
-let step=1, LANG='en', ip='', geo='', inked=false, reading=0;
+let step=1, LANG='en', ip='', geo='', reading=0;
+/* Kept only so the generated PDF keeps its blank signature rule; nothing
+   sets it true now that signing moved to BoldSign. */
+const inked=false;
 const imgs={}, files={};
 const val=n=>{const e=f.elements[n];return e?(e.value||'').trim():''};
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3200);}
@@ -539,15 +508,15 @@ const ES={
  immStat:"Su estatus migratorio", isLPR:"Residente permanente legal (green card)", isVisa:"Visa o permiso de trabajo",
  isAsylum:"Asilo / caso pendiente", isDACA:"DACA", isNone:"Sin documentos migratorios", isPNS:"Prefiero no decir",
  alien:"Número de extranjero (A#)", country:"País de ciudadanía", hlus:"¿Cuánto tiempo en EE.UU.?",
- immDoc:"Foto de la green card / documento migratorio", immDocH:"Green card, permiso de trabajo o cualquier documento — lado frontal. Opcional pero acelera el proceso.", pasteT:"Pegue una captura de la página de registro", pasteH:"Tome una captura de la página de la cárcel, luego pegue (⌘V o Ctrl+V) en cualquier parte de esta página — o toque aquí para elegir la imagen. Leemos el monto de la fianza por usted.",
- bondHint:"Escriba el monto total de la fianza. ¿No está seguro? Use el enlace o suba el blotter en el siguiente paso y lo confirmamos.",
+ immDoc:"Foto de la green card / documento migratorio", immDocH:"Green card, permiso de trabajo o cualquier documento — lado frontal. Opcional pero acelera el proceso.",
+ bondHint:"Escriba el monto total de la fianza. ¿No está seguro? Toque Abrir registros de la cárcel — confirmamos el monto con la cárcel antes de cobrar.",
  premT:"Costo estimado hoy", premH:"10% de la fianza, mínimo $150. Confirmamos la fianza con la cárcel antes de cualquier cargo — su monto final se basa en la fianza verificada. No reembolsable una vez publicada la fianza.",
  arrestDate:"Fecha de arresto", ifk:"(si lo sabe)", booking:"# de registro", charges:"Cargos",
  s2t:"Tome una foto de su ID", s2s:"Frente, luego reverso, luego una selfie. Llenamos sus datos por usted.",
  p1:"Foto 1 de 3 · FRENTE de la licencia", p2:"Foto 2 de 3 · REVERSO de la licencia", p3:"Foto 3 de 3 · Selfie en vivo",
  tapF:"Toque para fotografiar el FRENTE", tapB:"Toque para fotografiar el REVERSO",
  selfT:"Mire a la cámara — diremos “sonría” y la tomamos", startS:"📷 Iniciar selfie", again:"Repetir",
- blotU:"Blotter / hoja de fianza (opcional)", afOn:"Auto-llenado activado.", afD:"Su licencia llena su nombre, fecha de nacimiento y dirección.",
+ afOn:"Auto-llenado activado.", afD:"Su licencia llena su nombre, fecha de nacimiento y dirección.",
  s3t:"Su información", s3s:"Usted es el co-firmante (indemnizador) — la persona responsable de la fianza.",
  rel:"Su relación con la persona en la cárcel *", relO:"Describa la relación", fn:"Nombre *", ln:"Apellido *", mid:"Segundo nombre", nick:"Apodo / alias",
  mob:"Teléfono móvil *", home:"Teléfono de casa", workp:"Teléfono del trabajo", em:"Correo electrónico *",
@@ -583,7 +552,7 @@ const ES={
  balW:"Un saldo significa un plan de pago. Cualquier saldo no pagado sigue debiéndose después de la descarga de la fianza y genera intereses a la tasa máxima permitida por la ley de Florida.",
  getRcp:"🧾 Ver / guardar su recibo",
  s7t:"Firme para terminar", s7s:"Lea el acuerdo, escriba su nombre y firme con el dedo.",
- typeN:"Escriba su nombre legal completo *", sdate:"Fecha", drawS:"Firme aquí *", sigH:"Use su dedo o el ratón", clear:"Borrar",
+ typeN:"Escriba su nombre legal completo *", sdate:"Fecha", esignT:"Siguiente: usted firma los documentos reales.", esignB:"Al tocar Enviar preparamos su paquete de fianza con sus respuestas ya llenas y lo abrimos para firmar en nuestro sistema seguro. Aquí no se firma nada.",
  agreeB:"He leído y acepto, y todo lo que escribí es verdadero.",
  locD:"🔒 Al firmar, consiente que capturemos la ubicación de su dispositivo, su dirección IP y la fecha y hora para verificar esta firma.",
  back:"← Atrás", next:"Continuar →",
@@ -975,7 +944,7 @@ function renderMatches(data){
     if(CONFIG.verifyEndpoint.indexOf('REPLACE')>-1){
       try{if(nm)navigator.clipboard.writeText(last);}catch(_){}
       window.open(CONFIG.blotterUrl,'_blank','noopener');
-      vMsg(LANG==='es'?'↗ Se abrió el blotter — busque "'+last+'", tome una captura y péguela aquí.':'↗ Blotter opened — search "'+last+'", screenshot it, then paste it here.','#8a5a1a');
+      vMsg(LANG==='es'?'↗ Se abrió el blotter — busque "'+last+'" y escriba el monto de la fianza abajo.':'↗ Blotter opened — search "'+last+'" and type the bond amount below.','#8a5a1a');
       return;}
     b.disabled=true; const lbl=b.textContent;
     b.textContent=LANG==='es'?'Buscando…':'Checking…';
@@ -1000,7 +969,7 @@ function renderMatches(data){
         vMsg((LANG==='es'?'✅ ':'✅ ')+data.matches.length+(LANG==='es'?' registro(s) encontrado(s) — toque "Usar" para aplicar el monto.':' record(s) found — tap "Use" to apply the amount.'),'#14602f');
         renderMatches(data);
       }else if(data.ok){
-        vMsg(LANG==='es'?'No encontramos registros con ese nombre. Verifique la ortografía, o pegue una captura del blotter.':"No records found for that name. Check the spelling, or paste a screenshot of the blotter.",'#8a5a1a');
+        vMsg(LANG==='es'?'No encontramos registros con ese nombre. Verifique la ortografía o marque “No sé el monto”.':"No records found for that name. Check the spelling, or tick ‘I don’t know the bond amount’ and we will confirm it.",'#8a5a1a');
       }else{
         /* data.ok === false means the lookup itself failed. Never phrase this
            as "no records found" — that is a different and much more damaging
@@ -1008,16 +977,16 @@ function renderMatches(data){
         vMsg((LANG==='es'?'⚠️ La verificación falló — esto NO significa que no esté detenido. '
                          :"⚠️ The check failed — this does NOT mean they aren't in custody. ")
             +(data.error?('('+data.error+') '):'')
-            +(LANG==='es'?'Abra el blotter y pegue una captura.':'Open the blotter and paste a screenshot.'),'#c0392b');
+            +(LANG==='es'?'Abra el blotter o marque “No sé el monto”.':'Open the blotter, or tick ‘I don’t know the bond amount’.'),'#c0392b');
       }
     }catch(err){
       done();
       const aborted = err && err.name==='AbortError';
       vMsg(aborted
-        ? (LANG==='es'?'La búsqueda tardó demasiado. NO significa que no esté detenido — abra el blotter y pegue una captura.'
-                      :"The search took too long. This does NOT mean they aren't in custody — open the blotter and paste a screenshot.")
-        : (LANG==='es'?'No pudimos conectar. Abra el blotter y pegue una captura.'
-                      :"Couldn't connect. Open the blotter and paste a screenshot."),'#c0392b');
+        ? (LANG==='es'?'La búsqueda tardó demasiado. NO significa que no esté detenido — abra el blotter o marque “No sé el monto”.'
+                      :"The search took too long. This does NOT mean they aren't in custody — open the blotter, or tick ‘I don’t know the bond amount’.")
+        : (LANG==='es'?'No pudimos conectar. Abra el blotter o marque “No sé el monto”.'
+                      :"Couldn't connect. Open the blotter, or tick ‘I don’t know the bond amount’."),'#c0392b');
     }
     b.disabled=false; b.textContent=lbl;
   });
@@ -1045,7 +1014,7 @@ async function getGeo(){
 /* ===== uploads + AI prefill ===== */
 const b64=fl=>new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(String(x.result).split(',')[1]);x.onerror=j;x.readAsDataURL(fl);});
 const durl=fl=>new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(String(x.result));x.onerror=j;x.readAsDataURL(fl);});
-const LBL={id_front:'License front',id_back:'License back',blotter:'Blotter',booking:'Booking screenshot',imm_doc:'Immigration document',soc_doc:'Social media profile screenshot',coll_doc:'Collateral document',veh_doc:'Vehicle proof (tag/registration/insurance)',selfie:'Live selfie'};
+const LBL={id_front:'License front',id_back:'License back',imm_doc:'Immigration document',soc_doc:'Social media profile screenshot',coll_doc:'Collateral document',veh_doc:'Vehicle proof (tag/registration/insurance)',selfie:'Live selfie'};
 function banner(msg,good){
   const b=$('#readBanner'); if(!b)return;
   b.textContent=msg; b.classList.remove('hidden');
@@ -1065,13 +1034,13 @@ async function ingest(fl,k,box){
        itself and stays put. */
     reading++; banner(LANG==='es'?'⏳ Leyendo su documento…':'⏳ Reading your document…');
     try{const res=await fetch(CONFIG.aiEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({docType:(k==='booking'?'blotter':k),mimeType:fl.type||'image/png',dataBase64:await b64(fl)})});
-      const dd=await res.json(); const n=apply(dd.fields||{}, (k==='booking'?'blotter':k));
+        body:JSON.stringify({docType:k,mimeType:fl.type||'image/png',dataBase64:await b64(fl)})});
+      const dd=await res.json(); const n=apply(dd.fields||{}, k);
       st.textContent=n>0?('✓ '+(LANG==='es'?'Llenó ':'Filled ')+n):'✓';
       banner(n>0
         ? (LANG==='es'?('✅ Llenamos '+n+' campos de su documento'):('✅ Filled '+n+' fields from your document'))
         : (LANG==='es'?'⚠️ No pudimos leerlo — escriba sus datos':'⚠️ Could not read it — please type your details'), n>0);
-      if(n>0)toast((LANG==='es'?'✨ Llenamos ':'✨ Filled ')+n+(LANG==='es'?' campos':' fields')+(k==='booking'||k==='blotter'?(LANG==='es'?' del blotter':' from the booking page'):(LANG==='es'?' de su ID':' from your ID')));
+      if(n>0)toast((LANG==='es'?'✨ Llenamos ':'✨ Filled ')+n+(LANG==='es'?' campos de su ID':' fields from your ID'));
     }catch(_){st.textContent='✓';}
     finally{ reading=Math.max(0,reading-1); }
   }
@@ -1080,22 +1049,10 @@ async function ingest(fl,k,box){
 $$('input[type=file][data-doc]').forEach(inp=>inp.addEventListener('change',e=>{
   const fl=e.target.files[0]; if(fl) ingest(fl,inp.dataset.doc,inp.closest('.drop'));
 }));
-/* paste a screenshot anywhere */
-document.addEventListener('paste',async e=>{
-  const items=(e.clipboardData&&e.clipboardData.items)||[];
-  for(const it of items){
-    if(it.type&&it.type.indexOf('image')===0){
-      const blob=it.getAsFile();
-      if(blob){e.preventDefault();
-        const pz=$('#pz');
-        if(step!==1){step=1;show();}
-        toast(LANG==='es'?'📋 Leyendo la captura…':'📋 Reading your screenshot…');
-        await ingest(blob,'booking',pz);
-      }
-      break;
-    }
-  }
-});
+/* The paste-a-booking-screenshot capture was removed. The bond amount comes
+   from the jail-records lookup or from the agency confirming it with the
+   jail, and a client-supplied screenshot was never evidence we would rely on
+   before charging a card anyway. */
 /* Only a value the CLIENT actually typed blocks an AI fill. Previously any
    non-empty value blocked it, so if the reader came back while they were
    part-way through typing their details, the scanned licence data was thrown
@@ -1116,20 +1073,17 @@ function setF(n,v){const e=f.elements[n];if(!e||v==null||v==='')return false;
   e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),1100);
   if(n==='dlState')flagState();
   return true;}
-/* Which fields each document is ALLOWED to fill.
-   A booking screenshot describes the DEFENDANT; a license describes the
-   INDEMNITOR. Without this split, reading the booking page wrote the
-   defendant's name and DOB into the co-signer's fields, and the license
-   afterwards appeared to do nothing because setF() will not overwrite a
-   field that already has a value. */
+/* Which fields each document is ALLOWED to fill. A licence describes the
+   INDEMNITOR, never the defendant — without this split a document read could
+   write the wrong person's name and DOB into the co-signer's fields, and the
+   licence afterwards appeared to do nothing because setF() will not overwrite
+   a field that already has a value. */
 const FIELDMAP={
   /* Address deliberately excluded: the address printed on a licence is very
      often out of date, and a wrong address on a signed indemnity agreement is
      worse than a blank one. Name and DOB only, plus licence identifiers. */
   id_front:['firstName','lastName','middleName','nickname','dob','dlNumber','dlState','sex'],
   id_back :['dlNumber','dlState','dob','sex'],
-  blotter :['defName','bond','bondList','charges'],
-  booking :['defName','bond','bondList','charges'],
   imm_doc :['alienNo','immStatus','countryCitizen'],
   coll_doc:['collVehicle','collVIN','collPlate','collValue','collAddress','collMortgage','collDesc'],
   veh_doc :['autoYMM','autoPlate','autoState','autoVIN'],
@@ -1147,11 +1101,13 @@ function apply(o,docType){
   calc();review();return n;}
 
 /* ===== guided capture ===== */
-(function(){const cF=$('#cF'),cB=$('#cB'),cS=$('#cS'),iF=$('#iF'),iB=$('#iB');
+(function(){const cS=$('#cS'),iF=$('#iF'),iB=$('#iB');
  const tile=$('#sTile'),vid=$('#vid'),sm=$('#smile'),st=tile.querySelector('[data-status]'),th=tile.querySelector('[data-thumb]');
  const bS=$('#sStart'),bA=$('#sAgain');let stream=null;
- iF.addEventListener('change',()=>{if(iF.files.length){cF.classList.add('hidden');cB.classList.remove('hidden');}});
- iB.addEventListener('change',()=>{if(iB.files.length){cB.classList.add('hidden');cS.classList.remove('hidden');setTimeout(start,400);}});
+ /* Nothing is hidden any more — capturing the back simply rolls the camera
+    for the selfie. Both licence tiles keep their thumbnails on screen so the
+    client can see what we actually received and retake either one. */
+ iB.addEventListener('change',()=>{if(iB.files.length){cS.classList.remove('hidden');setTimeout(start,400);}});
  async function start(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
    vid.srcObject=stream;vid.style.display='block';await vid.play();bS.classList.add('hidden');bA.classList.add('hidden');th.style.display='none';st.textContent='';count();
   }catch(e){st.style.color='#c0392b';st.textContent=LANG==='es'?'Permita la cámara':'Please allow the camera';bS.classList.remove('hidden');}}
@@ -1206,17 +1162,13 @@ let emailVerified=false, emailVerifiedFor='';
     bC.disabled=false;});
 })();
 
-/* ===== signature ===== */
-const cv=$('#sig'),cx=cv.getContext('2d');
-function fit(){const r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;cx.scale(d,d);cx.lineWidth=2.6;cx.lineCap='round';cx.strokeStyle='#14213d';}
-let draw=false,last=null;
-const pos=e=>{const r=cv.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};};
-function dn(e){e.preventDefault();draw=true;last=pos(e);if(!geo)getGeo();}
-function mv(e){if(!draw)return;e.preventDefault();const p=pos(e);cx.beginPath();cx.moveTo(last.x,last.y);cx.lineTo(p.x,p.y);cx.stroke();last=p;inked=true;}
-function up(){draw=false;}
-cv.addEventListener('mousedown',dn);cv.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
-cv.addEventListener('touchstart',dn,{passive:false});cv.addEventListener('touchmove',mv,{passive:false});cv.addEventListener('touchend',up);
-$('#clr').addEventListener('click',()=>{cx.clearRect(0,0,cv.width,cv.height);inked=false;});
+/* ===== signature =====
+   Removed. Signing happens in BoldSign. `fit()` is kept as a no-op because
+   the step router and the resize handler still call it; `inked` stays false
+   for good, which leaves the signature line on the generated PDF blank —
+   correct, because that PDF is now the agency's data sheet, not the executed
+   document. The executed document comes back from BoldSign. */
+function fit(){}
 
 /* ===== steps ===== */
 /* Payment sits at step 4 now: the client pays before the long sections,
@@ -1268,47 +1220,14 @@ async function buildPreview(){
     paintSigState();
     prevBuilt=true;
   }catch(e){ box.classList.add('hidden'); prevBuilt=false; }}
-function paintSigState(){
-  const signed=!!(inked||typedSigData);
-  const b=$('#signHere'), okBox=$('#sigDone'), th=$('#sigThumb');
-  if(b)b.style.display=signed?'none':'';
-  if(okBox)okBox.classList.toggle('hidden',!signed);
-  if(signed&&th){ try{ th.src=sigImage(); }catch(_){} }}
-
-
-
-let typedSigData='';
-function sigImage(){
-  if(typedSigData)return typedSigData;
-  try{ return cv.toDataURL('image/png'); }catch(_){ return ''; }}
-function openAdopt(){ const w=$('#adoptWrap'); if(w){w.classList.remove('hidden'); setTimeout(()=>{ if(!cv.width||!cv.height) fit(); },60);} }
-function closeAdopt(){ const w=$('#adoptWrap'); if(w)w.classList.add('hidden'); }
-(function(){
-  const dT=$('#tabDraw'), tT=$('#tabType'), dP=$('#drawPane'), tP=$('#typePane');
-  if(!dT)return;
-  dT.addEventListener('click',()=>{dP.classList.remove('hidden');tP.classList.add('hidden');
-    dT.classList.remove('ghost');tT.classList.add('ghost'); setTimeout(()=>{if(!cv.width||!cv.height)fit();},50);});
-  tT.addEventListener('click',()=>{tP.classList.remove('hidden');dP.classList.add('hidden');
-    tT.classList.remove('ghost');dT.classList.add('ghost');});
-  const sh=$('#signHere'); if(sh)sh.addEventListener('click',openAdopt);
-  const sr=$('#sigRedo'); if(sr)sr.addEventListener('click',()=>{ inked=false; typedSigData='';
-    try{cx.clearRect(0,0,cv.width,cv.height);}catch(_){} openAdopt(); });
-  $('#adoptCancel').addEventListener('click',closeAdopt);
-  $('#adoptOk').addEventListener('click',async()=>{
-    const typed=(($('#typedSig')||{}).value||'').trim();
-    if(!inked && !typed){ toast(LANG==='es'?'Dibuje o escriba su firma':'Draw or type your signature'); return; }
-    if(!inked && typed){
-      /* Render the typed name as an image so the PDF carries a signature, not text. */
-      const c=document.createElement('canvas'); c.width=760; c.height=200;
-      const x=c.getContext('2d'); x.clearRect(0,0,760,200);
-      x.fillStyle='#14213d'; x.font='italic 82px Georgia, serif'; x.textBaseline='middle';
-      x.fillText(typed,18,105); typedSigData=c.toDataURL('image/png'); inked=true;
-      if(!val('signName')){const e=f.elements['signName']; if(e)e.value=typed;}
-    }
-    closeAdopt(); prevBuilt=false; await buildPreview();
-    toast(LANG==='es'?'✓ Firma aplicada':'✓ Signature applied');
-  });
-})();
+/* The adopt-a-signature modal and the in-form pad are gone. Two reasons:
+   the packet is executed in BoldSign, where the signature carries an audit
+   trail the form cannot produce; and the pad never worked here anyway —
+   there were two <canvas id="sig"> elements on the page, so $('#sig')
+   resolved to the hidden one inside the modal and the visible pad was
+   never wired to anything. */
+function paintSigState(){}
+function sigImage(){ return ''; }
 function bondUnknown(){const c=$('#bondUnknown');return !!(c&&c.checked);}
 function firstMissing(){const need=REQ[step]||[];
   for(const n of need){
@@ -1392,7 +1311,7 @@ function pdf(prem){const{jsPDF}=window.jspdf;const d=new jsPDF({unit:'pt',format
   R('Booking #',val('booking'));R('Charges',val('charges'));
   R('Bond total','$'+(Number(val('bond'))||0).toLocaleString());
   R('Charges breakdown',feeBreak());
-  R('Bond source',bondVerified?'VERIFIED against jail records':((imgs.booking||imgs.blotter)?'Client-supplied booking/blotter screenshot attached':'Client-stated only — NO screenshot attached'));
+  R('Bond source',bondVerified?'VERIFIED against jail records':'Client-stated only — CONFIRM with the jail');
   if(verifiedInfo)R('Verification',verifiedInfo);
   if(!bondVerified)R('*** AGENCY ACTION','VERIFY bond on PBSO blotter before charging ***');
   R('TOTAL DUE','$'+prem.toLocaleString());
@@ -1459,15 +1378,13 @@ function pdf(prem){const{jsPDF}=window.jspdf;const d=new jsPDF({unit:'pt',format
         x:M+70, y:y-15, w:190, h:54,
         pw:d.internal.pageSize.getWidth(), ph:d.internal.pageSize.getHeight(),
         label:(LANG==='es'?'Firme aquí':'Sign here')}); }catch(_){}
-  try{ if(inked) d.addImage(cv.toDataURL('image/png'),'PNG',M+70,y-15,190,54);}catch(_){}
+  /* Signature line intentionally left blank — executed copy comes from BoldSign. */
   d.addPage();let iy=58;d.setFontSize(12);d.setTextColor(36,58,107);d.text('Identity verification',M,40);
   [['id_front','Driver License — FRONT'],['id_back','Driver License — BACK'],['selfie','Live selfie']].forEach(([k,l])=>{
     if(!imgs[k])return;if(iy>600){d.addPage();iy=58;}
     try{d.setFontSize(9);d.setTextColor(60);d.text(l,M,iy);d.addImage(imgs[k],imgs[k].indexOf('image/png')>0?'PNG':'JPEG',M,iy+6,250,166);}catch(_){}
     iy+=196;});
   if(imgs.imm_doc){if(iy>600){d.addPage();iy=58;}try{d.setFontSize(9);d.text('Immigration document',M,iy);d.addImage(imgs.imm_doc,'JPEG',M,iy+6,250,166);}catch(_){}iy+=196;}
-  if(imgs.booking){if(iy>600){d.addPage();iy=58;}try{d.setFontSize(9);d.text('Booking page screenshot',M,iy);d.addImage(imgs.booking,'JPEG',M,iy+6,250,166);}catch(_){}iy+=196;}
-  if(imgs.blotter){if(iy>600){d.addPage();iy=58;}try{d.setFontSize(9);d.text('Blotter / bond sheet',M,iy);d.addImage(imgs.blotter,'JPEG',M,iy+6,250,166);}catch(_){}}
   if(val('payMethod')==='Credit Card') ccAuthPage(d,prem);
   auditPage(d);
   return d;}
@@ -1504,7 +1421,7 @@ function ccAuthPage(d,prem){
       +'by this office; payment is processed on the card processor’s secure hosted page.',520);
     d.text(t,M,y); y+=t.length*10.5+18;
     d.setFontSize(9.5);d.setTextColor(20);
-    try{ if(inked) d.addImage(cv.toDataURL('image/png'),'PNG',M,y,190,52); }catch(_){}
+    /* Signature line intentionally left blank — executed copy comes from BoldSign. */
     y+=58; d.setDrawColor(150); d.line(M,y,M+240,y); d.line(M+300,y,M+520,y); y+=12;
     d.setFontSize(8);d.setTextColor(90);
     d.text('Cardholder signature',M,y); d.text('Date: '+(val('signDate')||new Date().toLocaleDateString()),M+300,y);
@@ -1634,7 +1551,7 @@ async function receiptPDF(){
   cash(1285,1640,P.paid);                                // 16 amount paid
   cash(1285,1700,P.bal);                                 // 17 balance due
   if(collTaken()){tick(458,1773);put(1045,1761,collNo(),24);} else tick(574,1773);
-  try{ if(inked) d.addImage(cv.toDataURL('image/png'),'PNG',200*KX,1890*KY,300*KX,68*KY); }catch(_){}
+  /* Signature line intentionally left blank — executed copy comes from BoldSign. */
   if(CONFIG.agentSigImage&&CONFIG.agentSigImage.indexOf('data:')===0){
     try{ d.addImage(CONFIG.agentSigImage,'PNG',1000*KX,1890*KY,300*KX,68*KY); }catch(_){}
   } else { d.setFont('times','italic'); d.setFontSize(15); d.setTextColor(20,40,120); d.text(CONFIG.agentName,1000*KX,1955*KY); }
@@ -1785,15 +1702,17 @@ async function submit(){
   try{rcp=await receiptPDF();}catch(e){}
   const rcpName='Receipt-'+recNo()+'.pdf';
   window.__rcpDoc=rcp; window.__rcpName=rcpName;
-  const body='BAIL BOND APPLICATION — INDEMNITOR (SIGNED)\n'
+  const body='BAIL BOND APPLICATION — INDEMNITOR (AGENCY COPY — NOT EXECUTED)\n'
+    +'This is the data sheet. The EXECUTED packet arrives separately from BoldSign\n'
+    +'once the co-signer signs it. Do not treat this attachment as a signed document.\n'
     +'Submitted: '+new Date().toLocaleString()+'\n\n'
     +'DEFENDANT: '+val('defName')+'\nJail: '+val('jail')+'\nHOLD: '+(val('hold')||'not answered')+'\nBond total: $'+(Number(val('bond'))||0).toLocaleString()
-    +'\nBreakdown: '+feeBreak()+'\nESTIMATED TOTAL DUE: $'+prem.toLocaleString()+'\nBond evidence: '+(bondVerified?('VERIFIED — '+verifiedInfo):((imgs.booking||imgs.blotter)?'booking/blotter screenshot attached':'NONE — client-stated only'))+(bondVerified?'':'\n*** VERIFY bond on PBSO blotter before charging the card ***')+'\n\n'
+    +'\nBreakdown: '+feeBreak()+'\nESTIMATED TOTAL DUE: $'+prem.toLocaleString()+'\nBond evidence: '+(bondVerified?('VERIFIED — '+verifiedInfo):'NONE — client-stated only')+(bondVerified?'':'\n*** VERIFY bond on PBSO blotter before charging the card ***')+'\n\n'
     +'INDEMNITOR: '+val('firstName')+' '+val('lastName')+'\nRelationship: '+relText()
     +'\nPhone: '+val('phone')+'\nEmail: '+val('email')+'\nAddress: '+val('address')+'\nDOB: '+val('dob')+'\nSSN: '+val('ssn')
     +'\nDL: '+val('dlNumber')+' '+val('dlState')+'\nEmployer: '+val('employer')
     +(vehListed()?('\nVEHICLE: '+[val('autoYMM'),val('autoPlate')?('plate '+val('autoPlate')+' '+val('autoState')):'',val('autoOwed')?('owes $'+val('autoOwed')):''].filter(Boolean).join(', ')+'\nProof photo: '+(imgs.veh_doc?'ATTACHED':'NOT PROVIDED')):'')+'\n\n'
-    +'Signed by: '+val('signName')+'  Date: '+val('signDate')+'\nGPS: '+(geo||'not captured')+'\nIP: '+(ip||'n/a')+'\n'
+    +'Attested by: '+val('signName')+'  Date: '+val('signDate')+'\nGPS: '+(geo||'not captured')+'\nIP: '+(ip||'n/a')+'\n'
     +'Attorney referral: '+((f.elements['wantAttorney']&&f.elements['wantAttorney'].checked)?'YES':'no')+'\n'
     +(function(){const s=smsConsent();
         return 'SMS consent: case updates '+(s.case?'YES':'NO')+', promotional '+(s.promo?'YES':'NO')
@@ -1828,8 +1747,12 @@ async function submit(){
       const atts=[{filename:fn,contentBase64:doc.output('datauristring').split(',')[1]}]
         .concat(rcp?[{filename:rcpName,contentBase64:rcp.output('datauristring').split(',')[1]}]:[])
         .concat(await photoAtt());
+      /* AGENCY ONLY. The client is deliberately not on this email and gets no
+         paperwork by mail: the one document they act on is the BoldSign
+         envelope. Two copies in two inboxes is how people sign the wrong one,
+         or sign nothing because they think the emailed PDF was the signing. */
       const r=await fetch(CONFIG.sendEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({to:[val('email')].filter(Boolean),bcc:[CONFIG.recipient],subject:subj,text:body,attachments:atts})});
+        body:JSON.stringify({to:[CONFIG.recipient],subject:subj,text:body,attachments:atts})});
       let jr={}; try{ jr=await r.json(); }catch(_){}
       sent = r.ok && jr && jr.ok !== false;
       /* Never fail silently again: if the send is refused we now say so on
@@ -1909,18 +1832,30 @@ async function submit(){
     /* The surety packet is a second, separate email the client must act on.
        If we do not say so here they assume they are finished and the packet
        sits unsigned — so it gets its own sentence, not a footnote. */
+    /* One instruction, one place to act. The client is not emailed any
+       paperwork, so the only thing they can do is sign the packet. */
     const es = window.__esign||{};
-    if(ob)ob.textContent = es.ok
+    if(ob)ob.textContent = (es.ok && es.signLink)
       ? (LANG==='es'
-          ? 'Enviamos su solicitud firmada a usted y a nuestra oficina. Revise su correo: le llega un segundo mensaje con el paquete de fianza y su recibo para firmar.'
-          : "We emailed your signed application to you and our office. Check your email — a second message is on its way with the bail packet and your receipt to sign.")
-      : (LANG==='es'
-          ? 'Enviamos su solicitud firmada a usted y a nuestra oficina. Le enviaremos el paquete de fianza para firmar en breve.'
-          : "We emailed your signed application to you and our office. We'll send the bail packet for signature shortly.");
+          ? 'Su solicitud llegó a nuestra oficina. Falta un paso: firme su paquete de fianza con el botón de abajo.'
+          : "Your application reached our office. One step left — sign your bail packet using the button below.")
+      : (es.ok
+          ? (LANG==='es'
+              ? 'Su solicitud llegó a nuestra oficina. Le enviamos su paquete de fianza para firmar — revíselo en su correo.'
+              : "Your application reached our office. We've sent your bail packet for signature — look for it in your email.")
+          : (LANG==='es'
+              ? 'Su solicitud llegó a nuestra oficina. Aún no pudimos preparar su paquete para firmar; le llamaremos de inmediato al (561) 833-4388.'
+              : "Your application reached our office. We could not open your packet for signature yet — we will call you right away, or reach us at (561) 833-4388."));
   }
-  else{try{doc&&doc.save(fn);}catch(_){}
-    if(ob)ob.textContent=LANG==='es'?'Su PDF firmado se descargó y su correo se abrió — adjunte el PDF y envíelo.':'Your signed PDF downloaded and your email opened — attach the PDF and hit send.';
-    setTimeout(()=>{location.href='mailto:'+CONFIG.recipient+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body+'\n\n*** Please ATTACH the downloaded PDF ('+fn+') ***');},700);}
+  else{
+    /* The send failed. Do NOT hand the client a PDF and ask them to email it:
+       that is exactly the paperwork-by-email path we removed, and an
+       application forwarded by hand arrives without its receipt numbers. */
+    if(ob)ob.textContent=LANG==='es'
+      ? 'No pudimos enviar su solicitud automáticamente. Llámenos al (561) 833-4388 y la tomamos por teléfono — sus respuestas no se perdieron.'
+      : "We could not submit your application automatically. Please call us at (561) 833-4388 and we will take it over the phone — your answers are not lost.";
+    const er=$('#okRef'); if(er&&window.__sendErr) er.textContent='Reference: '+window.__sendErr;
+  }
 }
 
 /* ===== init ===== */
@@ -1934,7 +1869,7 @@ function updatePins(){const o=jailOpt();
     if(a)a.href='https://maps.apple.com/?q='+encodeURIComponent(addr);}
   else{if(g)g.href='#';if(a)a.href='#';}}
 (async function(){try{const r=await fetch('https://api.ipify.org?format=json');ip=(await r.json()).ip;}catch(_){}})();
-window.addEventListener('resize',()=>{const d=cv.toDataURL();fit();const i=new Image();i.onload=()=>cx.drawImage(i,0,0,cv.getBoundingClientRect().width,cv.getBoundingClientRect().height);i.src=d;});
+/* No canvas to re-measure on resize any more. */
 fit();
 f.elements['signDate'].value=new Date().toLocaleDateString();
 $('#blot').href=CONFIG.blotterUrl;$('#ack').textContent=ACK.en;

@@ -41,12 +41,20 @@
   .prog{flex:1;height:6px;background:#e3ecf7;border-radius:99px;overflow:hidden}
   .prog i{display:block;height:100%;background:var(--gold);width:0;transition:width .25s}
   .hidden{display:none!important}
-  canvas{border:1px dashed #b9c9de;border-radius:10px;background:#fff;touch-action:none;width:100%;height:170px}
   .ack{font-size:11.5px;color:#54637a;background:#f7fafd;border:1px solid var(--line);border-radius:10px;padding:11px;max-height:190px;overflow:auto}
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:78px;background:#1c2733;color:#fff;padding:10px 16px;border-radius:10px;font-size:13.5px;z-index:99;opacity:0;transition:opacity .2s}
   .toast.on{opacity:1}
   .flag{background:#fff6f4;border:1px solid #f0c8bd;color:#8c2f16;border-radius:10px;padding:10px;font-size:12.5px;margin-top:9px}
   .okmsg{background:#eefaf1;border:1px solid #bfe6cd;color:#0a6b31;border-radius:10px;padding:10px;font-size:12.5px}
+  .drop{display:block;border:2px dashed #b9c9de;border-radius:12px;padding:16px;text-align:center;cursor:pointer;background:#fbfdff;margin-bottom:11px}
+  .drop.done{border-style:solid;border-color:#9ad9b4;background:#f2fbf5}
+  .drop .ico{font-size:26px}
+  .drop .t{font-weight:700;font-size:13.5px;color:var(--brand);margin-top:4px}
+  .drop input[type=file]{display:none}
+  .drop .thumb{display:none;max-height:120px;margin-top:9px;border-radius:8px}
+  .drop .status{font-size:12px;color:var(--muted);margin-top:5px;min-height:16px}
+  .capttl{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+  .note{background:#eaf3ff;border:1px solid #cfe0f5;border-radius:10px;padding:11px;font-size:12.5px;color:#33455c}
 </style>
 </head>
 <body>
@@ -154,6 +162,21 @@
 <!-- 3 DESCRIPTION -->
 <section class="card step hidden" data-step="4">
   <h2><span class="num">4</span> Personal description</h2>
+  <p class="sub">Photograph your licence first — it fills your date of birth, licence number and state for you.</p>
+
+  <!-- Both tiles stay visible with their thumbnails so you can see what we
+       actually received and retake either one. -->
+  <div id="idBanner" class="hidden" style="background:#eaf3ff;border:1px solid #cfe0f5;border-radius:11px;padding:11px 13px;margin-bottom:12px;font-weight:700;color:var(--brand)"></div>
+  <div class="capttl">Photo 1 of 2 &middot; Licence FRONT</div>
+  <label class="drop"><div class="ico">🪪</div><div class="t">Tap to photograph the FRONT</div>
+    <div class="status" data-status></div>
+    <input type="file" accept="image/*" capture="environment" data-doc="id_front"><img class="thumb" data-thumb></label>
+  <div class="capttl">Photo 2 of 2 &middot; Licence BACK</div>
+  <label class="drop"><div class="ico">🪪</div><div class="t">Tap to photograph the BACK</div>
+    <div class="status" data-status></div>
+    <input type="file" accept="image/*" capture="environment" data-doc="id_back"><img class="thumb" data-thumb></label>
+  <p class="hint" style="margin-bottom:13px">No licence? Skip these and type your details below.</p>
+
   <div class="grid">
     <div><label>Date of birth</label><input name="dob" type="date"></div>
     <div><label>Sex</label>
@@ -269,14 +292,18 @@
 <!-- 9 SIGN -->
 <section class="card step hidden" data-step="9">
   <h2><span class="num">9</span> Review and sign</h2>
-  <p class="sub">Read this, then sign with your finger.</p>
+  <p class="sub">Read this and type your name. You sign the actual application in the next step, in our secure signing system.</p>
   <div class="ack" id="ack"></div>
   <div class="grid" style="margin-top:13px">
     <div><label>Type your full name *</label><input name="signName" required></div>
     <div><label>Date</label><input name="signDate" readonly></div>
   </div>
-  <div style="margin-top:11px"><label>Signature *</label><canvas id="sig"></canvas>
-    <button type="button" class="btn2" id="clearSig" style="margin-top:7px">Clear</button></div>
+  <!-- No signature pad. The application is executed in our e-signature
+       system, where the signature carries an audit trail, a document hash
+       and a certificate of completion. -->
+  <div class="note" style="margin-top:13px"><strong>Next: you sign the real application.</strong>
+    When you tap Submit we prepare your application with every answer already filled in, and open it for signature.
+    Nothing is signed on this page.</div>
   <label style="margin-top:13px;font-weight:600"><input type="checkbox" id="agree" style="width:auto;margin-right:9px;transform:scale(1.25)"> I have read the above, and everything I entered is true and complete.</label>
   <div id="summary" style="margin-top:13px"></div>
 </section>
@@ -318,7 +345,7 @@
      is no record at all.
    ========================================================== */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const f=$('#f'); let step=1, ip='', geo='', inked=false;
+const f=$('#f'); let step=1, ip='', geo='';
 const val=n=>{const e=f.elements[n];return e?String(e.value||'').trim():'';};
 const STEPS=9;
 
@@ -336,6 +363,70 @@ $$('[data-multi]').forEach(g=>{const n=g.dataset.multi;
     f.elements[n].value=[...g.querySelectorAll('.chip.on')].map(x=>x.dataset.v).join(', ');})); });
 
 function flags(){ $('#ftaFlag').classList.toggle('hidden', val('fta')!=='Yes'); }
+
+/* ---- licence capture ----
+   Same pipeline as the co-signer form: read the licence through /api/read,
+   fill only the fields a licence can legitimately describe, and carry the
+   images to the agency as attachments. Address is deliberately NOT filled —
+   the address printed on a licence is very often stale, and on this form the
+   address is what we use to find someone. */
+const imgs={}, files={};
+const IDFIELDS=['defName','nickname','dob','dlNumber','dlState','sex','race','height','weight','eyes','hair'];
+const durl=fl=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=no;r.readAsDataURL(fl);});
+const b64=async fl=>String(await durl(fl)).split(',')[1];
+function idBanner(msg,good){
+  const b=$('#idBanner'); if(!b)return;
+  b.textContent=msg; b.classList.remove('hidden');
+  b.style.background=good?'#eefaf1':'#eaf3ff';
+  b.style.borderColor=good?'#bfe6cd':'#cfe0f5';
+  b.style.color=good?'#0a6b31':'var(--brand)';
+}
+function setF(n,v){
+  const e=f.elements[n]; if(!e||v===undefined||v===null||String(v).trim()==='')return false;
+  /* Never overwrite something the person typed themselves. */
+  if(String(e.value||'').trim()!=='')return false;
+  e.value=String(v).trim(); return true;
+}
+async function ingestId(fl,k,box){
+  if(!fl)return;
+  files[k]=fl.name||(k+'.jpg');
+  const st=box.querySelector('[data-status]'), th=box.querySelector('[data-thumb]');
+  box.classList.add('done');
+  try{const d=await durl(fl); imgs[k]=d; th.src=d; th.style.display='inline-block';}catch(_){}
+  st.textContent='Reading…';
+  idBanner('⏳ Reading your licence…');
+  try{
+    const r=await fetch('/api/read',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({docType:k,mimeType:fl.type||'image/jpeg',dataBase64:await b64(fl)})});
+    const d=await r.json(); const o=(d&&d.fields)||{};
+    let n=0; for(const key of IDFIELDS){ if(setF(key,o[key])) n++; }
+    st.textContent=n>0?('✓ filled '+n):'✓';
+    idBanner(n>0?('✅ Filled '+n+' fields from your licence'):'⚠️ Could not read it — please type your details below', n>0);
+  }catch(_){ st.textContent='✓'; idBanner('⚠️ Could not read it — please type your details below'); }
+}
+$$('input[type=file][data-doc]').forEach(inp=>inp.addEventListener('change',e=>{
+  const fl=e.target.files[0]; if(fl) ingestId(fl,inp.dataset.doc,inp.closest('.drop'));
+}));
+/* Shrink before sending. Phone photos are 4-8 MB each and two of them will
+   bounce off the mail provider's attachment limit. */
+function shrink(dataUrl,max){
+  return new Promise(ok=>{
+    const i=new Image();
+    i.onload=()=>{ const s=Math.min(1,max/Math.max(i.width,i.height));
+      const c=document.createElement('canvas'); c.width=Math.round(i.width*s); c.height=Math.round(i.height*s);
+      c.getContext('2d').drawImage(i,0,0,c.width,c.height);
+      ok(c.toDataURL('image/jpeg',.72).split(',')[1]); };
+    i.onerror=()=>ok(null); i.src=dataUrl;
+  });
+}
+async function photoAtt(){
+  const out=[];
+  for(const k of Object.keys(imgs)){
+    const b=await shrink(imgs[k],1400);
+    if(b) out.push({filename:(k==='id_front'?'licence-front.jpg':'licence-back.jpg'),contentBase64:b});
+  }
+  return out;
+}
 
 /* ---- repeating rows ----
    Built from a spec rather than copied markup, so adding a field means
@@ -412,19 +503,9 @@ function smsConsent(){
    Sized inline plus a delayed retry. requestAnimationFrame is paused in
    background tabs, so a client who switches apps mid-form would come back
    to a 0x0 canvas that cannot be drawn on. */
-const cv=$('#sig'), cx=cv.getContext('2d');
-function fit(){const r=cv.getBoundingClientRect();if(!r.width)return;
-  const d=window.devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;
-  cx.setTransform(d,0,0,d,0,0);cx.lineWidth=2.4;cx.lineCap='round';cx.strokeStyle='#14213d';}
-let drawing=false;
-const pos=e=>{const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return[t.clientX-r.left,t.clientY-r.top];};
-const start=e=>{e.preventDefault();drawing=true;inked=true;const[x,y]=pos(e);cx.beginPath();cx.moveTo(x,y);};
-const move=e=>{if(!drawing)return;e.preventDefault();const[x,y]=pos(e);cx.lineTo(x,y);cx.stroke();};
-const end=()=>{drawing=false;};
-['mousedown','touchstart'].forEach(v=>cv.addEventListener(v,start,{passive:false}));
-['mousemove','touchmove'].forEach(v=>cv.addEventListener(v,move,{passive:false}));
-['mouseup','mouseleave','touchend'].forEach(v=>cv.addEventListener(v,end));
-$('#clearSig').addEventListener('click',()=>{cx.clearRect(0,0,cv.width,cv.height);inked=false;});
+/* Signature pad removed — signing happens in BoldSign. fit() stays as a
+   no-op because the step router still calls it. */
+function fit(){}
 
 const ACK='I am applying to Sun Surety Insurance Company, through Bail Bond Release Center of the Palm Beaches, Inc., '+
 'for a bail bond. Everything I have entered is true, complete and correct, and I understand it is being relied on to '+
@@ -537,25 +618,46 @@ function pdf(){
   H('ACKNOWLEDGMENT AND SIGNATURE');
   d.setFont('helvetica','normal');d.setFontSize(7.8);d.setTextColor(80);
   const a=d.splitTextToSize(ACK,516); d.text(a,M,y); y+=a.length*9.6+12;
-  d.setTextColor(25);d.setFontSize(9);
-  d.text('Signed by: '+val('signName')+'      Date: '+val('signDate'),M,y); y+=8;
-  try{ if(inked) d.addImage(cv.toDataURL('image/png'),'PNG',M,y,235,52); }catch(_){}
-  y+=60; d.setFontSize(7.4); d.setTextColor(120);
-  d.text('IP '+(ip||'n/a')+'   ·   '+(geo||'location not captured')+'   ·   submitted '+new Date().toISOString(),M,y);
+
+  /* Draw a real signature rule and REMEMBER where it is. /api/esign places the
+     BoldSign signature field at these exact coordinates, so the field can
+     never drift away from the line: whoever moves the line moves the field.
+     jsPDF's default unit here is points measured from the top of the page,
+     which is the same frame the e-sign API expects. */
+  if(y>640){d.addPage();y=72;}
+  const sigTop=y+34, sigW=235;
+  d.setDrawColor(150); d.setLineWidth(.6);
+  d.line(M, sigTop, M+sigW, sigTop);                 // signature rule
+  d.line(M+sigW+30, sigTop, M+sigW+170, sigTop);     // date rule
+  d.setFontSize(7.4); d.setTextColor(120);
+  d.text('Signature of applicant', M, sigTop+10);
+  d.text('Date', M+sigW+30, sigTop+10);
+  d.setFontSize(9); d.setTextColor(25);
+  d.text('Printed name: '+val('signName'), M, sigTop+26);
+  /* Where the field goes. Page is 1-based, matching BoldSign. */
+  SIGSPOT = { page: d.getNumberOfPages(), top: sigTop, x: M, w: sigW };
+
+  y = sigTop+44; d.setFontSize(7.4); d.setTextColor(120);
+  d.text('IP '+(ip||'n/a')+'   ·   '+(geo||'location not captured')+'   ·   prepared '+new Date().toISOString(),M,y);
+  y+=10;
+  d.text('This application is executed electronically. The signed copy with its certificate of completion is the operative document.',M,y);
   return d;
 }
+let SIGSPOT=null;
 
 /* ---- submit ---- */
 async function submit(){
   if(!val('signName')){toast('Type your name to sign');return;}
-  if(!inked){toast('Please sign with your finger');return;}
+  /* No drawn signature required. The application is executed in BoldSign. */
   if(!$('#agree').checked){toast('Please check the agreement box');return;}
   const b=$('#bNext'); b.disabled=true; b.textContent='Sending…';
   const sc=smsConsent();
   let doc=null; try{ doc=pdf(); }catch(e){ toast('PDF error: '+e.message); }
   const name=(val('defName')||'defendant').replace(/[^a-z0-9]/gi,'_');
   const fn='Defendant-Application-'+name+'.pdf';
-  const body='BAIL BOND APPLICATION — DEFENDANT (SIGNED)\n'
+  const body='BAIL BOND APPLICATION — DEFENDANT (AGENCY COPY — NOT EXECUTED)\n'
+    +'This is the data sheet. The EXECUTED application arrives separately from BoldSign\n'
+    +'once the defendant signs it. Do not treat this attachment as a signed document.\n'
     +'Submitted: '+new Date().toLocaleString()+'\n\n'
     +'DEFENDANT: '+val('defName')+'\nDOB: '+val('dob')+'\nSSN: '+val('ssn')+'\nDL: '+val('dlNumber')+' '+val('dlState')+'\n'
     +'Bond: '+val('bond')+'\nCourt: '+val('courtName')+'  County: '+val('county')+'\nCharges: '+val('charges')+'\n\n'
@@ -570,23 +672,72 @@ async function submit(){
     +'SMS consent: case updates '+(sc.case?'YES':'NO')+', promotional '+(sc.promo?'YES':'NO')
     +' (wording v'+sc.version+(sc.at?(', recorded '+sc.at):'')+')'
     +(sc.case?'':'\n>>> DO NOT TEXT THIS NUMBER — no consent on file.')+'\n\n'
-    +'Signed by: '+val('signName')+'  Date: '+val('signDate')+'\nIP: '+(ip||'n/a')+'\nLocation: '+(geo||'not captured');
+    +'Attested by: '+val('signName')+'  Date: '+val('signDate')+'\nIP: '+(ip||'n/a')+'\nLocation: '+(geo||'not captured');
   const subj=((val('fta')==='Yes'||val('otherBond')==='Yes')?'[REVIEW] ':'')+'Defendant Application — '+val('defName');
   let sent=false, err='';
   try{
-    const atts=doc?[{filename:fn,contentBase64:doc.output('datauristring').split(',')[1]}]:[];
+    /* AGENCY ONLY, with the licence photos. The defendant is deliberately not
+       on this email and receives no paperwork by mail — the one thing they
+       act on is the signing request. */
+    const atts=(doc?[{filename:fn,contentBase64:doc.output('datauristring').split(',')[1]}]:[])
+      .concat(await photoAtt());
     const r=await fetch('/api/send',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({to:[val('email')].filter(Boolean),bcc:['bailbondreleasecenter@gmail.com'],
+      body:JSON.stringify({to:['bailbondreleasecenter@gmail.com'],
                            subject:subj,text:body,attachments:atts})});
     const j=await r.json().catch(()=>({})); sent = r.ok && j.ok!==false;
     if(!sent) err=(j&&j.error)||('HTTP '+r.status);
   }catch(e){ err=String(e&&e.message||e); }
+
+  /* Send the prefilled application out for signature. Deliberately AFTER the
+     agency email: if BoldSign is down the agent still has the full
+     application and can paper it by hand rather than losing the submission. */
+  const es = await sendForSignature(doc);
+
   $('#wrap').classList.add('hidden'); $('#nav').classList.add('hidden'); $('#ok').classList.remove('hidden');
-  $('#okB').textContent = sent
-    ? 'We emailed your signed application to you and to our office. An agent will review it and contact you.'
-    : 'Your application was signed but could not be emailed automatically. Please call us at (561) 833-4388 — we will take it over the phone.';
-  if(!sent){ try{ doc&&doc.save(fn); }catch(_){ } $('#okRef').textContent='Reason: '+err; }
+  if(sent){
+    $('#okB').textContent = (es.ok && es.signLink)
+      ? 'Your application reached our office. One step left — sign it using the button below.'
+      : (es.ok
+          ? "Your application reached our office. We've sent it to you for signature — look for it in your email."
+          : 'Your application reached our office. We could not open it for signature yet — we will call you right away, or reach us at (561) 833-4388.');
+    if(es.ok && es.signLink){
+      const a=document.createElement('a');
+      a.href=es.signLink; a.target='_blank'; a.rel='noopener';
+      a.style.cssText='display:block;text-align:center;padding:18px;margin:14px auto 0;max-width:340px;border-radius:12px;background:#ffd600;color:#4a3800;text-decoration:none;font-weight:900;font-size:17px';
+      a.textContent='✍️ Sign your application now';
+      ($('#ok').querySelector('.card')||$('#ok')).appendChild(a);
+    } else if(!es.ok && es.error){ $('#okRef').textContent='Signing reference: '+es.error; }
+  } else {
+    /* Do NOT hand the applicant a PDF to email on. That is the
+       paperwork-by-email path we removed. */
+    $('#okB').textContent='We could not submit your application automatically. Please call us at (561) 833-4388 and we will take it over the phone — your answers are not lost.';
+    $('#okRef').textContent='Reference: '+err;
+  }
   window.scrollTo(0,0);
+}
+
+/* ---- e-signature ----
+   The document sent for signature IS this application, already carrying every
+   answer. SIGSPOT tells the API where the signature rule was drawn, so the
+   field lands on the line rather than at a guessed coordinate. */
+async function sendForSignature(doc){
+  if(!doc || !SIGSPOT) return {ok:false, error:'application PDF was not built'};
+  try{
+    const r=await fetch('/api/esign',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        action:'send',
+        packet:'defendant',
+        defendant: val('defName'),
+        signer:{ name: val('signName')||val('defName'), email: val('email'), phone: val('phone') },
+        /* Embedded only when we proved the address belongs to them; /api/esign
+           refuses an embedded link otherwise, so fall back to emailing it. */
+        mode: emailVerified ? 'embedded' : 'email',
+        appPdf: doc.output('datauristring'),
+        sig: SIGSPOT
+      })});
+    const d=await r.json().catch(()=>({}));
+    return (r.ok && d && d.ok!==false) ? d : {ok:false, error:(d&&d.error)||('HTTP '+r.status)};
+  }catch(e){ return {ok:false, error:String(e&&e.message||e)}; }
 }
 
 /* ---- init ---- */
