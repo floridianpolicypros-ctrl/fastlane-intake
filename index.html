@@ -455,9 +455,10 @@ function checkEligibility(){
   if(!isNaN(alleged)&&!isNaN(posted)){
     const over=alleged-posted;
     if(over>=30)msgs.push("You were cited at "+over+" mph over the posted limit. Florida law (§318.14(9)) bars electing traffic school at 30 mph or more over — this requires a court appearance.");
-  } else if(/speed|mph/i.test(txt) && !val("speedAlleged")){
-    msgs.push("Please enter your alleged and posted speeds above — election is barred at 30+ mph over the limit, so we need the numbers to confirm you qualify.");
   }
+  // NOTE: a plain speeding ticket with the (optional) mph numbers left blank is NOT
+  // blocked — most speeding is under 30 over and electable. The 30+ bar only fires
+  // when both numbers are present (above); staff verify the exact speed via court records.
 
   if(val("cdlHolder")==="Yes")msgs.push("CDL and commercial learner permit holders cannot elect traffic school (§318.14(9)). Court-ordered enrollment only.");
   if(val("commercialVehicle")==="Yes")msgs.push("Violations committed in a commercial vehicle are excluded from election — we need to review.");
