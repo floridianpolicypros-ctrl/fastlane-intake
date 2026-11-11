@@ -71,18 +71,35 @@
 </div>
 
 <script>
-/* Clover appends its own query parameters on return. We surface any order or
-   checkout reference so the client has something to quote on the phone, but we
-   never treat the presence of a parameter as proof of payment — the webhook is
-   what confirms that on our side. */
+/* Clover appends its own query parameters on return. A parameter is a claim,
+   not proof — anyone can type this URL. So we hand the reference to our own
+   endpoint, which asks Clover directly whether the money actually arrived and
+   notifies the office. The page never decides that on its own. */
 (function(){
   var p = new URLSearchParams(location.search);
   var id = p.get('orderId') || p.get('checkoutSessionId') || p.get('id') || '';
-  if(id){
-    var el = document.getElementById('ref');
-    el.textContent = 'Reference: ' + id;
-    el.style.display = 'block';
-  }
+  var el = document.getElementById('ref');
+  if(!id) return;
+
+  el.textContent = 'Reference: ' + id;
+  el.style.display = 'block';
+
+  fetch('/api/payment-status', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ orderId: id })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d && d.ok && d.paid) {
+      el.textContent = 'Reference: ' + id + '  ·  Payment confirmed';
+    }
+    /* If it is not confirmed we deliberately say nothing further. The
+       client may have landed here a moment before Clover settled, and
+       telling someone their payment failed when it did not is worse
+       than staying quiet — the office gets the real answer by email. */
+  })
+  .catch(function(){ /* leave the reference showing */ });
 })();
 
 const I18N={en:{},es:{
