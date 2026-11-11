@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /paid
+Disallow: /cancelled
+
+Sitemap: https://24hourbailbondsnearme.com/sitemap.xml
