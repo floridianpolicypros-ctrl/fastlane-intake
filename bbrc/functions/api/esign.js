@@ -352,7 +352,14 @@ export async function onRequestPost(context) {
     Signers: [signer],
     /* BoldSign rejects the entire request if a CC address is also a signer,
        which is exactly what happens when the agency tests on itself. */
-    CC: agencyCC && agencyCC !== email ? [{ emailAddress: agencyCC }] : undefined,
+    /* NO CC. BoldSign refuses the whole request with "Sender or sender
+       identity email cannot be added in CC" when the CC address is the
+       account's own sender identity - which this agency address is. The
+       old guard only skipped the CC when the signer WAS the agency, so
+       every self-test passed and every real client silently failed with
+       no envelope and no alert. The agency already receives the data
+       sheet from /api/send and the executed PDF from the Completed
+       webhook, so the CC was redundant as well as fatal. */
     EnableSigningOrder: false,
     Labels: [b.receiptNo || "no-receipt-no"]
   };
