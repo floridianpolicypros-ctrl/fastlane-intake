@@ -282,9 +282,9 @@
   </div>
   <div class="grid">
     <div class="field"><label data-i="occ">Occupation</label><input name="occupation"></div>
-    <div class="field"><label data-i="empl">Employer</label><input name="employer" autocomplete="organization"></div>
+    <div class="field"><label data-i="empl">Employer *</label><input name="employer" autocomplete="organization" required></div>
     <div class="full"><label data-i="empa">Employer address</label><input name="employerAddress"></div>
-    <div class="field"><label data-i="empt">Employer phone</label><input name="employerTel" type="tel" inputmode="tel"></div>
+    <div class="field"><label data-i="empt">Employer phone *</label><input name="employerTel" type="tel" inputmode="tel" required></div>
     <div class="field"><label data-i="hlj">How long there?</label><input name="jobHowLong"></div>
     <div class="field"><label data-i="sup">Supervisor's name</label><input name="supervisor"></div>
     <div class="field"><label data-i="uni">Union / Local #</label><input name="union"></div>
@@ -308,15 +308,15 @@
   <p class="sub" data-i="s5s">People who know you — not the person in jail.</p>
   <div class="grid">
     <div class="full"><label style="color:var(--brand)" data-i="ref1">Reference 1</label></div>
-    <div class="field"><label data-i="rname">Name</label><input name="ref1Name"></div>
+    <div class="field"><label data-i="rname">Name *</label><input name="ref1Name" required></div>
     <div class="field"><label data-i="rrel">Relation</label><select name="ref1Relation" class="relsel"></select></div>
-    <div class="field"><label data-i="rphone">Phone</label><input name="ref1Phone" type="tel" inputmode="tel"></div>
-    <div class="field"><label data-i="raddr">Address</label><input name="ref1Address"></div>
+    <div class="field"><label data-i="rphone">Phone *</label><input name="ref1Phone" type="tel" inputmode="tel" required></div>
+    <div class="field"><label data-i="raddr">Address *</label><input name="ref1Address" required></div>
     <div class="full"><label style="color:var(--brand);margin-top:6px" data-i="ref2">Reference 2</label></div>
-    <div class="field"><label data-i="rname">Name</label><input name="ref2Name"></div>
+    <div class="field"><label data-i="rname">Name *</label><input name="ref2Name" required></div>
     <div class="field"><label data-i="rrel">Relation</label><select name="ref2Relation" class="relsel"></select></div>
-    <div class="field"><label data-i="rphone">Phone</label><input name="ref2Phone" type="tel" inputmode="tel"></div>
-    <div class="field"><label data-i="raddr">Address</label><input name="ref2Address"></div>
+    <div class="field"><label data-i="rphone">Phone *</label><input name="ref2Phone" type="tel" inputmode="tel" required></div>
+    <div class="field"><label data-i="raddr">Address *</label><input name="ref2Address" required></div>
     <div class="full" style="margin-top:8px"><label style="color:var(--brand)" data-i="finT">Financial (optional)</label></div>
     <div class="field"><label data-i="cash">Cash on hand</label><input name="cashHand" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
     <div class="field"><label data-i="bank">Cash in bank</label><input name="cashBank" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
@@ -1173,7 +1173,12 @@ function fit(){}
 /* ===== steps ===== */
 /* Payment sits at step 4 now: the client pays before the long sections,
    so the paperwork gets finished instead of abandoned halfway. */
-const REQ={1:['defName','bond','hold'],4:['collType','payMethod'],3:['relationship','firstName','lastName','phone','email','address']};
+/* Employment and two contactable references are mandatory. A bond is
+   underwritten on the co-signer's ties to the area: somewhere they work
+   and two people who can be reached if the defendant stops answering.
+   These were optional, so most files arrived without them and the only
+   way to find a skip was the co-signer's own phone. */
+const REQ={1:['defName','bond','hold'],4:['collType','payMethod'],3:['relationship','firstName','lastName','phone','email','address'],5:['employer','employerTel'],6:['ref1Name','ref1Phone','ref1Address','ref2Name','ref2Phone','ref2Address']};
 function bar(){const pct=Math.round((step-1)/(TOTAL-1)*100);$('#bf').style.width=pct+'%';
   $('#bl').textContent=(LANG==='es'?'Paso ':'Step ')+step+(LANG==='es'?' de ':' of ')+TOTAL;}
 function show(){$$('.stp').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==step));
@@ -1258,7 +1263,12 @@ $('#bNext').addEventListener('click',()=>{
   const m=firstMissing();
   if(m){const lbls={defName:LANG==='es'?'nombre del acusado':'name of person in jail',bond:LANG==='es'?'monto total de la fianza':'total bond amount',hold:LANG==='es'?'si hay una retención (hold)':'whether there is a hold',payMethod:LANG==='es'?'forma de pago':'how you are paying',collType:LANG==='es'?'si hay garantía (colateral)':'whether collateral is being put up',
       relationship:LANG==='es'?'su relación':'your relationship',firstName:LANG==='es'?'nombre':'first name',lastName:LANG==='es'?'apellido':'last name',
-      phone:LANG==='es'?'teléfono':'phone',email:LANG==='es'?'correo':'email',address:LANG==='es'?'dirección':'address'};
+      phone:LANG==='es'?'teléfono':'phone',email:LANG==='es'?'correo':'email',address:LANG==='es'?'dirección':'address',
+      employer:LANG==='es'?'su empleador':'your employer',employerTel:LANG==='es'?'el teléfono del empleador':'your employer phone number',
+      ref1Name:LANG==='es'?'el nombre de la primera referencia':'the first reference name',ref1Phone:LANG==='es'?'el teléfono de la primera referencia':'the first reference phone number',
+      ref1Address:LANG==='es'?'la dirección de la primera referencia':'the first reference address',
+      ref2Name:LANG==='es'?'el nombre de la segunda referencia':'the second reference name',ref2Phone:LANG==='es'?'el teléfono de la segunda referencia':'the second reference phone number',
+      ref2Address:LANG==='es'?'la dirección de la segunda referencia':'the second reference address'};
     toast((LANG==='es'?'Falta: ':'Please add: ')+(lbls[m]||m));
     const el=f.elements[m];if(el&&el.focus)el.focus();return;}
   if(step<TOTAL){step++;show();return;}
