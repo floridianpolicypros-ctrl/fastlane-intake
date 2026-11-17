@@ -396,7 +396,8 @@
     <div class="field paycc hidden"><label data-i="cc4">Card — last 4 digits</label><input name="ccLast4" maxlength="4" inputmode="numeric" placeholder="1234"></div>
     <div class="field payoth hidden"><label data-i="payOthD">Describe the payment</label><input name="payOther"></div>
     <div class="field paydone hidden"><label data-i="paidByL">Who paid, and how? <span class="opt" data-i="ifk">(if known)</span></label><input name="paidBy" placeholder="e.g. sister Maria — cash at the office"></div>
-    <div class="field"><label data-i="payNow">Amount you're paying today</label><input name="amountPaid" type="number" min="0" step="0.01" inputmode="decimal"></div>
+    <div class="field"><label data-i="payNow">Amount you're paying today</label><input name="amountPaid" type="number" min="0" step="0.01" inputmode="decimal" readonly></div>
+    <div class="full note" id="planOffice" data-i="planOff" style="font-size:13px;line-height:1.5;opacity:.85;margin-top:-4px">Payment plans are arranged by the office, not on this form. If you cannot pay the full premium today, call us at (561) 833-4388 before you finish and we will set the plan up for you.</div>
     <div class="field"><label data-i="balDue">Balance due</label><input name="balanceDue" readonly placeholder="$0"></div>
     <div class="full warn hidden" id="balWarn" data-i="balW">A balance means a payment plan. Any unpaid balance remains owed after the bond is discharged and accrues interest at the maximum rate allowed by Florida law.</div>
   </div>
@@ -549,6 +550,7 @@ const ES={
  payM:"¿Cómo va a pagar? *", pCC:"Tarjeta de crédito / débito", pCash:"Efectivo", pZelle:"Zelle", pCashApp:"Cash App",
  pMO:"Money order", pChk:"Cheque", pOth:"Otro", cc4:"Últimos 4 de la tarjeta", payOthD:"Describa el pago",
  payNow:"Monto que paga hoy", balDue:"Saldo pendiente",
+ planOff:"Los planes de pago los arregla la oficina, no este formulario. Si hoy no puede pagar la prima completa, llámenos al (561) 833-4388 antes de terminar y se lo preparamos.",
  balW:"Un saldo significa un plan de pago. Cualquier saldo no pagado sigue debiéndose después de la descarga de la fianza y genera intereses a la tasa máxima permitida por la ley de Florida.",
  getRcp:"🧾 Ver / guardar su recibo",
  s7t:"Firme para terminar", s7s:"Lea el acuerdo, escriba su nombre y firme con el dedo.",
@@ -765,6 +767,51 @@ function payMethodText(){const m=val('payMethod');
   if(m==='Other'&&val('payOther'))return 'Other — '+val('payOther');
   if(m==='Already Paid')return 'Already paid'+(val('paidBy')?(' — '+val('paidBy')):'');
   return m;}
+/* ═════ authorized payment-plan invite ═════
+   A payment plan exists only when the office issued one. Carlos fills out
+   /agent.html, which mints a link carrying a signed token, and the client
+   gets that link instead of the plain application.
+
+   The token is NOT trusted here. The page hands it to /api/invite-check,
+   which verifies the signature with a secret only the server holds and
+   returns the terms the office authorized. A forged, altered or expired
+   token leaves PLAN_AUTH null, and the form then behaves exactly like any
+   other public application: premium in full, no promissory note. Failing
+   closed is the whole point - a client must never be able to grant
+   themselves a plan by editing a URL. */
+var PLAN_AUTH = null;
+(async function readInvite(){
+  var tok = new URLSearchParams(location.search).get('inv');
+  if(!tok) return;
+  var d;
+  try{
+    var r = await fetch('/api/invite-check',{method:'POST',
+      headers:{'content-type':'application/json'},body:JSON.stringify({token:tok})});
+    d = await r.json();
+  }catch(e){ return; }                       // unreachable server: no plan
+  if(!d || !d.ok || !d.plan) return;
+  PLAN_AUTH = {down:Number(d.plan.down)||0, by:String(d.plan.by||''), note:String(d.plan.note||'')};
+
+  /* Whatever the office already typed, the client should not retype. */
+  try{
+    var pre = d.prefill || {};
+    Object.keys(pre).forEach(function(k){
+      var el = (typeof f!=='undefined' && f.elements) ? f.elements[k] : null;
+      if(el && !el.value && pre[k]) el.value = pre[k];
+    });
+  }catch(e){}
+
+  var n = document.getElementById('planOffice');
+  if(n) n.textContent = 'Payment plan authorized by the office'
+    + (PLAN_AUTH.by ? ' (' + PLAN_AUTH.by + ')' : '')
+    + '. You are paying ' + fmtUSD(PLAN_AUTH.down)
+    + ' today. The remaining balance is covered by the promissory note included in your signing packet.'
+    + (PLAN_AUTH.note ? ' ' + PLAN_AUTH.note : '');
+
+  try{ syncPay(); }catch(e){}
+})();
+function fmtUSD(v){ return String.fromCharCode(36) + (Number(v)||0).toLocaleString(); }
+
 function syncPay(){
   syncColl();
   $$('.paycc').forEach(e=>e.classList.toggle('hidden',val('payMethod')!=='Credit Card'));
@@ -777,8 +824,18 @@ function syncPay(){
   const prem=calc(), cc=collCash(), due=prem+cc;
   const paidEl=f.elements['amountPaid'];
   if(done && paidEl && due>0) paidEl.value=due;          // settled in full already
-  else if(paidEl&&!paidEl.value&&due>0)paidEl.value=due;
-  const paid=done?due:(parseFloat(val('amountPaid'))||0);
+  /* The amount paid is no longer the client's to choose. A payment plan is
+     the agency's decision, not the applicant's: the public form takes the
+     premium in full, full stop. PLAN_AUTH is set only after
+     /api/invite-check has verified an invite link the office issued, and
+     it carries the down payment the office authorized.
+     Before this, the box was pre-filled with the full amount but left
+     editable. Clients were deleting it, typing a few hundred dollars, and
+     the form quietly built a promissory-note packet nobody had approved. */
+  const authDown = PLAN_AUTH ? Math.max(0,Math.min(Number(PLAN_AUTH.down)||0,due)) : null;
+  if(paidEl && due>0) paidEl.value = (authDown!==null ? authDown : due);
+  if(paidEl) paidEl.readOnly = (authDown===null);
+  const paid = due>0 ? (authDown!==null ? authDown : due) : 0;
   const bal=Math.max(0,due-paid);
   const b=f.elements['balanceDue']; if(b)b.value=due>0?('$'+bal.toLocaleString()):'';
   const w=$('#balWarn'); if(w)w.classList.toggle('hidden',!(bal>0));
@@ -1646,7 +1703,7 @@ function smsConsent(){
    for no change in what actually gets signed. */
 function esignPacket(){
   const coll = collTaken();
-  const plan = (Number((syncPay()||{}).bal) || 0) > 0;   // balance owed => promissory note page
+  const plan = !!PLAN_AUTH && (Number((syncPay()||{}).bal) || 0) > 0;   // balance owed => promissory note page
   return coll ? (plan ? 'collateral_plan' : 'collateral')
               : (plan ? 'plan' : 'standard');
 }
