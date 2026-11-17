@@ -1246,17 +1246,24 @@ $('#bNext').addEventListener('click',()=>{
   /* The reader takes a few seconds. Letting them walk to the next step
      mid-read is how the scanned data used to get lost. */
   if(reading>0){ toast(LANG==='es'?'Un momento — estamos leyendo su documento…':'One moment — still reading your document…'); return; }
-  if(step===3 && vehListed() && !imgs.veh_doc){
+  /* Vehicle fields live on step 6, not 3. At step 3 vehListed() is always
+     false, so this guard never fired and vehicle proof went uncollected. */
+  if(step===6 && vehListed() && !imgs.veh_doc){
     toast(LANG==='es'?'Agregue una foto de la placa, registro o seguro del vehículo'
                      :'Please add a photo of the tag, registration or insurance for the vehicle');
     const t=document.querySelector('.vehreq'); if(t)t.scrollIntoView({behavior:'smooth',block:'center'});
     return; }
-  if(step===4 && val('social') && !imgs.soc_doc){
+  /* The screenshot field is on step 5. Firing this on step 4 trapped any
+     client who tapped a social chip: blocked from continuing, with the
+     upload one step ahead and invisible. A hard dead end. */
+  if(step===5 && val('social') && !imgs.soc_doc){
     toast(LANG==='es'?'Agregue la captura de su perfil de redes sociales'
                      :'Please add the screenshot of your social media profile');
     const t=document.querySelector('.socreq'); if(t)t.scrollIntoView({behavior:'smooth',block:'center'});
     return; }
-  if(step===6 && val('collType')==='Vehicle' && !imgs.coll_doc){
+  /* Collateral lives on the paying step (4). Firing this on step 6 was the
+     same trap in the other direction - the upload was behind them. */
+  if(step===4 && val('collType')==='Vehicle' && !imgs.coll_doc){
     toast(LANG==='es'?'Agregue la foto de la placa o registro del vehículo en garantía'
                      :'Please add the tag or registration photo for the collateral vehicle');
     return; }
