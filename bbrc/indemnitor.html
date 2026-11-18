@@ -391,7 +391,7 @@
         <div class="chip" data-v="Money Order" data-i="pMO">Money order</div>
         <div class="chip" data-v="Check" data-i="pChk">Check</div>
         <div class="chip" data-v="Other" data-i="pOth">Other</div>
-        <div class="chip" data-v="Already Paid" data-i="pDone">Already paid</div>
+        <div class="chip" data-v="Already Paid" data-i="pDone" id="chipPaid" style="display:none">Already paid</div>
       </div><input type="hidden" name="payMethod"></div>
     <div class="field paycc hidden"><label data-i="cc4">Card — last 4 digits</label><input name="ccLast4" maxlength="4" inputmode="numeric" placeholder="1234"></div>
     <div class="field payoth hidden"><label data-i="payOthD">Describe the payment</label><input name="payOther"></div>
@@ -779,7 +779,8 @@ function payMethodText(){const m=val('payMethod');
    other public application: premium in full, no promissory note. Failing
    closed is the whole point - a client must never be able to grant
    themselves a plan by editing a URL. */
-var PLAN_AUTH = null;
+var PLAN_AUTH = null;   // authorized payment plan
+var PAID_AUTH = null;   // premium already received outside the website
 (async function readInvite(){
   var tok = new URLSearchParams(location.search).get('inv');
   if(!tok) return;
@@ -788,25 +789,70 @@ var PLAN_AUTH = null;
     var r = await fetch('/api/invite-check',{method:'POST',
       headers:{'content-type':'application/json'},body:JSON.stringify({token:tok})});
     d = await r.json();
-  }catch(e){ return; }                       // unreachable server: no plan
-  if(!d || !d.ok || !d.plan) return;
-  PLAN_AUTH = {down:Number(d.plan.down)||0, by:String(d.plan.by||''), note:String(d.plan.note||'')};
+  }catch(e){ return; }                       // unreachable server: no exception
+  if(!d || !d.ok) return;
+
+  var pl = d.plan || {};
+  var el = function(n){ return (typeof f!=='undefined' && f.elements) ? f.elements[n] : null; };
+  var msg = document.getElementById('planOffice');
 
   /* Whatever the office already typed, the client should not retype. */
   try{
     var pre = d.prefill || {};
     Object.keys(pre).forEach(function(k){
-      var el = (typeof f!=='undefined' && f.elements) ? f.elements[k] : null;
-      if(el && !el.value && pre[k]) el.value = pre[k];
+      var e2 = el(k);
+      if(e2 && !e2.value && pre[k]) e2.value = pre[k];
     });
   }catch(e){}
 
-  var n = document.getElementById('planOffice');
-  if(n) n.textContent = 'Payment plan authorized by the office'
-    + (PLAN_AUTH.by ? ' (' + PLAN_AUTH.by + ')' : '')
-    + '. You are paying ' + fmtUSD(PLAN_AUTH.down)
-    + ' today. The remaining balance is covered by the promissory note included in your signing packet.'
-    + (PLAN_AUTH.note ? ' ' + PLAN_AUTH.note : '');
+  if(d.kind === 'paid'){
+    /* Money already in hand - Zelle, Cash App, cash, money order, check.
+       No checkout, no card, no amount for the client to pick. The chip is
+       revealed and every other payment method is taken away, so this is
+       the only thing the form can say about how it was paid. Clicking the
+       chip rather than setting the field directly keeps the form's own
+       handler in charge of hiding checkout and recomputing the balance. */
+    PAID_AUTH = {method:String(pl.method||''), ref:String(pl.ref||'')};
+    var hid = el('payMethod');
+    var chip = document.getElementById('chipPaid');
+    if(chip) chip.style.display = '';
+    if(hid){ if(hid.parentNode){
+      var all = hid.parentNode.querySelectorAll('.chip[data-v]');
+      for(var i=0;i<all.length;i++){
+        if(all[i].getAttribute('data-v') !== 'Already Paid') all[i].style.display = 'none';
+      }
+    }}
+    if(chip) chip.click();
+    if(hid){ if(hid.value !== 'Already Paid') hid.value = 'Already Paid'; }
+
+    var pb = el('paidBy');
+    if(pb){ if(!pb.value){
+      pb.value = (PAID_AUTH.method || 'paid outside the website')
+               + (PAID_AUTH.ref ? ' - ' + PAID_AUTH.ref : '');
+    }}
+    if(msg) msg.textContent = 'Your payment of ' + fmtUSD(pl.premium)
+      + ' has already been received' + (PAID_AUTH.method ? ' by ' + PAID_AUTH.method.toLowerCase() : '')
+      + (PAID_AUTH.ref ? ' (' + PAID_AUTH.ref + ')' : '')
+      + '. There is nothing to pay here - this link is the paperwork only. If anything on this page asks you for a card, stop and call (561) 833-4388.'
+      + (pl.note ? ' ' + pl.note : '');
+
+  } else if(d.kind === 'plan'){
+    PLAN_AUTH = {down:Number(pl.down)||0, by:String(pl.by||''), note:String(pl.note||'')};
+    if(msg) msg.textContent = 'Payment plan authorized by the office'
+      + (PLAN_AUTH.by ? ' (' + PLAN_AUTH.by + ')' : '')
+      + '. You are paying ' + fmtUSD(PLAN_AUTH.down)
+      + ' today. The remaining balance is covered by the promissory note included in your signing packet.'
+      + (PLAN_AUTH.note ? ' ' + PLAN_AUTH.note : '');
+  }
+
+  /* An invite that has already produced a packet usually means someone
+     reopened an old email. Say so rather than letting them quietly file
+     a second application against the same bond. */
+  if(d.alreadySubmitted){ if(msg){
+    msg.textContent = 'This link has already been used to submit an application for this bond. '
+      + 'If you meant to start over, call (561) 833-4388 first so you do not end up with two files. '
+      + msg.textContent;
+  }}
 
   try{ syncPay(); }catch(e){}
 })();

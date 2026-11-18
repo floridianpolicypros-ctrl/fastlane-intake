@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Agent — issue an intake link</title>
+<!--
+  AGENT CONSOLE
+  ------------------------------------------------------------------
+  This page is where the two exceptions to "premium in full" come
+  from. It holds no secrets and makes no decisions: everything it
+  submits is re-checked by /api/agent-invite against AGENT_PASSCODE
+  on the server, so the page being public costs nothing. The passcode
+  lives in sessionStorage only, which means closing the tab forgets
+  it - deliberate, since this gets used on a phone at 3am.
+
+  noindex is belt and braces; the real protection is the passcode.
+-->
+<style>
+  :root{
+    --ink:#0f1720; --mut:#5b6b7a; --line:#dde5ec; --bg:#f4f7f9;
+    --brand:#0b3d6b; --go:#0a7d3c; --warn:#8a4b00; --bad:#a51f1f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:720px;margin:0 auto;padding:20px 16px 72px}
+  header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:8px 0 18px}
+  h1{font-size:21px;margin:0;letter-spacing:-.2px}
+  .tag{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+       color:#fff;background:var(--brand);padding:3px 8px;border-radius:4px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;margin:0 0 16px}
+  .card h2{font-size:14px;margin:0 0 14px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+  label{display:block;font-size:13px;font-weight:600;margin:0 0 5px}
+  .req:after{content:" *";color:var(--bad)}
+  input,select,textarea{width:100%;font:inherit;padding:11px 12px;border:1px solid var(--line);
+       border-radius:8px;background:#fff;color:var(--ink);-webkit-appearance:none}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:-1px;border-color:var(--brand)}
+  input[readonly]{background:#f2f5f7;color:var(--mut)}
+  textarea{min-height:68px;resize:vertical}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid .full{grid-column:1/-1}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  .hint{font-size:12.5px;color:var(--mut);margin:5px 0 0}
+  .kinds{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 4px}
+  @media(max-width:560px){.kinds{grid-template-columns:1fr}}
+  .kind{border:2px solid var(--line);border-radius:10px;padding:14px;cursor:pointer;background:#fff;text-align:left}
+  .kind:hover{border-color:#b9c9d6}
+  .kind.on{border-color:var(--brand);background:#f0f6fb}
+  .kind b{display:block;font-size:15px;margin:0 0 4px}
+  .kind span{font-size:12.5px;color:var(--mut);display:block}
+  button.go{width:100%;font:600 17px/1 inherit;padding:16px;border:0;border-radius:10px;
+       background:var(--brand);color:#fff;cursor:pointer}
+  button.go:disabled{opacity:.5;cursor:default}
+  .out{display:none;border-radius:10px;padding:14px;margin:0 0 16px;font-size:14.5px;border:1px solid}
+  .out.ok{display:block;background:#eef9f1;border-color:#bfe3cb;color:#0a4d24}
+  .out.err{display:block;background:#fdf0f0;border-color:#efc6c6;color:#7d1818}
+  .out.warn{display:block;background:#fff8ec;border-color:#f0dcba;color:#6d3e00}
+  .out b{display:block;margin:0 0 6px}
+  .link{display:block;word-break:break-all;background:#fff;border:1px solid var(--line);
+        border-radius:7px;padding:10px;margin:10px 0 0;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace}
+  .row{display:flex;gap:10px;margin:10px 0 0;flex-wrap:wrap}
+  .row button{flex:1;min-width:130px;font:600 14px/1 inherit;padding:11px;border:1px solid var(--line);
+       border-radius:8px;background:#fff;cursor:pointer}
+  .totals{font:13.5px/1.9 ui-monospace,Menlo,Consolas,monospace;background:#f7fafc;
+       border:1px solid var(--line);border-radius:8px;padding:12px;margin:12px 0 0}
+  .totals .bal{color:var(--warn);font-weight:700}
+  .hidden{display:none!important}
+  footer{color:var(--mut);font-size:12.5px;text-align:center;margin:22px 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="tag">Office only</span>
+  <h1>Issue an intake link</h1>
+</header>
+
+<div class="out" id="out"></div>
+
+<!-- ============ passcode ============ -->
+<div class="card" id="lockCard">
+  <h2>Passcode</h2>
+  <label class="req" for="pc">Agent passcode</label>
+  <input id="pc" type="password" autocomplete="current-password" inputmode="text">
+  <p class="hint">Checked on the server every time you issue a link. It is kept for this tab only &mdash; close the tab and it is forgotten.</p>
+</div>
+
+<!-- ============ what ============ -->
+<div class="card">
+  <h2>What are you authorizing?</h2>
+  <div class="kinds">
+    <button type="button" class="kind on" id="kPlan" data-kind="plan">
+      <b>Payment plan</b>
+      <span>They are paying part today and owe a balance. The form shows the down payment you set, locked, and the packet carries the promissory note.</span>
+    </button>
+    <button type="button" class="kind" id="kPaid" data-kind="paid">
+      <b>Already paid &mdash; paperwork only</b>
+      <span>Zelle, Cash App, cash, money order. No checkout and no card on the form. Straight to the signatures.</span>
+    </button>
+  </div>
+  <p class="hint">Neither of these exists on the public link. The public link always takes the premium in full through Clover.</p>
+</div>
+
+<!-- ============ who ============ -->
+<div class="card">
+  <h2>The file</h2>
+  <div class="grid">
+    <div class="full">
+      <label class="req" for="defName">Defendant &mdash; full name</label>
+      <input id="defName" autocomplete="off">
+    </div>
+    <div>
+      <label class="req" for="firstName">Indemnitor first name</label>
+      <input id="firstName" autocomplete="off">
+    </div>
+    <div>
+      <label class="req" for="lastName">Indemnitor last name</label>
+      <input id="lastName" autocomplete="off">
+    </div>
+    <div class="full">
+      <label class="req" for="email">Indemnitor email</label>
+      <input id="email" type="email" inputmode="email" autocomplete="off">
+      <p class="hint">This is where the link goes, and it is the address BoldSign will use to collect the signatures. Get it right.</p>
+    </div>
+    <div>
+      <label for="phone">Indemnitor cell</label>
+      <input id="phone" type="tel" inputmode="tel" autocomplete="off">
+    </div>
+    <div>
+      <label for="days">Link good for</label>
+      <select id="days">
+        <option value="1">1 day</option>
+        <option value="3" selected>3 days</option>
+        <option value="7">7 days</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- ============ money ============ -->
+<div class="card">
+  <h2>The money</h2>
+  <div class="grid">
+    <div>
+      <label class="req" for="bond">Bond amount</label>
+      <input id="bond" type="number" min="0" step="1" inputmode="decimal">
+    </div>
+    <div>
+      <label class="req" for="premium">Premium</label>
+      <input id="premium" type="number" min="0" step="0.01" inputmode="decimal">
+      <p class="hint" id="premHint">10% of the bond, $150 minimum. Change it if you are writing it differently.</p>
+    </div>
+
+    <div id="downWrap">
+      <label class="req" for="down">Down payment today</label>
+      <input id="down" type="number" min="0" step="0.01" inputmode="decimal">
+    </div>
+
+    <div id="methodWrap" class="hidden">
+      <label class="req" for="payMethod">How was it paid?</label>
+      <select id="payMethod">
+        <option value="">Choose&hellip;</option>
+        <option>Zelle</option>
+        <option>Cash App</option>
+        <option>Cash</option>
+        <option>Money order</option>
+        <option>Check</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div id="refWrap" class="hidden">
+      <label for="payRef">Reference / confirmation</label>
+      <input id="payRef" autocomplete="off" placeholder="e.g. Zelle conf. 8831, or cash at office">
+    </div>
+
+    <div class="full">
+      <label for="note">Note to the client <span style="font-weight:400;color:var(--mut)">(optional, appears in their email)</span></label>
+      <textarea id="note" placeholder="e.g. Balance of $400 due in two payments, Dec 1 and Dec 15."></textarea>
+    </div>
+  </div>
+  <div class="totals" id="totals"></div>
+</div>
+
+<button class="go" id="issue">Issue the link and email it</button>
+
+<footer>
+  Bail Bond Release Center of the Palm Beaches &middot; Carlos Sevilla, FL Bail Agent Lic. #P204302
+</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var kind = "plan";
+
+  /* ---- passcode: remembered for the tab, never for the device ---- */
+  try{
+    var saved = sessionStorage.getItem("bbrc_pc");
+    if(saved){ $("pc").value = saved; }
+  }catch(e){}
+
+  /* ---- which kind ---- */
+  function setKind(k){
+    kind = k;
+    $("kPlan").classList.toggle("on", k === "plan");
+    $("kPaid").classList.toggle("on", k === "paid");
+    $("downWrap").classList.toggle("hidden", k !== "plan");
+    $("methodWrap").classList.toggle("hidden", k !== "paid");
+    $("refWrap").classList.toggle("hidden", k !== "paid");
+    totals();
+  }
+  $("kPlan").addEventListener("click", function(){ setKind("plan"); });
+  $("kPaid").addEventListener("click", function(){ setKind("paid"); });
+
+  /* ---- premium suggestion: 10% of the bond, $150 floor ----
+     Suggested, never forced. Carlos writes files that do not fit the
+     formula, and a field that fights him is a field he works around. */
+  var premTouched = false;
+  $("premium").addEventListener("input", function(){ premTouched = true; totals(); });
+  $("bond").addEventListener("input", function(){
+    var b = num($("bond").value);
+    if(!premTouched && b > 0){ $("premium").value = Math.max(150, Math.round(b * 0.10 * 100) / 100); }
+    totals();
+  });
+  ["down","payMethod","payRef"].forEach(function(id){
+    $(id).addEventListener("input", totals);
+    $(id).addEventListener("change", totals);
+  });
+
+  $("payMethod").addEventListener("change", function(){
+    var other = $("payMethod").value === "Other";
+    $("payRef").placeholder = other ? "Required - describe how it was paid" : "e.g. Zelle conf. 8831, or cash at office";
+  });
+
+  function totals(){
+    var prem = num($("premium").value), down = num($("down").value), bond = num($("bond").value);
+    var t = "";
+    if(kind === "plan"){
+      var bal = Math.max(0, prem - down);
+      t = "Bond ......... " + usd(bond) + "\n"
+        + "Premium ...... " + usd(prem) + "\n"
+        + "Due today .... " + usd(down) + "\n"
+        + "Balance ...... " + usd(bal);
+      $("totals").innerHTML = esc(t).replace(/\n/g, "<br>")
+        .replace("Balance ...... " + esc(usd(bal)), '<span class="bal">Balance ...... ' + esc(usd(bal)) + "</span>");
+      return;
+    }
+    t = "Bond ......... " + usd(bond) + "\n"
+      + "Premium ...... " + usd(prem) + "\n"
+      + "Received ..... " + usd(prem) + ($("payMethod").value ? " by " + $("payMethod").value : "") + "\n"
+      + "Balance ...... $0.00";
+    $("totals").innerHTML = esc(t).replace(/\n/g, "<br>");
+  }
+
+  /* ---- issue ---- */
+  $("issue").addEventListener("click", function(){
+    var btn = this;
+    var body = {
+      passcode:  $("pc").value,
+      kind:      kind,
+      defName:   $("defName").value,
+      firstName: $("firstName").value,
+      lastName:  $("lastName").value,
+      email:     $("email").value,
+      phone:     $("phone").value,
+      bond:      $("bond").value,
+      premium:   $("premium").value,
+      down:      kind === "plan" ? $("down").value : "",
+      payMethod: kind === "paid" ? $("payMethod").value : "",
+      payRef:    kind === "paid" ? $("payRef").value : "",
+      note:      $("note").value,
+      days:      $("days").value,
+      by:        "Carlos Sevilla"
+    };
+
+    /* Caught here only to save a round trip; the server checks all of
+       this again and does not trust a single character of it. */
+    var miss = [];
+    if(!body.passcode)  miss.push("the passcode");
+    if(!body.defName)   miss.push("the defendant's name");
+    if(!body.firstName || !body.lastName) miss.push("the indemnitor's name");
+    if(!body.email)     miss.push("the indemnitor's email");
+    if(num(body.bond) <= 0)    miss.push("the bond amount");
+    if(num(body.premium) <= 0) miss.push("the premium");
+    if(kind === "plan" && num(body.down) <= 0)  miss.push("the down payment");
+    if(kind === "paid" && !body.payMethod)      miss.push("how it was paid");
+    if(miss.length){ show("err", "Still need " + list(miss) + "."); return; }
+
+    if(kind === "plan" && num(body.down) >= num(body.premium)){
+      show("err", "That down payment covers the whole premium. If they are paying in full, send them the normal application link instead.");
+      return;
+    }
+
+    btn.disabled = true; btn.textContent = "Issuing…";
+    fetch("/api/agent-invite", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body)
+    })
+    .then(function(r){ return r.json().catch(function(){ return { ok:false, error:"The server returned something that was not JSON (HTTP " + r.status + ")." }; }); })
+    .then(function(d){
+      btn.disabled = false; btn.textContent = "Issue the link and email it";
+      if(!d || !d.ok){ show("err", (d && d.error) || "The link was not issued."); return; }
+
+      try{ sessionStorage.setItem("bbrc_pc", body.passcode); }catch(e){}
+
+      var head = d.clientEmailed
+        ? "Link issued and emailed to " + body.email
+        : "Link issued — but the email did NOT send";
+      var msg = d.clientEmailed
+        ? "They have it. You have a copy in the BBRC inbox as the authorization record."
+        : "Reason: " + (d.clientEmailError || "unknown") + ". Copy the link below and send it yourself.";
+
+      show(d.clientEmailed ? "ok" : "warn", head, msg, d.link);
+    })
+    .catch(function(e){
+      btn.disabled = false; btn.textContent = "Issue the link and email it";
+      show("err", "Could not reach the server: " + (e && e.message ? e.message : e));
+    });
+  });
+
+  /* ---- output ---- */
+  function show(cls, head, msg, link){
+    var o = $("out");
+    o.className = "out " + cls;
+    o.textContent = "";
+    var b = document.createElement("b"); b.textContent = head; o.appendChild(b);
+    if(msg){ o.appendChild(document.createTextNode(msg)); }
+    if(link){
+      var a = document.createElement("div"); a.className = "link"; a.textContent = link; o.appendChild(a);
+      var row = document.createElement("div"); row.className = "row";
+
+      var copy = document.createElement("button");
+      copy.type = "button"; copy.textContent = "Copy link";
+      copy.addEventListener("click", function(){
+        var done = function(){ copy.textContent = "Copied"; setTimeout(function(){ copy.textContent = "Copy link"; }, 1600); };
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(link).then(done, fallback);
+        } else { fallback(); }
+        function fallback(){
+          var ta = document.createElement("textarea");
+          ta.value = link; document.body.appendChild(ta); ta.select();
+          try{ document.execCommand("copy"); done(); }catch(e){}
+          document.body.removeChild(ta);
+        }
+      });
+      row.appendChild(copy);
+
+      /* Texting the client the link is usually faster than email at 3am,
+         so make that one tap rather than a copy-paste dance. */
+      var ph = $("phone").value.replace(/\D/g, "");
+      if(ph.length >= 10){
+        var sms = document.createElement("button");
+        sms.type = "button"; sms.textContent = "Text it to them";
+        sms.addEventListener("click", function(){
+          location.href = "sms:+1" + ph.slice(-10) + "?&body=" + encodeURIComponent(
+            "Bail Bond Release Center - your paperwork link: " + link);
+        });
+        row.appendChild(sms);
+      }
+
+      var open = document.createElement("button");
+      open.type = "button"; open.textContent = "Open it myself";
+      open.addEventListener("click", function(){ window.open(link, "_blank", "noopener"); });
+      row.appendChild(open);
+
+      o.appendChild(row);
+    }
+    o.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function num(v){ var x = parseFloat(String(v == null ? "" : v).replace(/[^0-9.\-]/g, "")); return isFinite(x) ? x : 0; }
+  function usd(v){ return "$" + (Number(v) || 0).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+  function esc(s){ return String(s).replace(/[\x26<>"]/g, function(c){ return { "\x26":"\x26amp;", "<":"\x26lt;", ">":"\x26gt;", '"':"\x26quot;" }[c]; }); }
+  function list(a){ return a.length < 2 ? a[0] : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]; }
+
+  setKind("plan");
+})();
+</script>
+</body>
+</html>
