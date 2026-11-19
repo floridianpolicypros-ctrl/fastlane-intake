@@ -832,14 +832,15 @@ var PAID_STANDING = false;  // standing link: the applicant states how they paid
     }}}
     var standing = !PAID_AUTH.method;
     if(standing){
-      /* Nothing was pre-filled, so the applicant tells us - and must. */
-      if(pb) pb.setAttribute('required','required');
+      /* The box stays, and anything they volunteer is kept, but it is not
+         a gate: the agency confirmed the money before this link was sent,
+         so there is nothing for the client to prove. A sensible default
+         goes in so the file still says where the payment came from. */
       PAID_STANDING = true;
-      if(msg) msg.textContent = 'This link is the paperwork only - nothing is collected here, '
-        + 'because the premium has already been settled with our office. Tell us below exactly '
-        + 'how you paid it (Zelle, Cash App, cash, money order or check) and any confirmation '
-        + 'number, so we can match it to your file. If anything on this page asks you for a '
-        + 'card, stop and call (561) 833-4388.';
+      if(pb){ if(!pb.value) pb.value = 'Paid outside the website - confirmed by the agency before this link was sent'; }
+      if(msg) msg.textContent = 'Your payment has already been received, so there is nothing to '
+        + 'pay here - this link is the paperwork only. Just finish the application and sign. '
+        + 'If anything on this page asks you for a card, stop and call (561) 833-4388.';
     } else if(msg){
       msg.textContent = 'Your payment of ' + fmtUSD(pl.premium)
         + ' has already been received' + (PAID_AUTH.method ? ' by ' + PAID_AUTH.method.toLowerCase() : '')
@@ -1389,13 +1390,6 @@ $('#bNext').addEventListener('click',()=>{
   if(step===4 && val('collType')==='Vehicle' && !imgs.coll_doc){
     toast(LANG==='es'?'Agregue la foto de la placa o registro del vehículo en garantía'
                      :'Please add the tag or registration photo for the collateral vehicle');
-    return; }
-  /* Standing paperwork-only link: no figures were pre-filled and no
-     card is taken, so the applicant's own statement of how they paid is
-     the only record of the money. It is not optional. */
-  if(step===4 && PAID_STANDING && !val('paidBy')){
-    toast(LANG==='es'?'Dí­ganos cómo se pagó la prima (Zelle, Cash App, efectivo, money order o cheque) y el número de confirmación'
-                     :'Please tell us how the premium was paid (Zelle, Cash App, cash, money order or check) and any confirmation number');
     return; }
   const m=firstMissing();
   if(m){const lbls={defName:LANG==='es'?'nombre del acusado':'name of person in jail',bond:LANG==='es'?'monto total de la fianza':'total bond amount',hold:LANG==='es'?'si hay una retención (hold)':'whether there is a hold',payMethod:LANG==='es'?'forma de pago':'how you are paying',collType:LANG==='es'?'si hay garantía (colateral)':'whether collateral is being put up',
