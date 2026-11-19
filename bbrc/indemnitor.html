@@ -952,7 +952,15 @@ $$('[data-chip]').forEach(box=>{const n=box.getAttribute('data-chip');
   box.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
     box.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');
     f.elements[n].value=c.getAttribute('data-v');syncCond();review();}));});
-function needsApproval(){const h=val('hold');return !!h && h!=='No hold';}
+/* "Not sure" is the honest answer from a sister at 1am who has no way to
+   know, and it used to be treated exactly like a confirmed ICE hold: the
+   application stopped on "pending approval" AND the Pay now button was
+   hidden. That stalled files that were perfectly payable and collected
+   nothing. A hold is verified by the agent before the bond is posted
+   either way, so an unknown one no longer stops the client - it is tagged
+   on the agency copy instead. Confirmed holds still stop hard. */
+function needsApproval(){const h=val('hold');return !!h && h!=='No hold' && h!=='Not sure';}
+function holdUnknown(){return val('hold')==='Not sure';}
 function vehListed(){return !!(val('autoYMM')||val('autoPlate')||val('autoState')||val('autoOwed'));}
 function syncCond(){
   syncPay();
@@ -1446,6 +1454,7 @@ function pdf(prem){const{jsPDF}=window.jspdf;const d=new jsPDF({unit:'pt',format
   S('BOND');
   R('Defendant',val('defName'));R('Jail / County',val('jail'));R('HOLD',val('hold')||'not answered');
   if(needsApproval())R('*** REQUIRES AGENT APPROVAL','Hold present — approve before proceeding; may require FULL bond ***');
+  if(holdUnknown())R('*** HOLD UNKNOWN','The applicant did not know whether there is a hold. The application was allowed to proceed. Verify with the jail before posting ***');
   R('Arrest date',val('arrestDate'));
   R('Booking #',val('booking'));R('Charges',val('charges'));
   R('Bond total','$'+(Number(val('bond'))||0).toLocaleString());
@@ -1879,7 +1888,7 @@ async function submit(){
            +'\nNo automatic confirmation exists for this method. Check the app and match the note.')
         : '')
     +((window.__recTmp||window.__collTmp)?'\n\n*** NUMBERING WARNING ***\nThe sequential counter could not be reached, so a TMP number was issued.\nThis number is NOT part of the consecutive series. Reissue a numbered\nreceipt manually and record the correction.':'');
-  const subj=(needsApproval()?'[HOLD — APPROVAL NEEDED] ':'')+(val('collType')==='Real Estate'?'[MORTGAGE NEEDED] ':(collTaken()?'[COLLATERAL] ':''))+(outOfState()?'[OUT-OF-STATE ID] ':'')+'Indemnitor Application — '+val('defName');
+  const subj=(needsApproval()?'[HOLD — APPROVAL NEEDED] ':'')+(holdUnknown()?'[HOLD UNKNOWN — VERIFY] ':'')+(val('collType')==='Real Estate'?'[MORTGAGE NEEDED] ':(collTaken()?'[COLLATERAL] ':''))+(outOfState()?'[OUT-OF-STATE ID] ':'')+'Indemnitor Application — '+val('defName');
   let sent=false;
   if(doc&&CONFIG.sendEndpoint.indexOf('REPLACE')<0){
     try{
