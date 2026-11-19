@@ -52,6 +52,10 @@ export async function onRequestPost(context) {
   const dob       = clean(b.dob, 12);
   const phone     = digits(b.phone, 15);
   const email     = clean(b.email, 160).toLowerCase();
+  const caseType  = clean(b.caseType, 8).toUpperCase();
+  const ref       = clean(b.ref, 40);
+  const situation = clean(b.situation, 20);
+  const note      = clean(b.note, 600);
 
   if (!lastName)  return j({ ok: false, error: "Last name is required." }, 400);
   if (!firstName) return j({ ok: false, error: "First name is required." }, 400);
@@ -60,11 +64,35 @@ export async function onRequestPost(context) {
      site or a closed tab must never be the reason Carlos never hears that
      somebody with a warrant was asking about him at 1am. */
   const who =
-    "Name ....... " + firstName + " " + lastName + "\n" +
-    "DOB ........ " + (dob || "(not given)") + "\n" +
-    "Phone ...... " + (phone || "(not given)") + "\n" +
-    "Email ...... " + (email || "(not given)") + "\n" +
-    "Asked at ... " + stamp(Date.now());
+    "Name ........... " + firstName + " " + lastName + "\n" +
+    "DOB ............ " + (dob || "(not given)") + "\n" +
+    "Phone .......... " + (phone || "(not given)") + "\n" +
+    "Email .......... " + (email || "(not given)") + "\n" +
+    "Situation ...... " + (situation || "(not given)") + "\n" +
+    "Case type ...... " + (caseType || "(not given)") + "\n" +
+    "Case/citation .. " + (ref || "(not given)") + "\n" +
+    "Asked at ....... " + stamp(Date.now());
+
+  /* A lead with no search behind it. Two routes arrive here: a new charge,
+     where nothing exists in the court records for 30 to 60 days and the
+     warrants department has to be phoned; and anyone who chose not to wait.
+     Both need a human and a callback, so the alert says so in the subject
+     rather than looking like a search that produced nothing. */
+  if (b.leadOnly) {
+    const isNew = situation === "new";
+    await alert(env,
+      "CALL REQUIRED — " + firstName + " " + lastName +
+        (isNew ? " — new charge" : " — staff check"),
+      (isNew
+        ? "A new charge was submitted. Nothing will be in the Clerk's records for 30 to 60 days, so this one needs the warrants department called direct.\n\n"
+        : "Somebody asked for a staff check rather than waiting for the live search.\n\n") +
+      who + (note ? ("\n\nWhat they told us:\n" + note) : "") +
+      "\n\nThey were told the office calls back Monday to Friday, 9:00 to 4:30, excluding holidays.");
+    return j({
+      ok: true, checked: false, lead: true,
+      message: "We have your details. The office will call you back during business hours."
+    });
+  }
 
   context.waitUntil(alert(env,
     "WARRANT CHECK STARTED — " + firstName + " " + lastName,
@@ -79,7 +107,12 @@ export async function onRequestPost(context) {
     const r = await fetch(origin + "/api/verify", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ provider: "clerk", lastName, firstName })
+      /* caseType is passed through because the Clerk search picks which case
+         to open from the case number, and the old filter matched only -CF-
+         and -MM-. Criminal traffic never matched, so the DWLS and
+         no-registration cases - the ones most likely to be a walk-through -
+         were skipped silently. */
+      body: JSON.stringify({ provider: "clerk", lastName, firstName, caseType })
     });
     const d = await r.json();
     if (!d || d.ok !== true) throw new Error((d && d.error) || ("Lookup returned HTTP " + r.status));

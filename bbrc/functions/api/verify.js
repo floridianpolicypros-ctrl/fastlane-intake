@@ -7,7 +7,7 @@ export async function onRequestPost(context) {
     if (!env || !env.SCRAPINGBEE_KEY) return j({ ok:false, error:"Court lookup is not configured" });
     const lastName = clean(b.lastName), firstName = clean(b.firstName);
     if (!lastName) return j({ ok:false, error:"lastName required" });
-    try { return j({ ok:true, source:"PBC Clerk of Court", ...(await clerk(lastName, firstName, !!b.debug, env)) }); }
+    try { return j({ ok:true, source:"PBC Clerk of Court", ...(await clerk(lastName, firstName, clean(b.caseType), !!b.debug, env)) }); }
     catch(e){ return j({ ok:false, source:"PBC Clerk of Court", error:String(e&&e.message||e) }); }
   }
   if (provider !== "pbso") return j({ ok:false, error:"No automatic lookup for this jail yet" });
@@ -174,7 +174,18 @@ async function pbsoViaBee(lastName, firstName, days, debug, env, probe){
    One ScrapingBee session walks: guest entry -> name search -> open case ->
    Arrests & Bonds tab. It must be a single session because eCaseView keeps the
    selected case in server-side state, not in the URL. */
-async function clerk(lastName, firstName, debug, env){
+/* The Clerk writes the case type into the case number, so this is the only
+   handle we have on which case to open. TR covers traffic infractions. */
+function caseFilter(t){
+  switch(String(t||"").toUpperCase()){
+    case "CT":  return "-CT-";
+    case "MM":  return "-MM-";
+    case "CF":  return "-CF-";
+    case "INF": return "-TR-";
+    default:    return "-(CT|MM|CF|TR)-";
+  }
+}
+async function clerk(lastName, firstName, caseType, debug, env){
   const q = s => String(s||"").replace(/['\\]/g,"");
   const steps = [
     { wait: 2000 },
@@ -198,9 +209,18 @@ async function clerk(lastName, firstName, debug, env){
         "set('SearchRequest_FirstName','" + q(firstName) + "');" +
         "if(f)f.submit();" },
     { wait: 4000 },
-    /* Take the newest criminal case: felony/misdemeanour rows carry -CF- or -MM-. */
+    /* Which case to open. This used to match only -CF- and -MM-, so criminal
+       traffic never matched and the DWLS and no-registration cases - the ones
+       most likely to be a walk-through - were skipped in silence while the
+       scrape carried on and reported nothing found.
+       When the caller names a case type we try that first and fall back to any
+       criminal case, so a client who picks the wrong type from a dropdown
+       still gets an answer instead of a blank. */
     { evaluate:
-        "var ls=[].slice.call(document.querySelectorAll('a')).filter(function(x){return /-(CF|MM)-/.test(x.textContent||'');});" +
+        "var want=" + JSON.stringify(caseFilter(caseType)) + ";" +
+        "var as=[].slice.call(document.querySelectorAll('a'));" +
+        "var hit=function(re){return as.filter(function(x){return new RegExp(re).test(x.textContent||'');});};" +
+        "var ls=hit(want); if(!ls.length)ls=hit('-(CT|MM|CF|TR)-');" +
         "if(ls[0])ls[0].click();" },
     { wait: 5000 },
     { evaluate: "var t=[].slice.call(document.querySelectorAll('a')).filter(function(x){return /Arrests\\s*&\\s*Bonds|Arrests and Bonds/i.test(x.textContent||'');}); if(t[0])t[0].click();" },

@@ -12,90 +12,159 @@
    Carlos takes whoever turns up inside the window rather than
    handing out appointment times he then has to keep. So a booking
    is a DAY, not a time, and the confirmation says "arrive between
-   12:30 and 2:30" in every place it appears.
+   12:30 and 2:30" everywhere it appears.
+
+   THE CO-SIGNER IS THE POINT
+
+   A defendant cannot indemnify their own bond. If the booking
+   carries a co-signer's email, that person is emailed the
+   indemnitor application and the defendant is pointed at the
+   defendant application — two different packets against one file.
+   Without a co-signer the booking still stands, because turning
+   someone away at this stage loses them entirely; the office sorts
+   the co-signer when they arrive.
+
+   DOCUMENTS ARRIVE WITH THE BOOKING
+
+   The court event form, licence and selfie are attached to the
+   agency email rather than requested afterwards. "Email us your
+   paperwork" is where these files go to die.
 
    WHY THE CALENDAR ENTRY IS AN .ics ATTACHMENT
 
    Writing to Google Calendar from here would need an OAuth client,
-   a refresh token in Cloudflare, and a token refresh path that
-   silently rots the first time the grant is revoked. A standard
-   .ics on the confirmation email gets the same event onto the same
-   calendar with one tap in Gmail, and there is nothing to expire.
-   The simpler mechanism is the one that will still work in a year.
+   a refresh token in Cloudflare, and a refresh path that silently
+   rots the first time the grant is revoked. A standard .ics gets
+   the same event onto the same calendar with one tap in Gmail, and
+   there is nothing to expire.
 
    THE DATE IS RE-CHECKED HERE
 
    The page only offers valid days, but the page is the client's
    copy and anyone can post whatever they like to this URL. A
-   Sunday, a date in the past, or one six months out is refused on
-   the server, where it cannot be edited away.
+   Sunday, a past date, or one six months out is refused on the
+   server, where it cannot be edited away.
    ============================================================ */
 
 const TZ         = "America/New_York";
 const WINDOW     = "12:30 PM to 2:30 PM";
 const OFFICE     = "800 S. Congress Ave, West Palm Beach, FL 33406";
 const OFFICE_TEL = "(561) 833-4388";
-const MAX_AHEAD  = 60;                       // days; beyond this it is not a booking, it is a wish
+const MAX_AHEAD  = 60;                    // days; beyond this it is a wish, not a booking
+const MAX_DOC    = 6 * 1024 * 1024;       // per file, before base64 inflation
+const MAX_TOTAL  = 14 * 1024 * 1024;      // Resend rejects oversized payloads outright
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   let b; try { b = await request.json(); } catch { return j({ ok: false, error: "Bad JSON" }, 400); }
 
-  const name  = clean(b.name, 120);
-  const phone = digits(b.phone, 15);
-  const email = clean(b.email, 160).toLowerCase();
-  const date  = clean(b.date, 10);                       // YYYY-MM-DD
-  const note  = clean(b.note, 600);                      // warrant-check summary, usually
-  const dobIn = clean(b.dob, 12);
+  const name     = clean(b.name, 120);
+  const phone    = digits(b.phone, 15);
+  const email    = clean(b.email, 160).toLowerCase();
+  const date     = clean(b.date, 10);
+  const note     = clean(b.note, 600);
+  const dobIn    = clean(b.dob, 12);
+  const caseType = clean(b.caseType, 8).toUpperCase();
+  const ref      = clean(b.ref, 40);
+  const indem    = clean(b.indemnitorEmail, 160).toLowerCase();
 
-  if (!name)            return j({ ok: false, error: "Please give us your full name." }, 400);
+  if (!name)             return j({ ok: false, error: "Please give us your full name." }, 400);
   if (phone.length < 10) return j({ ok: false, error: "Please give us a phone number we can reach you on." }, 400);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
-                        return j({ ok: false, error: "Please choose a date." }, 400);
+                         return j({ ok: false, error: "Please choose a date." }, 400);
+  if (indem && !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(indem))
+                         return j({ ok: false, error: "That co-signer email does not look right." }, 400);
 
   /* Parsed at noon UTC so a timezone shift can never roll the date onto the
      day before and turn a Monday into a Sunday. */
   const d = new Date(date + "T12:00:00Z");
   if (isNaN(d.getTime())) return j({ ok: false, error: "That date did not make sense." }, 400);
-
-  const dow = d.getUTCDay();                             // 0 Sun ... 6 Sat
-  if (dow === 0) {
+  if (d.getUTCDay() === 0)
     return j({ ok: false, error: "We do not do walkthroughs on Sundays. Please choose Monday to Saturday, or call " + OFFICE_TEL + "." }, 400);
-  }
 
   const today = new Date(); today.setUTCHours(12, 0, 0, 0);
   const days  = Math.round((d - today) / 86400000);
-  if (days < 0)          return j({ ok: false, error: "That date has already passed. Please choose another, or call " + OFFICE_TEL + "." }, 400);
-  if (days > MAX_AHEAD)  return j({ ok: false, error: "That is too far out to book. Please choose a date within the next two months, or call " + OFFICE_TEL + "." }, 400);
+  if (days < 0)         return j({ ok: false, error: "That date has already passed. Please choose another, or call " + OFFICE_TEL + "." }, 400);
+  if (days > MAX_AHEAD) return j({ ok: false, error: "That is too far out to book. Please choose a date within the next two months, or call " + OFFICE_TEL + "." }, 400);
 
   const pretty = d.toLocaleDateString("en-US",
     { timeZone: "UTC", weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-  /* ---- what Carlos gets ---- */
+  /* ---- documents ---- */
+  const attachments = [];
+  let total = 0;
+  const wanted = [["court", "Court-event-form"], ["dl", "Drivers-licence"], ["selfie", "Selfie"]];
+  const got = [];
+  for (const [key, label] of wanted) {
+    const doc = b.docs && b.docs[key];
+    if (!doc || !doc.data) continue;
+    const size = Math.floor(String(doc.data).length * 0.75);
+    if (size > MAX_DOC || total + size > MAX_TOTAL) { got.push(label + " (too large, not attached)"); continue; }
+    total += size;
+    attachments.push({ filename: label + "-" + safeName(name) + ext(doc.name, doc.type), content: String(doc.data) });
+    got.push(label);
+  }
+
+  /* ---- what the office gets ---- */
   const body =
     "A walkthrough has been booked on the website.\n\n" +
-    "Name ....... " + name + "\n" +
-    "DOB ........ " + (dobIn || "(not given)") + "\n" +
-    "Phone ...... " + (phone || "(not given)") + "\n" +
-    "Email ...... " + (email || "(not given)") + "\n" +
-    "Day ........ " + pretty + "\n" +
-    "Window ..... " + WINDOW + "\n" +
-    "Booked at .. " + stamp(Date.now()) + "\n\n" +
+    "Name ........... " + name + "\n" +
+    "DOB ............ " + (dobIn || "(not given)") + "\n" +
+    "Phone .......... " + (phone || "(not given)") + "\n" +
+    "Email .......... " + (email || "(not given)") + "\n" +
+    "Case type ...... " + (caseType || "(not given)") + "\n" +
+    "Case/citation .. " + (ref || "(not given)") + "\n" +
+    "Day ............ " + pretty + "\n" +
+    "Window ......... " + WINDOW + "\n" +
+    "Co-signer ...... " + (indem || "NONE GIVEN \u2014 they still need one") + "\n" +
+    "Documents ...... " + (got.length ? got.join(", ") : "none attached") + "\n" +
+    "Booked at ...... " + stamp(Date.now()) + "\n\n" +
     (note ? ("Warrant check at the time of booking:\n" + note + "\n\n") : "") +
-    "No time was promised - they were told to arrive inside the window.";
+    (caseType === "CF"
+      ? "FELONY \u2014 confirm whether a bond was set before promising a release. A no-bond warrant needs a motion to recall.\n\n"
+      : "") +
+    "No time was promised \u2014 they were told to arrive inside the window.";
 
   await push(env, "WALKTHROUGH BOOKED \u2014 " + name + " \u2014 " + pretty, body);
 
-  const ics = buildIcs({ name, phone, email, date, pretty, note });
+  const ics = buildIcs({ name, phone, email, date, note });
+  attachments.push({ filename: "walkthrough-" + date + ".ics", content: b64(ics) });
+
   const mailed = await mail(env, {
     to: alertTo(env),
     subject: "WALKTHROUGH BOOKED \u2014 " + name + " \u2014 " + pretty,
     text: body,
-    attachments: [{ filename: "walkthrough-" + date + ".ics", content: b64(ics) }]
+    attachments
   });
 
-  /* ---- what the client gets, if we have an address for them ---- */
+  const origin = new URL(request.url).origin;
+
+  /* ---- the co-signer ---- */
+  let indemnitorEmailed = false;
+  if (indem) {
+    const r = await mail(env, {
+      to: [indem],
+      subject: "Co-signer paperwork for " + name + "'s bond",
+      text:
+        "Hello,\n\n" +
+        name + " has asked you to co-sign their bail bond. They are coming in to the office on " +
+        pretty + ".\n\n" +
+        "Please complete the co-signer application here:\n\n" +
+        origin + "/indemnitor\n\n" +
+        "WHAT CO-SIGNING MEANS\n" +
+        "  You are guaranteeing they appear at every court date. If they do not,\n" +
+        "  you are responsible for the full bond amount, not the premium.\n" +
+        "  Read it before you sign it, and call us if anything is unclear.\n\n" +
+        "It takes about five minutes and you can do it on your phone. You will need a\n" +
+        "photo ID.\n\n" +
+        "Bail Bond Release Center of the Palm Beaches\n" + OFFICE + "\n" + OFFICE_TEL + "\n" +
+        "Carlos Sevilla \u00b7 FL Bail Agent Lic. #P204302"
+    });
+    indemnitorEmailed = r.ok;
+  }
+
+  /* ---- the client ---- */
   if (/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) {
     await mail(env, {
       to: [email],
@@ -103,13 +172,19 @@ export async function onRequestPost(context) {
       text:
         "Hello " + name.split(/\s+/)[0] + ",\n\n" +
         "You are booked to come in on " + pretty + ". Arrive any time between " +
-        WINDOW + " - there is no appointment time, we take you in order.\n\n" +
+        WINDOW + " \u2014 there is no appointment time, we take you in order.\n\n" +
         "WHERE\n  " + OFFICE + "\n  " + OFFICE_TEL + "\n\n" +
         "BRING\n" +
         "  - A government photo ID\n" +
-        "  - Your co-signer, if you have one lined up\n" +
         "  - A way to pay the premium\n\n" +
-        "If you cannot make that day, call us rather than simply not coming. " +
+        "YOUR PAPERWORK\n" +
+        "  Your own application:\n  " + origin + "/defendant\n\n" +
+        (indem
+          ? ("  We have emailed " + indem + " the co-signer application. Both have to be\n" +
+             "  signed before the bond can be posted.\n\n")
+          : ("  You cannot sign your own bond, so you still need a co-signer. Call us and\n" +
+             "  we will sort it out with you.\n\n")) +
+        "If you cannot make that day, call us rather than simply not coming.\n" +
         "A missed walkthrough is not held against you; a missed court date is.\n\n" +
         "Bail Bond Release Center of the Palm Beaches\n" +
         "Carlos Sevilla \u00b7 FL Bail Agent Lic. #P204302",
@@ -119,14 +194,15 @@ export async function onRequestPost(context) {
 
   return j({
     ok: true, date, pretty, window: WINDOW, office: OFFICE, tel: OFFICE_TEL,
-    agencyNotified: mailed.ok,
+    agencyNotified: mailed.ok, indemnitorEmailed, documents: got,
     message: "You are booked for " + pretty + ". Come to " + OFFICE +
              " any time between " + WINDOW + " and bring a photo ID."
   });
 }
 
 export const onRequestGet = () =>
-  j({ ok: true, endpoint: "walkthrough", days: "Monday to Saturday", window: WINDOW, note: "POST {name,phone,email,date}." });
+  j({ ok: true, endpoint: "walkthrough", days: "Monday to Saturday", window: WINDOW,
+      note: "POST {name,phone,email,date,indemnitorEmail,docs}." });
 
 export const onRequestOptions = () => new Response(null, {
   headers: {
@@ -138,9 +214,9 @@ export const onRequestOptions = () => new Response(null, {
 
 /* ============================================================ */
 
-/* A plain VEVENT. Folded at 74 octets and CRLF line endings, because
-   Google is forgiving about neither. The event spans the whole window
-   rather than claiming a start time nobody promised. */
+/* A plain VEVENT. Folded at 74 octets with CRLF endings, because Google is
+   forgiving about neither. The event spans the whole window rather than
+   claiming a start time nobody promised. */
 function buildIcs(o) {
   const dt = o.date.replace(/-/g, "");
   const lines = [
@@ -190,6 +266,16 @@ function b64(s) {
   return btoa(out);
 }
 
+const safeName = s => String(s).replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "client";
+
+function ext(name, type) {
+  const m = /\.([A-Za-z0-9]{2,5})$/.exec(String(name || ""));
+  if (m) return "." + m[1].toLowerCase();
+  if (/pdf/i.test(type || "")) return ".pdf";
+  if (/png/i.test(type || "")) return ".png";
+  return ".jpg";
+}
+
 function alertTo(env) {
   return [env.AGENCY_BCC || "bailbondreleasecenter@gmail.com", env.ALERT_SMS_TO]
     .filter(Boolean).map(s => String(s).trim())
@@ -214,6 +300,9 @@ async function mail(env, m) {
   } catch (e) { return { ok: false, why: String(e && e.message || e) }; }
 }
 
+/* Carrier gateways and Telegram both choke on a wall of text, and nobody
+   reads one on a lock screen anyway. The phone gets the headline; the
+   email carries the file. */
 async function push(env, subject, text) {
   if (!env.TELEGRAM_BOT_TOKEN) return;
   if (!env.TELEGRAM_CHAT_ID) return;
