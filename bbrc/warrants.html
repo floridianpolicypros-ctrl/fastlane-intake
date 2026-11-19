@@ -51,53 +51,116 @@
        lose a frightened person. The lead reaches the office the moment
        they press the button, before any result exists, so a closed tab
        costs the enquiry rather than the customer. -->
-  <div class="wt" id="wt">
-    <div class="wt-step" id="wtA">
-      <h3>Check for a Palm Beach County case</h3>
-      <p class="wt-sub">We search the Clerk of Court records live while you wait. It takes up to a minute.</p>
+    <div class="wt" id="wt">
+
+    <div class="wt-step" id="s1">
+      <h3>Info to check WARRANT and contact you.</h3>
+      <p class="wt-sub">We take this before anything else, so we can reach you even if the search does not finish.</p>
       <div class="wt-grid">
         <div><label for="wFirst">First name *</label><input id="wFirst" autocomplete="given-name"></div>
         <div><label for="wLast">Last name *</label><input id="wLast" autocomplete="family-name"></div>
+        <div class="wt-full"><label for="wPhone">Mobile number *</label><input id="wPhone" type="tel" inputmode="tel" autocomplete="tel">
+          <div class="wt-hint">Required. This is how we call you back.</div></div>
+        <div><label for="wEmail">Email <span class="wt-opt">(optional)</span></label><input id="wEmail" type="email" inputmode="email" autocomplete="email"></div>
         <div><label for="wDob">Date of birth</label><input id="wDob" type="date"></div>
-        <div><label for="wPhone">Mobile *</label><input id="wPhone" type="tel" inputmode="tel" autocomplete="tel"></div>
-        <div class="wt-full"><label for="wEmail">Email</label><input id="wEmail" type="email" inputmode="email" autocomplete="email"></div>
       </div>
-      <button class="wt-go" id="wtCheck">Check Palm Beach County records</button>
-      <div class="wt-alt">Don't want to wait? Text your name and date of birth to
-        <a href="sms:+15615318622">(561) 531-8622</a> and we will check it and call you back.</div>
-      <div class="wt-err" id="wtErr"></div>
+      <button class="wt-go" id="b1">Continue</button>
+      <div class="wt-alt">Or text your name and date of birth to <a href="sms:+15615318622">(561) 531-8622</a> and we will check it and call you back.</div>
+      <div class="wt-err" id="e1"></div>
     </div>
 
-    <div class="wt-step wt-hide" id="wtBusy">
+    <div class="wt-step wt-hide" id="s2">
+      <h3>What is the situation?</h3>
+      <p class="wt-sub">These are checked in completely different places, so this decides what happens next.</p>
+      <button class="wt-pick" data-sit="missed">
+        <b>I missed a court date</b>
+        <span>An existing case. A judge may have signed a warrant on it. This one we can look up now.</span>
+      </button>
+      <button class="wt-pick" data-sit="new">
+        <b>New charge or new warrant</b>
+        <span>Something recent that is not a missed court date. This is not in the court records yet.</span>
+      </button>
+      <div class="wt-err" id="e2"></div>
+    </div>
+
+    <div class="wt-step wt-hide" id="s3">
+      <h3>What kind of case is it?</h3>
+      <p class="wt-sub">If you have the paperwork in front of you, the case number is on it.</p>
+      <div class="wt-grid">
+        <div class="wt-full"><label for="wType">Case type *</label>
+          <select id="wType">
+            <option value="">Choose...</option>
+            <option value="CT">CT &mdash; criminal traffic (DWLS, no registration, no insurance)</option>
+            <option value="MM">MM &mdash; misdemeanor</option>
+            <option value="CF">CF &mdash; felony</option>
+            <option value="INF">Traffic infraction</option>
+            <option value="NS">Not sure</option>
+          </select></div>
+        <div class="wt-full" id="refWrap"><label for="wRef" id="refLab">Case number</label><input id="wRef" autocomplete="off">
+          <div class="wt-hint" id="refHint">Leave it blank if you do not have it. We can still search by name.</div></div>
+      </div>
+      <div class="wt-warn wt-hide" id="cfNote"><strong>A felony warrant is often no bond.</strong> If a judge set no bond, a walk-through will not release you &mdash; an attorney has to file a motion to recall the warrant or set a bond first. We will tell you which one this is.</div>
+      <button class="wt-go" id="b3">Continue</button>
+      <div class="wt-err" id="e3"></div>
+    </div>
+
+    <div class="wt-step wt-hide" id="s4">
+      <h3>How would you like it checked?</h3>
+      <div class="wt-opt-card" id="optLive">
+        <b>Check Palm Beach records now</b>
+        <span>Live search of the Clerk of Court. Takes up to a minute and you must stay on this page.</span>
+      </div>
+      <div class="wt-opt-card wt-plain" id="optStaff">
+        <b>Have staff check and call me</b>
+        <span>No waiting. We look at the same court records by hand and call you back, Monday to Friday, 9:00 to 4:30, excluding holidays.</span>
+      </div>
+      <div class="wt-err" id="e4"></div>
+    </div>
+
+    <div class="wt-step wt-hide" id="s4n">
+      <h3>This one has to be a phone call</h3>
+      <div class="wt-warn"><strong>A new charge does not show in the court records for 30 to 60 days.</strong> Searching online would come back empty and that would tell you nothing &mdash; so for a new charge our staff calls the warrants department direct. That is a phone call during their hours, not something we can do from this page.</div>
+      <p class="wt-sub">We will call the warrants department for you and call you straight back. Staff hours are <strong>Monday to Friday, 9:00 to 4:30</strong>, excluding holidays.</p>
+      <div class="wt-grid">
+        <div class="wt-full"><label for="wWhen">Roughly when did it happen? <span class="wt-opt">(optional)</span></label><input id="wWhen" type="date"></div>
+        <div class="wt-full"><label for="wWhat">Anything that helps us find it <span class="wt-opt">(optional)</span></label><input id="wWhat" placeholder="charge, county, arresting agency"></div>
+      </div>
+      <button class="wt-go" id="b4n">Send this to the office</button>
+      <div class="wt-alt" id="oldNote"></div>
+      <div class="wt-err" id="e4n"></div>
+    </div>
+
+    <div class="wt-step wt-hide" id="sBusy">
       <div class="wt-spin"></div>
-      <h3>Checking Palm Beach County records&hellip;</h3>
+      <h3>Checking Palm Beach records&hellip;</h3>
       <p class="wt-warn"><strong>Please do not close this page.</strong> This can take up to a minute. We are searching the Clerk of Court live.</p>
-      <div class="wt-alt">If you would rather not wait, text your name and date of birth to
-        <a href="sms:+15615318622">(561) 531-8622</a> and we will check it for you.</div>
+      <div class="wt-alt">If you would rather not wait, text your name and date of birth to <a href="sms:+15615318622">(561) 531-8622</a>.</div>
     </div>
 
-    <div class="wt-step wt-hide" id="wtB">
+    <div class="wt-step wt-hide" id="s5">
       <div class="wt-result" id="wtResult"></div>
-      <h3>Book your walk-through</h3>
-      <p class="wt-sub">Walk-throughs run <strong>Monday to Saturday</strong>. Come any time between
-        <strong>12:30 PM and 2:30 PM</strong> &mdash; there is no appointment time, we take you in order.
-        For any other day or time, call <a href="tel:+15618334388">(561) 833-4388</a>.</p>
+      <h3 id="s5h">Book your walk-through</h3>
+      <p class="wt-sub" id="s5sub">Walk-throughs run <strong>Monday to Saturday</strong>. Come any time between <strong>12:30 PM and 2:30 PM</strong> &mdash; there is no appointment time, we take you in order. For any other day or time, call <a href="tel:+15618334388">(561) 833-4388</a>.</p>
       <div class="wt-grid">
         <div class="wt-full"><label for="wDate">Which day will you come in? *</label><input id="wDate" type="date"></div>
+        <div class="wt-full"><label for="wIndem">Who is signing for you? <span class="wt-opt">(their email)</span></label><input id="wIndem" type="email" inputmode="email" placeholder="cosigner@example.com">
+          <div class="wt-hint">You cannot sign your own bond. We send them the co-signer paperwork and you the defendant paperwork.</div></div>
       </div>
-      <button class="wt-go" id="wtBook">Book this day</button>
-      <div class="wt-err" id="wtErr2"></div>
+      <div class="wt-docs">
+        <div class="wt-doc"><label for="dCourt">Court event form</label><input id="dCourt" type="file" accept="image/*,application/pdf"><span class="wt-dstat" id="sCourt"></span></div>
+        <div class="wt-doc"><label for="dDl">Driver licence</label><input id="dDl" type="file" accept="image/*"><span class="wt-dstat" id="sDl"></span></div>
+        <div class="wt-doc"><label for="dSelfie">Selfie</label><input id="dSelfie" type="file" accept="image/*" capture="user"><span class="wt-dstat" id="sSelfie"></span></div>
+      </div>
+      <button class="wt-go" id="b5">Book this day</button>
+      <div class="wt-err" id="e5"></div>
     </div>
 
-    <div class="wt-step wt-hide" id="wtC">
+    <div class="wt-step wt-hide" id="s6">
       <div class="wt-ok" id="wtDone"></div>
-      <h3>Last step &mdash; the paperwork</h3>
-      <p class="wt-sub">Fill in the application now so the bond is ready the moment you arrive.
-        It takes about five minutes and you can do it on your phone.</p>
-      <a class="wt-go wt-link" href="/indemnitor">Start the application</a>
+      <div id="wtNext"></div>
     </div>
-  </div>
 
+  </div>
   <style>
     .wt{background:#fff;border:1px solid #dde5ec;border-radius:12px;padding:20px;margin:0 0 18px;text-align:left}
     .wt h3{margin:0 0 6px;font-size:18px}
@@ -106,15 +169,21 @@
     .wt-grid .wt-full{grid-column:1/-1}
     @media(max-width:560px){.wt-grid{grid-template-columns:1fr}}
     .wt label{display:block;font-size:13px;font-weight:600;margin:0 0 5px}
-    .wt input{width:100%;font:inherit;padding:11px 12px;border:1px solid #dde5ec;border-radius:8px;-webkit-appearance:none;background:#fff}
-    .wt input:focus{outline:2px solid #0b3d6b;outline-offset:-1px}
-    .wt-go{display:block;width:100%;font:600 16px/1 inherit;padding:15px;border:0;border-radius:9px;
-           background:#0b3d6b;color:#fff;cursor:pointer;text-align:center;text-decoration:none}
+    .wt-opt{font-weight:400;color:#8a97a6}
+    .wt input,.wt select{width:100%;font:inherit;padding:11px 12px;border:1px solid #dde5ec;border-radius:8px;-webkit-appearance:none;background:#fff}
+    .wt input:focus,.wt select:focus{outline:2px solid #0b3d6b;outline-offset:-1px}
+    .wt-hint{font-size:12px;color:#6b7a90;margin-top:5px;line-height:1.5}
+    .wt-go{display:block;width:100%;font:600 16px/1 inherit;padding:15px;border:0;border-radius:9px;background:#0b3d6b;color:#fff;cursor:pointer;text-align:center;text-decoration:none}
     .wt-go:disabled{opacity:.55;cursor:default}
-    .wt-link{box-sizing:border-box}
+    .wt-pick,.wt-opt-card{display:block;width:100%;text-align:left;border:2px solid #0b3d6b;background:#f0f6fb;border-radius:10px;padding:14px;margin:0 0 12px;cursor:pointer;font:inherit}
+    .wt-pick b,.wt-opt-card b{display:block;font-size:15.5px;color:#0b3d6b;margin:0 0 4px}
+    .wt-pick span,.wt-opt-card span{display:block;font-size:13.5px;color:#41566e;line-height:1.55}
+    .wt-plain{border:1px solid #c3cfdb;background:#fff}
+    .wt-plain b{color:#1c2733}
+    .wt-pick:hover,.wt-opt-card:hover{border-color:#143f70}
     .wt-alt{margin:12px 0 0;font-size:13.5px;color:#5b6b7a;line-height:1.6}
     .wt-err{margin:10px 0 0;font-size:14px;color:#a51f1f;font-weight:600}
-    .wt-warn{background:#fff8ec;border:1px solid #f0dcba;color:#6d3e00;border-radius:8px;padding:12px;font-size:14.5px;line-height:1.55}
+    .wt-warn{background:#fff8ec;border:1px solid #f0dcba;color:#6d3e00;border-radius:8px;padding:12px;font-size:14.5px;line-height:1.55;margin:0 0 14px}
     .wt-result,.wt-ok{border-radius:9px;padding:14px;margin:0 0 16px;font-size:14.5px;line-height:1.6;border:1px solid}
     .wt-result{background:#f0f6fb;border-color:#c3d8e9;color:#14365d}
     .wt-ok{background:#eef9f1;border-color:#bfe3cb;color:#0a4d24}
@@ -122,6 +191,12 @@
     .wt-spin{width:26px;height:26px;margin:0 auto 14px;border:3px solid #dde5ec;border-top-color:#0b3d6b;border-radius:50%;animation:wtspin .9s linear infinite}
     @keyframes wtspin{to{transform:rotate(360deg)}}
     .wt-case{font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px solid #dde5ec;border-radius:7px;padding:10px;margin:8px 0 0}
+    .wt-docs{border:1px solid #dde5ec;border-radius:9px;padding:12px;margin:0 0 14px}
+    .wt-doc{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+    .wt-doc:last-child{margin:0}
+    .wt-doc label{flex:0 0 140px;margin:0;font-size:13px}
+    .wt-doc input{flex:1;min-width:180px;padding:8px;font-size:13px}
+    .wt-dstat{font-size:12.5px;color:#0a7d3c;font-weight:600}
   </style>
 
   <div class="note">A warrant does not expire and it does not go away on its own. It sits there until it is served, which usually happens at the worst possible moment: a traffic stop, a job background check, or an early-morning knock at the door.</div>
@@ -159,100 +234,183 @@
 (function(){
   "use strict";
   var $ = function(id){ return document.getElementById(id); };
-  var show = function(id){
-    ["wtA","wtBusy","wtB","wtC"].forEach(function(s){ $(s).classList.add("wt-hide"); });
+  var STEPS = ["s1","s2","s3","s4","s4n","sBusy","s5","s6"];
+  function show(id){
+    STEPS.forEach(function(s){ var e=$(s); if(e) e.classList.add("wt-hide"); });
     $(id).classList.remove("wt-hide");
     $("wt").scrollIntoView({ behavior:"smooth", block:"start" });
-  };
-  var state = { name:"", dob:"", phone:"", email:"", summary:"" };
+  }
+  var S = { first:"", last:"", phone:"", email:"", dob:"",
+            situation:"", caseType:"", ref:"", summary:"", docs:{} };
 
-  /* Only offer days that can actually be booked. The server checks this
-     again - the page is the client's copy and anyone can edit it. */
   (function limitDates(){
-    var d = $("wDate"); if(!d) return;
-    var today = new Date();
-    var max = new Date(today.getTime() + 60*86400000);
-    var iso = function(x){ return x.toISOString().slice(0,10); };
-    d.min = iso(today); d.max = iso(max);
+    var d=$("wDate"); if(!d) return;
+    var now=new Date(), max=new Date(now.getTime()+60*86400000);
+    var iso=function(x){ return x.toISOString().slice(0,10); };
+    d.min=iso(now); d.max=iso(max);
   })();
 
-  var TEXTLINE = '<a href="sms:+15615318622">(561) 531-8622</a>';
+  /* ---------- step 1 : contact ---------- */
+  $("b1").addEventListener("click", function(){
+    var f=$("wFirst").value.trim(), l=$("wLast").value.trim();
+    var p=$("wPhone").value.replace(/[^0-9]/g,"");
+    $("e1").textContent="";
+    if(!f||!l){ $("e1").textContent="Please give us your first and last name."; return; }
+    if(p.length<10){ $("e1").textContent="Please give us a mobile number so we can reach you."; return; }
+    S.first=f; S.last=l; S.phone=p; S.email=$("wEmail").value.trim(); S.dob=$("wDob").value;
+    show("s2");
+  });
 
-  $("wtCheck").addEventListener("click", function(){
-    var first = $("wFirst").value.trim(), last = $("wLast").value.trim();
-    var phone = $("wPhone").value.replace(/[^0-9]/g,"");
-    $("wtErr").textContent = "";
-    if(!first || !last){ $("wtErr").textContent = "Please give us your first and last name."; return; }
-    if(phone.length < 10){ $("wtErr").textContent = "Please give us a mobile number so we can reach you."; return; }
-
-    state.name  = first + " " + last;
-    state.dob   = $("wDob").value;
-    state.phone = phone;
-    state.email = $("wEmail").value.trim();
-
-    show("wtBusy");
-    fetch("/api/warrant", {
-      method:"POST", headers:{ "content-type":"application/json" },
-      body: JSON.stringify({ firstName:first, lastName:last, dob:state.dob, phone:state.phone, email:state.email })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      var box = $("wtResult");
-      if(!d || !d.ok){
-        box.innerHTML = "<strong>We could not complete the search.</strong><br>Text your name and date of birth to " + TEXTLINE + " and we will check it by hand. You can still book a day below.";
-        state.summary = "Lookup failed on the website.";
-      } else if(d.checked === false){
-        box.textContent = d.message || "We could not reach the Clerk just now.";
-        state.summary = "Lookup did not complete: " + (d.reason || "unknown");
-      } else {
-        var head = d.found
-          ? "<strong>We found " + d.count + " open Palm Beach County case" + (d.count===1?"":"s") + " under that name.</strong>"
-          : "<strong>We did not find an open Palm Beach County case under that name.</strong>";
-        var cases = "";
-        (d.cases||[]).forEach(function(c){
-          var bits = [c.caseNumber, c.charge, c.status, c.bond ? ("bond " + c.bond) : ""].filter(Boolean);
-          if(bits.length) cases += '<div class="wt-case">' + bits.join(" &middot; ") + "</div>";
-        });
-        box.innerHTML = head + "<br>" + (d.message || "") + cases;
-        state.summary = (d.found ? ("Open case(s) found: " + d.count) : "No open PBC case found under that name.");
-      }
-      show("wtB");
-    })
-    .catch(function(){
-      $("wtResult").innerHTML = "<strong>We could not complete the search.</strong><br>Text your name and date of birth to " + TEXTLINE + ". You can still book a day below.";
-      state.summary = "Lookup errored on the website.";
-      show("wtB");
+  /* ---------- step 2 : which situation ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll(".wt-pick"), function(b){
+    b.addEventListener("click", function(){
+      S.situation=b.getAttribute("data-sit");
+      show(S.situation==="missed" ? "s3" : "s4n");
     });
   });
 
-  $("wtBook").addEventListener("click", function(){
-    var btn = this, date = $("wDate").value;
-    $("wtErr2").textContent = "";
-    if(!date){ $("wtErr2").textContent = "Please choose a day."; return; }
-    /* Parsed at noon so a timezone shift cannot turn a Monday into a Sunday. */
-    if(new Date(date + "T12:00:00Z").getUTCDay() === 0){
-      $("wtErr2").textContent = "We do not do walk-throughs on Sundays. Please choose Monday to Saturday, or call (561) 833-4388.";
-      return;
+  /* ---------- step 3 : case type ---------- */
+  $("wType").addEventListener("change", function(){
+    var v=this.value;
+    $("cfNote").classList.toggle("wt-hide", v!=="CF");
+    /* Criminal traffic is the one that usually arrives as a citation rather
+       than a case number, so ask for what they are actually holding. */
+    $("refLab").textContent = (v==="CT"||v==="INF") ? "Citation number or case number" : "Case number";
+    $("refHint").textContent = (v==="CT"||v==="INF")
+      ? "Whichever is on your ticket or paperwork. Leave it blank if you do not have it."
+      : "Leave it blank if you do not have it. We can still search by name.";
+  });
+  $("b3").addEventListener("click", function(){
+    $("e3").textContent="";
+    if(!$("wType").value){ $("e3").textContent="Please choose the case type."; return; }
+    S.caseType=$("wType").value; S.ref=$("wRef").value.trim();
+    show("s4");
+  });
+
+  /* ---------- step 4 : live or staff ---------- */
+  $("optLive").addEventListener("click", runSearch);
+  $("optStaff").addEventListener("click", function(){ submitLead("staff-check"); });
+
+  function runSearch(){
+    show("sBusy");
+    fetch("/api/warrant",{ method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({ firstName:S.first, lastName:S.last, dob:S.dob,
+        phone:S.phone, email:S.email, caseType:S.caseType, ref:S.ref, situation:S.situation })})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ renderResult(d); })
+      .catch(function(){ renderResult(null); });
+  }
+
+  function renderResult(d){
+    var box=$("wtResult"), TEXT='<a href="sms:+15615318622">(561) 531-8622</a>';
+    if(!d || !d.ok){
+      box.innerHTML="<strong>We could not complete the search.</strong><br>Text your name and date of birth to "+TEXT+" and we will check it by hand. You can still book a day below.";
+      S.summary="Lookup failed on the website.";
+    } else if(d.checked===false){
+      box.textContent=d.message||"We could not reach the Clerk just now.";
+      S.summary="Lookup did not complete: "+(d.reason||"unknown");
+    } else {
+      var head=d.found
+        ? "<strong>We found "+d.count+" open Palm Beach County case"+(d.count===1?"":"s")+" under that name.</strong>"
+        : "<strong>We did not find an open Palm Beach County case under that name.</strong>";
+      var cases="";
+      (d.cases||[]).forEach(function(c){
+        var bits=[c.caseNumber,c.charge,c.status,c.bond?("bond "+c.bond):""].filter(Boolean);
+        if(bits.length) cases+='<div class="wt-case">'+bits.join(" &middot; ")+"</div>";
+      });
+      box.innerHTML=head+"<br>"+(d.message||"")+cases;
+      S.summary=(d.found?("Open case(s) found: "+d.count):"No open PBC case found under that name.");
     }
-    btn.disabled = true; btn.textContent = "Booking...";
-    fetch("/api/walkthrough", {
-      method:"POST", headers:{ "content-type":"application/json" },
-      body: JSON.stringify({ name:state.name, phone:state.phone, email:state.email,
-                             dob:state.dob, date:date, note:state.summary })
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      btn.disabled = false; btn.textContent = "Book this day";
-      if(!d || !d.ok){ $("wtErr2").textContent = (d && d.error) || "We could not book that. Please call (561) 833-4388."; return; }
-      $("wtDone").innerHTML = "<strong>You are booked for " + d.pretty + ".</strong><br>"
-        + "Arrive any time between " + d.window + " at " + d.office + ".<br>"
-        + "Bring a government photo ID. If you cannot make it, call " + d.tel + " rather than simply not coming.";
-      show("wtC");
-    })
-    .catch(function(){
-      btn.disabled = false; btn.textContent = "Book this day";
-      $("wtErr2").textContent = "We could not reach the server. Please call (561) 833-4388.";
+    /* A no-bond felony cannot be solved by turning up at the office, so the
+       booking step says so instead of selling a walk-through. */
+    if(S.caseType==="CF"){
+      $("s5h").textContent="Book a time to come in";
+      $("s5sub").innerHTML="If a judge set a bond we can post it the same day. If it is a no-bond warrant, an attorney has to file a motion to recall it or set a bond first &mdash; come in and we will tell you which one you are looking at. Monday to Saturday, <strong>12:30 PM to 2:30 PM</strong>, or call <a href=\"tel:+15618334388\">(561) 833-4388</a>.";
+    }
+    show("s5");
+  }
+
+  /* ---------- new charge : office call only ---------- */
+  (function ageHint(){
+    var w=$("wWhen"); if(!w) return;
+    w.addEventListener("change", function(){
+      var v=w.value; if(!v){ $("oldNote").textContent=""; return; }
+      var days=Math.round((Date.now()-new Date(v+"T12:00:00Z").getTime())/86400000);
+      $("oldNote").innerHTML = days>=30
+        ? "That is more than 30 days ago, so it may have reached the court records by now. <a href=\"#\" id=\"tryAnyway\">Search the Clerk as well</a>."
+        : "";
+      var t=$("tryAnyway");
+      if(t) t.addEventListener("click", function(ev){ ev.preventDefault(); S.situation="new-aged"; runSearch(); });
     });
+  })();
+
+  $("b4n").addEventListener("click", function(){
+    S.summary="New charge. Office to call the warrants department."
+      + ($("wWhen").value?(" Happened about "+$("wWhen").value+"."):"")
+      + ($("wWhat").value.trim()?(" "+$("wWhat").value.trim()):"");
+    submitLead("new-charge");
+  });
+
+  function submitLead(kind){
+    var btn=(kind==="new-charge")?$("b4n"):null;
+    if(btn){ btn.disabled=true; btn.textContent="Sending..."; }
+    fetch("/api/warrant",{ method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({ firstName:S.first, lastName:S.last, dob:S.dob, phone:S.phone,
+        email:S.email, caseType:S.caseType, ref:S.ref, situation:S.situation,
+        note:S.summary, leadOnly:true })})
+      .then(function(){ afterLead(kind); })
+      .catch(function(){ afterLead(kind); });
+  }
+
+  function afterLead(kind){
+    $("wtResult").innerHTML = (kind==="new-charge")
+      ? "<strong>We have your details.</strong><br>Our staff will call the warrants department and call you straight back during office hours, Monday to Friday, 9:00 to 4:30, excluding holidays."
+      : "<strong>We have your details.</strong><br>We will check the court records by hand and call you back, Monday to Friday, 9:00 to 4:30, excluding holidays.";
+    S.summary=S.summary||"Lead submitted without a live search.";
+    show("s5");
+  }
+
+  /* ---------- documents ---------- */
+  [["dCourt","sCourt","court"],["dDl","sDl","dl"],["dSelfie","sSelfie","selfie"]].forEach(function(t){
+    var inp=$(t[0]); if(!inp) return;
+    inp.addEventListener("change", function(){
+      var f=inp.files && inp.files[0]; if(!f) return;
+      if(f.size > 6*1024*1024){ $(t[1]).textContent="Too large (max 6 MB)"; $(t[1]).style.color="#a51f1f"; inp.value=""; return; }
+      var fr=new FileReader();
+      fr.onload=function(){ S.docs[t[2]]={ name:f.name, type:f.type, data:String(fr.result).split(",")[1] };
+        $(t[1]).textContent="Attached"; $(t[1]).style.color="#0a7d3c"; };
+      fr.readAsDataURL(f);
+    });
+  });
+
+  /* ---------- booking ---------- */
+  $("b5").addEventListener("click", function(){
+    var btn=this, date=$("wDate").value, indem=$("wIndem").value.trim();
+    $("e5").textContent="";
+    if(!date){ $("e5").textContent="Please choose a day."; return; }
+    if(new Date(date+"T12:00:00Z").getUTCDay()===0){
+      $("e5").textContent="We do not do walk-throughs on Sundays. Please choose Monday to Saturday, or call (561) 833-4388."; return; }
+    if(indem && !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(indem)){
+      $("e5").textContent="That co-signer email does not look right."; return; }
+    btn.disabled=true; btn.textContent="Booking...";
+    fetch("/api/walkthrough",{ method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({ name:S.first+" "+S.last, phone:S.phone, email:S.email, dob:S.dob,
+        date:date, note:S.summary, caseType:S.caseType, ref:S.ref,
+        indemnitorEmail:indem, docs:S.docs })})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        btn.disabled=false; btn.textContent="Book this day";
+        if(!d||!d.ok){ $("e5").textContent=(d&&d.error)||"We could not book that. Please call (561) 833-4388."; return; }
+        $("wtDone").innerHTML="<strong>You are booked for "+d.pretty+".</strong><br>Arrive any time between "+d.window+" at "+d.office+".<br>Bring a government photo ID. If you cannot make it, call "+d.tel+" rather than simply not coming.";
+        $("wtNext").innerHTML = indem
+          ? "<h3>Your paperwork is on its way</h3><p class=\"wt-sub\">We have emailed "+indem+" the co-signer application and sent you the defendant application. Both have to be signed before the bond can be posted.</p><a class=\"wt-go\" href=\"/defendant\">Open my defendant application</a>"
+          : "<h3>Last step &mdash; the paperwork</h3><p class=\"wt-sub\">You cannot sign your own bond, so someone has to co-sign for you. Start your part now and we will sort the co-signer with you.</p><a class=\"wt-go\" href=\"/defendant\">Open my defendant application</a>";
+        show("s6");
+      })
+      .catch(function(){
+        btn.disabled=false; btn.textContent="Book this day";
+        $("e5").textContent="We could not reach the server. Please call (561) 833-4388.";
+      });
   });
 })();
 </script>
