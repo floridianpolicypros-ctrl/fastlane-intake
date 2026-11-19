@@ -108,7 +108,28 @@ function alertTo(env) {
     .filter((v, i, a) => a.indexOf(v) === i);
 }
 
+/* Telegram. Goes quiet if either variable is unset rather than
+   erroring, so a half-finished setup costs nothing. */
+async function push(env, subject, text) {
+  if (!env.TELEGRAM_BOT_TOKEN) return;
+  if (!env.TELEGRAM_CHAT_ID) return;
+  try {
+    await fetch("https://api.telegram.org/bot" + env.TELEGRAM_BOT_TOKEN + "/sendMessage", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chat_id: String(env.TELEGRAM_CHAT_ID),
+        text: (subject + "\n\n" + text).slice(0, 4000),
+        disable_web_page_preview: true
+      })
+    });
+  } catch (_) {}
+}
+
 async function notify(env, subject, text) {
+  /* Telegram first: it is the copy that actually wakes someone, and it
+     must not be lost if Resend is unconfigured or down. */
+  await push(env, subject, text);
   if (!env.RESEND_API_KEY) return;
   try {
     await fetch("https://api.resend.com/emails", {
