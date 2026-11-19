@@ -104,8 +104,22 @@
       <select name="jail" id="jail"></select>
       <div class="hint" id="jailInfo" style="margin-top:6px"></div></div>
     <div class="full">
-      <label data-i="bond">Total bond amount *</label>
+      <label data-i="bondCountL">How many separate bonds or charges? *</label>
+      <select name="bondCount" id="bondCount">
+        <option value="1">1 charge</option>
+        <option value="2">2 charges</option>
+        <option value="3">3 charges</option>
+        <option value="4">4 charges</option>
+        <option value="5">5 charges</option>
+        <option value="6">6 charges</option>
+        <option value="7">7 charges</option>
+        <option value="8">8 charges</option>
+      </select>
+      <div class="hint" data-i="bondCountH" style="margin-top:6px">Each charge is bonded separately and each one carries its own premium, so this changes the price. The jail paperwork lists one bond amount per charge. If there is only one, leave it at 1.</div>
+      <div id="bondRows" class="hidden" style="margin-top:10px"></div>
+      <label data-i="bond" style="margin-top:10px;display:block">Total bond amount *</label>
       <input name="bond" type="number" min="0" step="1" inputmode="numeric" placeholder="1000" required>
+      <div class="warn hidden" id="bondOdd" data-i="bondOddW" style="margin-top:8px">That is an unusual amount for a single bond. If it is actually more than one charge, set the number above — it changes what you owe.</div>
       <label style="margin-top:8px;font-weight:600;display:block"><input type="checkbox" id="bondUnknown" name="bondUnknown" style="width:auto;margin-right:9px;transform:scale(1.25)"> <span data-i="bondUnk">I don’t know the bond amount</span></label>
       <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <button type="button" class="btn2" id="vBtn" data-i="vBtn">Open jail records</button>
@@ -989,24 +1003,113 @@ $$('[data-multi]').forEach(box=>{const n=box.getAttribute('data-multi');
     f.elements[n].value=Array.from(box.querySelectorAll('.chip.on')).map(x=>x.getAttribute('data-v')).join(', ');review();}));});
 
 /* ===== pricing: 10% of bond, $150 minimum (agent fee makes up the difference) ===== */
-const RATE=0.10, MIN_TOTAL=150;
-function priceParts(){const b=parseFloat(val('bond'))||0;
-  if(b<=0)return {bond:0,prem:0,fee:0,total:0,min:false};
-  const prem=Math.round(b*RATE); const total=Math.max(prem,MIN_TOTAL); const fee=total-prem;
-  return {bond:b,prem:prem,fee:fee,total:total,min:fee>0};}
+/* Premium is charged PER BOND, not on the combined figure, because each
+   charge is a separate bond with its own power and its own minimum. Three
+   charges of $1,000, $1,000 and $250 are not a $2,250 bond: they are three
+   bonds, so they cost 100 + 100 + 100 = $300, while one genuine $2,500
+   bond costs $250. Running the rate over the total is how an agency
+   quietly undercharges itself on every multi-count booking. */
+const RATE=0.10, MIN_TOTAL=150, MIN_PER_BOND=100, MAX_BONDS=8;
+function bondCount(){return Math.max(1,Math.min(MAX_BONDS,parseInt(val('bondCount'),10)||1));}
+/* One bond: the total box IS the bond. Several: the per-charge boxes are
+   the truth and the total is their sum, which is why it goes read-only. */
+function bondList(){
+  const n=bondCount();
+  if(n===1){const b=parseFloat(val('bond'))||0; return b>0?[b]:[];}
+  const out=[];
+  for(let i=1;i<=n;i++){const v=parseFloat(val('bond'+i))||0; if(v>0)out.push(v);}
+  return out;}
+function priceParts(){
+  const list=bondList();
+  const bond=list.reduce(function(a,b){return a+b;},0);
+  if(bond<=0)return {bond:0,prem:0,fee:0,total:0,min:false,each:[],count:0};
+  const each=list.map(function(b){return Math.max(MIN_PER_BOND,Math.round(b*RATE));});
+  const prem=each.reduce(function(a,b){return a+b;},0);
+  const total=Math.max(prem,MIN_TOTAL);
+  return {bond:bond,prem:prem,fee:total-prem,total:total,min:total>prem,each:each,count:list.length};}
 function calc(){const p=priceParts();const box=$('#premBox');
   box.classList.toggle('hidden',!(p.total>0));
   $('#premAmt').textContent='$'+p.total.toLocaleString();
-  let txt='';
-  if(p.total>0){ txt = p.fee>0
-    ? ((LANG==='es'?'prima 10% ':'10% premium ')+'$'+p.prem.toLocaleString()+' + $'+p.fee.toLocaleString()+(LANG==='es'?' cargo de agente (mínimo $150)':' agent fee (minimum $150)'))
-    : ((LANG==='es'?'prima 10% de ':'10% of ')+'$'+p.bond.toLocaleString()); }
-  $('#premBreak').textContent=txt;
+  $('#premBreak').textContent=breakText(p,false);
   return p.total;}
-function feeBreak(){const p=priceParts();if(!p.total)return '';
-  return p.fee>0
-    ? ('10% premium $'+p.prem.toLocaleString()+' + $'+p.fee.toLocaleString()+' agent fee = $'+p.total.toLocaleString()+' ($150 minimum)')
-    : ('10% of $'+p.bond.toLocaleString()+' = $'+p.total.toLocaleString());}
+
+/* One sentence the client can check against their own arithmetic. With
+   several charges it has to show the per-bond figures, because "$300 on a
+   $2,250 bond" looks like an overcharge until you can see it is three
+   bonds at $100 each. */
+function breakText(p,longForm){
+  if(!p.total)return '';
+  const es=LANG==='es';
+  let txt;
+  if(p.count>1){
+    txt=(es?p.count+' fianzas: ':p.count+' bonds: ')
+      +p.each.map(function(v){return '$'+v.toLocaleString();}).join(' + ')
+      +' = $'+p.prem.toLocaleString();
+    if(longForm)txt+=(es?' (10% de cada fianza, mínimo $100 por fianza)'
+                        :' (10% of each bond, $100 minimum per bond)');
+  } else {
+    txt=(es?'prima 10% de $':'10% of $')+p.bond.toLocaleString()
+      +' = $'+p.prem.toLocaleString();
+  }
+  if(p.fee>0)txt+=' + $'+p.fee.toLocaleString()
+    +(es?' cargo de agente (mínimo $150)':' agent fee (minimum $150)')
+    +' = $'+p.total.toLocaleString();
+  return txt;}
+function feeBreak(){return breakText(priceParts(),true);}
+
+/* Wiring. The count selector and the total box both have to re-run the
+   pricing, because either one can change what is owed. Bound once, here,
+   rather than inline on the elements so the markup stays readable. */
+(function bindBonds(){
+  const sel=document.getElementById('bondCount');
+  if(sel)sel.addEventListener('change',function(){syncBonds();review();});
+  const tot=f.elements['bond'];
+  if(tot)tot.addEventListener('input',function(){syncBonds();});
+  try{syncBonds();}catch(e){}
+})();
+
+/* Builds the per-charge boxes once, then shows exactly as many as the
+   client asked for. The total goes read-only whenever it is a sum, so the
+   figure on screen can never disagree with the figures it came from. */
+function syncBonds(){
+  const host=$('#bondRows'); if(!host)return;
+  if(!host.dataset.built){
+    let h='';
+    for(let i=1;i<=MAX_BONDS;i++){
+      h+='<div class="field bondrow hidden" data-n="'+i+'" style="margin:0 0 8px">'
+        +'<label style="font-size:13px">'+(LANG==='es'?'Fianza ':'Bond ')+i+'</label>'
+        +'<input name="bond'+i+'" type="number" min="0" step="1" inputmode="numeric" placeholder="1000"></div>';
+    }
+    host.innerHTML=h; host.dataset.built='1';
+    host.querySelectorAll('input').forEach(function(inp){
+      inp.addEventListener('input',function(){syncBonds();review();});
+    });
+  }
+  const n=bondCount();
+  host.classList.toggle('hidden',n<2);
+  host.querySelectorAll('.bondrow').forEach(function(row){
+    row.classList.toggle('hidden',parseInt(row.getAttribute('data-n'),10)>n);
+  });
+
+  const tot=f.elements['bond'];
+  if(tot){
+    if(n>1){
+      const sum=bondList().reduce(function(a,b){return a+b;},0);
+      tot.value=sum>0?sum:'';
+      tot.readOnly=true;
+    } else {
+      tot.readOnly=false;
+    }
+  }
+
+  /* A single bond for an odd figure is nearly always several charges that
+     someone added up by hand - the exact case that gets underbilled. */
+  const odd=$('#bondOdd');
+  if(odd){
+    const b=parseFloat(val('bond'))||0;
+    odd.classList.toggle('hidden',!(n===1 && b>=1000 && b%500!==0));
+  }
+  calc();}
 
 /* ===== bond verification (calls verify-worker) ===== */
 let bondVerified=false, verifiedInfo='';
