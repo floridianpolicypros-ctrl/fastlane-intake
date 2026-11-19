@@ -282,7 +282,10 @@
       <div class="chips" data-multi="social">
         <div class="chip" data-v="Facebook">Facebook</div><div class="chip" data-v="Instagram">Instagram</div>
         <div class="chip" data-v="Snapchat">Snapchat</div><div class="chip" data-v="LinkedIn">LinkedIn</div><div class="chip" data-v="Twitter/X">Twitter/X</div>
-      </div><input type="hidden" name="social"></div>
+        <div class="chip" data-v="No social media" data-i="socNone">I don't use social media</div>
+      </div><input type="hidden" name="social">
+      <div class="hint" data-i="truthH" style="margin-top:6px">If you do not use any, tap "I don't use social media" — we only ask for a screenshot of accounts you name. Everything on this application must be true and complete. You are signing it under penalty of perjury, and we verify what you put here.</div>
+    </div>
   </div>
 </section>
 
@@ -339,6 +342,8 @@
     <div class="field"><label data-i="title">Title in whose name?</label><input name="titleName"></div>
     <div class="field"><label data-i="sal">Monthly income</label><input name="monthlyIncome" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
     <div class="full" style="margin-top:8px"><label style="color:var(--brand)" data-i="vehT">Vehicle</label></div>
+    <div class="full"><label style="font-weight:600;display:block"><input type="checkbox" id="noVehicle" name="noVehicle" style="width:auto;margin-right:9px;transform:translateY(1px)"><span data-i="noVeh">I do not own a vehicle</span></label>
+      <div class="hint" data-i="noVehH" style="margin-top:4px">Tick this and leave the vehicle boxes empty. Do not invent one.</div></div>
     <div class="field"><label data-i="vehYMM">Year, make, model</label><input name="autoYMM" placeholder="2019 Toyota Camry"></div>
     <div class="field"><label data-i="vehPlate">Plate #</label><input name="autoPlate"></div>
     <div class="field"><label data-i="vehState">Plate state</label><input name="autoState" maxlength="2" placeholder="FL"></div>
@@ -976,9 +981,31 @@ $$('[data-chip]').forEach(box=>{const n=box.getAttribute('data-chip');
    on the agency copy instead. Confirmed holds still stop hard. */
 function needsApproval(){const h=val('hold');return !!h && h!=='No hold' && h!=='Not sure';}
 function holdUnknown(){return val('hold')==='Not sure';}
-function vehListed(){return !!(val('autoYMM')||val('autoPlate')||val('autoState')||val('autoOwed'));}
+function socialListed(){
+  return String(val('social')||'').split(',')
+    .map(function(s){return s.trim();})
+    .filter(function(s){return s && s!=='No social media';}).length>0;}
+/* "No vehicle" is an answer, not a blank. Ticking it clears whatever was
+   half-typed so the file cannot say both things at once. */
+function noVehicle(){const e=f.elements['noVehicle'];return !!(e && e.checked);}
+function vehListed(){
+  if(noVehicle())return false;
+  return !!(val('autoYMM')||val('autoPlate')||val('autoState')||val('autoOwed'));}
 function syncCond(){
   syncPay();
+  const socDrop=document.querySelector('[data-doc="soc_doc"]');
+  if(socDrop){const lab=socDrop.closest('label.drop')||socDrop.parentNode;
+    if(lab)lab.classList.toggle('hidden',!socialListed());}
+  const nv=noVehicle();
+  ['autoYMM','autoPlate','autoState','autoOwed'].forEach(function(nm){
+    const el=f.elements[nm]; if(!el)return;
+    if(nv && el.value)el.value='';          // an answer, not a leftover
+    const fld=el.closest('.field')||el.parentNode;
+    if(fld)fld.classList.toggle('hidden',nv);
+  });
+  const vehDrop=document.querySelector('[data-doc="veh_doc"]');
+  if(vehDrop){const lab=vehDrop.closest('label.drop')||vehDrop.parentNode;
+    if(lab)lab.classList.toggle('hidden',!vehListed());}
   /* Proof is demanded the moment a vehicle is listed — collateral or not.
      A tag, registration, insurance card or dec page gives us the VIN and
      evidences ownership, which is what an asset search is checked against. */
@@ -1000,7 +1027,17 @@ function syncCond(){
 }
 $$('[data-multi]').forEach(box=>{const n=box.getAttribute('data-multi');
   box.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');
-    f.elements[n].value=Array.from(box.querySelectorAll('.chip.on')).map(x=>x.getAttribute('data-v')).join(', ');review();}));});
+    /* A "none of these" chip cannot coexist with a real one. Whichever was
+       tapped last is what the person meant, so the other side gives way. */
+    const none=box.querySelector('.chip[data-v="No social media"]');
+    if(none){
+      if(c===none){ if(none.classList.contains('on'))
+        box.querySelectorAll('.chip.on').forEach(x=>{if(x!==none)x.classList.remove('on');}); }
+      else if(c.classList.contains('on')) none.classList.remove('on');
+    }
+    f.elements[n].value=Array.from(box.querySelectorAll('.chip.on')).map(x=>x.getAttribute('data-v')).join(', ');
+    try{syncCond();}catch(e){}
+    review();}));});
 
 /* ===== pricing: 10% of bond, $150 minimum (agent fee makes up the difference) ===== */
 /* Premium is charged PER BOND, not on the combined figure, because each
@@ -1066,6 +1103,11 @@ function feeBreak(){return breakText(priceParts(),true);}
 /* Wiring. The count selector and the total box both have to re-run the
    pricing, because either one can change what is owed. Bound once, here,
    rather than inline on the elements so the markup stays readable. */
+(function bindVehicle(){
+  const nv=document.getElementById('noVehicle');
+  if(nv)nv.addEventListener('change',function(){try{syncCond();}catch(e){} review();});
+  try{syncCond();}catch(e){}
+})();
 (function bindBonds(){
   const sel=document.getElementById('bondCount');
   if(sel)sel.addEventListener('change',function(){syncBonds();review();});
@@ -1489,7 +1531,7 @@ $('#bNext').addEventListener('click',()=>{
   /* The screenshot field is on step 5. Firing this on step 4 trapped any
      client who tapped a social chip: blocked from continuing, with the
      upload one step ahead and invisible. A hard dead end. */
-  if(step===5 && val('social') && !imgs.soc_doc){
+  if(step===5 && socialListed() && !imgs.soc_doc){
     toast(LANG==='es'?'Agregue la captura de su perfil de redes sociales'
                      :'Please add the screenshot of your social media profile');
     const t=document.querySelector('.socreq'); if(t)t.scrollIntoView({behavior:'smooth',block:'center'});
