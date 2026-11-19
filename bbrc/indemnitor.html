@@ -1048,8 +1048,14 @@ function breakText(p,longForm){
     if(longForm)txt+=(es?' (10% de cada fianza, mínimo $100 por fianza)'
                         :' (10% of each bond, $100 minimum per bond)');
   } else {
-    txt=(es?'prima 10% de $':'10% of $')+p.bond.toLocaleString()
-      +' = $'+p.prem.toLocaleString();
+    /* Below $1,000 the per-bond floor is doing the work, and saying
+       "10% of $500 = $100" in that case just looks like broken arithmetic
+       to the one person who checks. Say which rule actually applied. */
+    const floored = p.each[0] > Math.round(p.bond*RATE);
+    txt = floored
+      ? (es?('fianza de $'+p.bond.toLocaleString()+' \u2014 mínimo $100 por fianza = $'+p.prem.toLocaleString())
+           :('$'+p.bond.toLocaleString()+' bond \u2014 $100 minimum per bond = $'+p.prem.toLocaleString()))
+      : ((es?'prima 10% de $':'10% of $')+p.bond.toLocaleString()+' = $'+p.prem.toLocaleString());
   }
   if(p.fee>0)txt+=' + $'+p.fee.toLocaleString()
     +(es?' cargo de agente (mínimo $150)':' agent fee (minimum $150)')
