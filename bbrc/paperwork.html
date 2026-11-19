@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<title>Bail Paperwork — Bail Bond Release Center</title>
+<!--
+  PAPERWORK-ONLY FRONT DOOR
+  ------------------------------------------------------------------
+  Carlos needs a clean URL he can read out over the phone at 2am:
+  "apply dot 24hourbailbondsnearme dot com slash paperwork". The real
+  thing that unlocks the paperwork-only flow is a 64-character invite
+  token, which is unreadable and untypeable. So this page is the
+  friendly front door and nothing more - it forwards to the tokenised
+  link.
+
+  It is NOT a second copy of the application. There is exactly one
+  form in this project and this page does not duplicate a line of it,
+  because two copies of a bail application would drift apart and one
+  of them would quietly be wrong.
+
+  noindex plus a robots.txt Disallow keeps it out of search. That is
+  housekeeping, not security: anyone who has the URL can use it. The
+  protection that actually matters is downstream - no payment is ever
+  recorded against a file that comes through here, so it can never
+  produce a READY TO POST, the signed-paperwork alert says in as many
+  words that no payment is confirmed, and the daily chaser lists it.
+  A leaked link produces a visibly unpaid file in Carlos's alerts, not
+  a posted bond.
+-->
+<style>
+  :root{ --ink:#0f1720; --mut:#5b6b7a; --brand:#0b3d6b; --gold:#c8a344; }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:#0b1d33;color:#fff;display:flex;align-items:center;justify-content:center;
+       font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       padding:24px;text-align:center}
+  .card{max-width:440px}
+  .seal{width:74px;height:74px;border-radius:50%;border:3px solid var(--gold);display:flex;
+        align-items:center;justify-content:center;margin:0 auto 20px;font:700 12px/1.15 inherit;
+        letter-spacing:.06em;color:var(--gold);text-transform:uppercase}
+  h1{font-size:21px;margin:0 0 10px;letter-spacing:-.2px}
+  p{margin:0 0 14px;color:#c6d4e2;font-size:15px}
+  .spin{width:26px;height:26px;margin:22px auto 0;border:3px solid rgba(255,255,255,.25);
+        border-top-color:var(--gold);border-radius:50%;animation:s .9s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  a.btn{display:inline-block;margin-top:18px;background:var(--gold);color:#13263d;font-weight:700;
+        text-decoration:none;padding:14px 22px;border-radius:9px}
+  .small{font-size:12.5px;color:#90a4b8;margin-top:26px;line-height:1.7}
+  .small a{color:#c6d4e2}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="seal">Bail<br>Bond</div>
+  <h1>Opening your application&hellip;</h1>
+  <p>Bail Bond Release Center of the Palm Beaches</p>
+  <p id="note">Your payment has already been received, so there is nothing to pay here &mdash; this is the paperwork only.</p>
+  <div class="spin" id="spin"></div>
+
+  <!-- Shown only if the automatic redirect does not fire. An older phone
+       with JavaScript restricted must not hit a blank screen. -->
+  <noscript>
+    <a class="btn" href="/indemnitor.html?inv=1534034cbe382662f00e8abfd796a449e8724a44518e5481bf2556595e8b7152">Start my paperwork</a>
+  </noscript>
+  <a class="btn" id="manual" href="/indemnitor.html?inv=1534034cbe382662f00e8abfd796a449e8724a44518e5481bf2556595e8b7152" style="display:none">Start my paperwork</a>
+
+  <p class="small">
+    If anything on the next page asks you for a card, stop and call
+    <a href="tel:+15618334388">(561)&nbsp;833-4388</a>.<br>
+    800 S. Congress Ave, West Palm Beach, FL 33406<br>
+    Carlos Sevilla &middot; FL Bail Agent Lic. #P204302
+  </p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var LINK = "/indemnitor.html?inv=1534034cbe382662f00e8abfd796a449e8724a44518e5481bf2556595e8b7152";
+
+  /* replace() rather than assign(): Back from the application should take
+     them to wherever they came from, not bounce them through here again. */
+  try { location.replace(LINK); }
+  catch (e) { location.href = LINK; }
+
+  /* If we are somehow still here after three seconds the redirect was
+     blocked. Stop the spinner pretending something is happening and give
+     them a button instead of a stare. */
+  setTimeout(function(){
+    var s = document.getElementById("spin");
+    var m = document.getElementById("manual");
+    var n = document.getElementById("note");
+    if (s) s.style.display = "none";
+    if (m) m.style.display = "inline-block";
+    if (n) n.textContent = "Tap below to open your paperwork.";
+  }, 3000);
+})();
+</script>
+</body>
+</html>
