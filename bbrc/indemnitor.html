@@ -321,43 +321,27 @@
 
 <!-- STEP 5 : REFERENCES -->
 <section class="card stp hidden" data-s="6">
-  <h2 class="step" data-i="s5t">Two references</h2>
-  <p class="sub" data-i="s5s">People who know you — not the person in jail.</p>
+  <h2 class="step" data-i="s5t">Three references</h2>
+  <p class="sub" data-i="s5s">People who know you &mdash; not the person in jail. The packet has room for three, so three is what we ask for. Name, how you know them and a phone number are what we actually need; an address helps but will not hold you up.</p>
   <div class="grid">
     <div class="full"><label style="color:var(--brand)" data-i="ref1">Reference 1</label></div>
     <div class="field"><label data-i="rname">Name *</label><input name="ref1Name" required></div>
-    <div class="field"><label data-i="rrel">Relation</label><select name="ref1Relation" class="relsel"></select></div>
+    <div class="field"><label data-i="rrel">Relation *</label><select name="ref1Relation" class="relsel" required></select></div>
     <div class="field"><label data-i="rphone">Phone *</label><input name="ref1Phone" type="tel" inputmode="tel" required></div>
-    <div class="field"><label data-i="raddr">Address *</label><input name="ref1Address" required></div>
+    <div class="field"><label data-i="raddr">Address <span class="opt" data-i="optL">(optional)</span></label><input name="ref1Address"></div>
     <div class="full"><label style="color:var(--brand);margin-top:6px" data-i="ref2">Reference 2</label></div>
     <div class="field"><label data-i="rname">Name *</label><input name="ref2Name" required></div>
-    <div class="field"><label data-i="rrel">Relation</label><select name="ref2Relation" class="relsel"></select></div>
+    <div class="field"><label data-i="rrel">Relation *</label><select name="ref2Relation" class="relsel" required></select></div>
     <div class="field"><label data-i="rphone">Phone *</label><input name="ref2Phone" type="tel" inputmode="tel" required></div>
-    <div class="field"><label data-i="raddr">Address *</label><input name="ref2Address" required></div>
-    <div class="full" style="margin-top:8px"><label style="color:var(--brand)" data-i="finT">Financial (optional)</label></div>
-    <div class="field"><label data-i="cash">Cash on hand</label><input name="cashHand" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
-    <div class="field"><label data-i="bank">Cash in bank</label><input name="cashBank" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
-    <div class="field"><label data-i="reV">Real estate value</label><input name="realEstateValue" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
-    <div class="field"><label data-i="reM">Real estate mortgage</label><input name="realEstateMortgage" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
-    <div class="field"><label data-i="title">Title in whose name?</label><input name="titleName"></div>
-    <div class="field"><label data-i="sal">Monthly income</label><input name="monthlyIncome" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
-    <div class="full" style="margin-top:8px"><label style="color:var(--brand)" data-i="vehT">Vehicle</label></div>
-    <div class="full"><label style="font-weight:600;display:block"><input type="checkbox" id="noVehicle" name="noVehicle" style="width:auto;margin-right:9px;transform:translateY(1px)"><span data-i="noVeh">I do not own a vehicle</span></label>
-      <div class="hint" data-i="noVehH" style="margin-top:4px">Tick this and leave the vehicle boxes empty. Do not invent one.</div></div>
-    <div class="field"><label data-i="vehYMM">Year, make, model</label><input name="autoYMM" placeholder="2019 Toyota Camry"></div>
-    <div class="field"><label data-i="vehPlate">Plate #</label><input name="autoPlate"></div>
-    <div class="field"><label data-i="vehState">Plate state</label><input name="autoState" maxlength="2" placeholder="FL"></div>
-    <div class="field"><label data-i="vehOwed">Amount still owed</label><input name="autoOwed" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
-    <div class="full vehreq hidden"><label class="drop" style="padding:14px"><div class="ico">📸</div><div class="t" data-i="vehDoc">Photo of the tag, registration, insurance card or dec page *</div><div class="hint" data-i="vehDocH">Required once a vehicle is listed. Any one of these gives us the VIN and shows the vehicle is yours.</div><div class="status" data-status></div><input type="file" accept="image/*" capture="environment" data-doc="veh_doc"><img class="thumb" data-thumb></label></div>
-    <div class="full vehreq hidden"><div style="background:#fff6f6;border:1px solid #f0c9c9;border-radius:11px;padding:12px;font-size:12.5px;color:#8a2b2b" data-i="assetWarn"><b>Please read.</b> An asset search is run on the information given here. If anything is found to be false or the vehicle is not yours, the bond can be revoked and the defendant returned to custody.</div></div>
-    <div class="full"><label data-i="notes">Anything we should know?</label><textarea name="notes" rows="2"></textarea></div>
-    <div class="full"><label data-i="hasAtt">Does the defendant have an attorney?</label>
-      <div class="chips" data-chip="hasAttorney"><div class="chip" data-v="Yes" data-i="yes">Yes</div><div class="chip" data-v="No" data-i="no">No</div></div>
-      <input type="hidden" name="hasAttorney"></div>
-    <div class="field"><label data-i="attN">Attorney name</label><input name="attorneyName"></div>
-    <div class="full"><label style="font-weight:600"><input type="checkbox" name="wantAttorney" style="width:auto;margin-right:9px;transform:scale(1.3)"> <span data-i="wantA">Please have an attorney contact me</span></label></div>
+    <div class="field"><label data-i="raddr">Address <span class="opt" data-i="optL">(optional)</span></label><input name="ref2Address"></div>
+    <div class="full"><label style="color:var(--brand);margin-top:6px" data-i="ref3">Reference 3</label></div>
+    <div class="field"><label data-i="rname">Name *</label><input name="ref3Name" required></div>
+    <div class="field"><label data-i="rrel">Relation *</label><select name="ref3Relation" class="relsel" required></select></div>
+    <div class="field"><label data-i="rphone">Phone *</label><input name="ref3Phone" type="tel" inputmode="tel" required></div>
+    <div class="field"><label data-i="raddr">Address <span class="opt" data-i="optL">(optional)</span></label><input name="ref3Address"></div>
   </div>
 </section>
+
 
 <!-- STEP 6 : REVIEW -->
 <section class="card stp hidden" data-s="4">
@@ -1453,7 +1437,7 @@ function fit(){}
    and two people who can be reached if the defendant stops answering.
    These were optional, so most files arrived without them and the only
    way to find a skip was the co-signer's own phone. */
-const REQ={1:['defName','bond','hold'],4:['collType','payMethod'],3:['relationship','firstName','lastName','phone','email','address'],5:['employer','employerTel'],6:['ref1Name','ref1Phone','ref1Address','ref2Name','ref2Phone','ref2Address']};
+const REQ={1:['defName','bond','hold'],4:['collType','payMethod'],3:['relationship','firstName','lastName','phone','email','address'],5:['employer','employerTel'],6:['ref1Name','ref1Relation','ref1Phone','ref2Name','ref2Relation','ref2Phone','ref3Name','ref3Relation','ref3Phone']};
 function bar(){const pct=Math.round((step-1)/(TOTAL-1)*100);$('#bf').style.width=pct+'%';
   $('#bl').textContent=(LANG==='es'?'Paso ':'Step ')+step+(LANG==='es'?' de ':' of ')+TOTAL;}
 function show(){$$('.stp').forEach(s=>s.classList.toggle('hidden',+s.dataset.s!==step));
@@ -1547,7 +1531,12 @@ $('#bNext').addEventListener('click',()=>{
       relationship:LANG==='es'?'su relación':'your relationship',firstName:LANG==='es'?'nombre':'first name',lastName:LANG==='es'?'apellido':'last name',
       phone:LANG==='es'?'teléfono':'phone',email:LANG==='es'?'correo':'email',address:LANG==='es'?'dirección':'address',
       employer:LANG==='es'?'su empleador':'your employer',employerTel:LANG==='es'?'el teléfono del empleador':'your employer phone number',
-      ref1Name:LANG==='es'?'el nombre de la primera referencia':'the first reference name',ref1Phone:LANG==='es'?'el teléfono de la primera referencia':'the first reference phone number',
+      ref1Name:LANG==='es'?'el nombre de la primera referencia':'the first reference name',
+      ref1Relation:LANG==='es'?'cómo conoce a la primera referencia':'how you know the first reference',
+      ref2Relation:LANG==='es'?'cómo conoce a la segunda referencia':'how you know the second reference',
+      ref3Name:LANG==='es'?'el nombre de la tercera referencia':'the third reference name',
+      ref3Relation:LANG==='es'?'cómo conoce a la tercera referencia':'how you know the third reference',
+      ref3Phone:LANG==='es'?'el teléfono de la tercera referencia':'the third reference phone number',ref1Phone:LANG==='es'?'el teléfono de la primera referencia':'the first reference phone number',
       ref1Address:LANG==='es'?'la dirección de la primera referencia':'the first reference address',
       ref2Name:LANG==='es'?'el nombre de la segunda referencia':'the second reference name',ref2Phone:LANG==='es'?'el teléfono de la segunda referencia':'the second reference phone number',
       ref2Address:LANG==='es'?'la dirección de la segunda referencia':'the second reference address'};
