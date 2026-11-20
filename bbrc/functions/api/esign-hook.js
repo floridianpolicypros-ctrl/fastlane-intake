@@ -168,9 +168,51 @@ async function deliverSigned(env, documentId, signerEmail, receiptNo) {
     if (!r.ok) { await log(env, { documentId, eventType: "DownloadFailed", receiptNo, email: signerEmail, status: String(r.status), environment: "" }); return; }
 
     const b64 = toBase64(new Uint8Array(await r.arrayBuffer()));
-    const to  = [signerEmail, env.AGENCY_BCC || "bailbondreleasecenter@gmail.com"]
-                  .filter(Boolean)
-                  .filter((v, i, a) => a.indexOf(v) === i);   // BoldSign rejects dupes; so does common sense
+
+    /* The defendant's name is not on the webhook payload, but it IS on the
+       document title, which /api/esign builds as "<packet label> — <defendant>".
+       Pulling it back out is cheaper and more reliable than threading it
+       through BoldSign's metadata, and if the lookup fails we fall back to
+       the signer rather than losing the email. */
+    let defName = "";
+    try {
+      const pr = await fetch(API + "/v1/document/properties?documentId=" + encodeURIComponent(documentId),
+        { headers: { "X-API-KEY": env.BOLDSIGN_KEY } });
+      if (pr.ok) {
+        const pd = await pr.json();
+        const title = String((pd && pd.messageTitle) || (pd && pd.documentTitle) || "");
+        const parts = title.split("\u2014");
+        if (parts.length > 1) defName = parts[parts.length - 1].trim();
+      }
+    } catch (_) {}
+
+    /* The agency copy is a separate email on purpose. Carlos was logging into
+       BoldSign to fetch the packet for printing, which is an extra step on
+       every single bond. The subject now says whose it is and what to do with
+       it, so it is findable in a search and actionable from the inbox. */
+    const agency = (env.AGENCY_BCC || "bailbondreleasecenter@gmail.com").trim();
+    try {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + env.RESEND_API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: env.FROM_ADDRESS || "Bail Bond Release Center <onboarding@resend.dev>",
+          to: [agency],
+          subject: (defName || signerEmail || receiptNo || "Bail bond") + " indemnitor paperwork to print",
+          text: "The signed indemnitor packet is attached, ready to print.\n\n"
+              + "Defendant .. " + (defName || "(not on the document title)") + "\n"
+              + "Signer ..... " + (signerEmail || "(unknown)") + "\n"
+              + "Receipt .... " + (receiptNo || "(none)") + "\n"
+              + "Document ... " + documentId + "\n\n"
+              + "No need to log into BoldSign for this one.",
+          attachments: [{ filename: (defName ? defName.replace(/[^A-Za-z0-9]+/g, "-") : "Signed")
+              + "-indemnitor-packet" + (receiptNo ? "-" + receiptNo : "") + ".pdf", content: b64 }]
+        })
+      });
+    } catch (_) { /* the client copy must still go out */ }
+
+    const to  = [signerEmail].filter(Boolean);
+    if (!to.length) return;   // client copy only; the agency already has it
 
     const send = await fetch("https://api.resend.com/emails", {
       method: "POST",
