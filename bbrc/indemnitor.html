@@ -2005,7 +2005,7 @@ function esignData(){
     phone_mobile:   val('phone'),
     email:          val('email'),
     address:        val('address'),
-    how_long:       '',
+    how_long:       val('addrHowLong'),
     landlord:       val('landlord'),
     former_address: val('formerAddress'),
 
@@ -2018,9 +2018,17 @@ function esignData(){
     /* personal description */
     dob:            val('dob'),
     ssn:            val('ssn'),
-    dl_number:      val('dl'),
+    dl_number:      val('dlNumber'),
     dl_state:       val('dlState'),
-    alien_number:   val('alienNumber') || val('aNumber'),
+    alien_number:   val('alienNo'),
+    where_born:     val('whereBorn'),
+    race:           val('race'),
+    nationality:    val('nationality'),
+    how_long_us:    val('howLongUS'),
+    sex_m:          (val('sex')==='M' || val('sex')==='Male')   ? 'Yes' : '',
+    sex_f:          (val('sex')==='F' || val('sex')==='Female') ? 'Yes' : '',
+    rent_current:   val('rentOwn')==='Rent' ? 'Yes' : '',
+    own_current:    val('rentOwn')==='Own'  ? 'Yes' : '',
 
     /* employment */
     occupation:       val('occupation'),
@@ -2036,11 +2044,11 @@ function esignData(){
        that is how people say it; the packet wants three boxes. Split on the
        leading four-digit year and put the rest in make, leaving model empty
        rather than guessing where a make ends and a model begins. */
-    auto_year:     (/^\s*(\d{4})\b/.exec(val('autoYMM'))||[])[1] || '',
-    auto_make:     String(val('autoYMM')||'').replace(/^\s*\d{4}\b\s*/,''),
-    auto_plate:    val('autoPlate'),
-    auto_state:    val('autoState'),
-    auto_owed:     val('autoOwed'),
+    auto_year:     (/^\s*(\d{4})\b/.exec(val('collVehicle'))||[])[1] || '',
+    auto_make:     String(val('collVehicle')||'').replace(/^\s*\d{4}\b\s*/,''),
+    auto_model:    val('collVIN') ? ('VIN ' + val('collVIN')) : '',
+    auto_plate:    val('collPlate'),
+    auto_owed:     val('collLien'),
 
     /* marital status - the tick boxes, driven by the one chip they chose */
     m_married:   val('marital')==='Married'   ? 'Yes' : '',
@@ -2064,10 +2072,9 @@ function esignData(){
     ref3_address: val('ref3Address'), ref3_tel_cell: val('ref3Phone'),
 
     /* financial statement */
-    real_estate_value:    val('realEstateValue'),
-    real_estate_mortgage: val('realEstateMortgage'),
-    title_name:           val('titleName'),
-    monthly_income:       val('monthlyIncome'),
+    real_estate_value:    val('collValue'),
+    real_estate_mortgage: val('collMortgage'),
+    title_name:           val('collTitleName'),
 
     /* citizenship ticks */
     citizen_y: val('citizen')==='Yes' ? 'Yes' : '',
