@@ -949,6 +949,43 @@ function fillRel(sel){ if(!sel)return; const cur=sel.value;
 /* Same relationship list on the indemnitor AND on both references — the
    references were free text, which produced unusable answers like "friend?" */
 function buildRel(){ fillRel($('#relSel')); $$('.relsel').forEach(fillRel); }
+/* The jail list is grouped for humans ("Treasure Coast", "Southwest
+   Florida"), so the group heading is not a county and cannot be used.
+   Each jail is mapped explicitly instead - one line per facility, which is
+   duller than deriving it and does not go wrong. */
+const JAIL_COUNTY = {
+  'Palm Beach County Main Detention Center':'Palm Beach', 'Palm Beach County West Detention Center':'Palm Beach',
+  'Broward County Main Jail, Fort Lauderdale':'Broward', 'Paul Rein Detention Facility, Pompano Beach':'Broward',
+  'North Broward Bureau, Pompano Beach':'Broward', 'Joseph V. Conte Facility, Pompano Beach':'Broward',
+  'Turner Guilford Knight Correctional Center, Miami':'Miami-Dade', 'Metro West Detention Center, Miami':'Miami-Dade',
+  'Miami-Dade Pre-Trial Detention Center':'Miami-Dade',
+  'Martin County Jail, Stuart':'Martin', 'St. Lucie County Jail, Fort Pierce':'St. Lucie',
+  'Indian River County Jail, Vero Beach':'Indian River', 'Okeechobee County Jail':'Okeechobee',
+  'Glades County Detention Center, Moore Haven':'Glades', 'Hendry County Jail, LaBelle':'Hendry',
+  'Lee County Jail, Fort Myers':'Lee', 'Naples Jail Center, Collier County':'Collier',
+  'Charlotte County Jail, Punta Gorda':'Charlotte',
+  'Orange County Jail, Orlando':'Orange', 'Osceola County Jail, Kissimmee':'Osceola',
+  'Brevard County Jail, Titusville':'Brevard', 'Highlands County Jail, Sebring':'Highlands'
+};
+/* Florida judicial circuits. The formulation "in and for" is the standard
+   one and is correct whether the charge lands in county or circuit court,
+   so it does not have to guess the division from a charge we never asked
+   about. */
+const COUNTY_CIRCUIT = {
+  'Palm Beach':'Fifteenth', 'Broward':'Seventeenth', 'Miami-Dade':'Eleventh',
+  'Martin':'Nineteenth', 'St. Lucie':'Nineteenth', 'Indian River':'Nineteenth', 'Okeechobee':'Nineteenth',
+  'Glades':'Twentieth', 'Hendry':'Twentieth', 'Lee':'Twentieth', 'Collier':'Twentieth', 'Charlotte':'Twentieth',
+  'Orange':'Ninth', 'Osceola':'Ninth', 'Brevard':'Eighteenth', 'Highlands':'Tenth'
+};
+function jailCounty(){
+  const c = JAIL_COUNTY[val('jail')];
+  return c ? (c + ' County') : '';
+}
+function courtName(){
+  const c = JAIL_COUNTY[val('jail')];
+  const circuit = c && COUNTY_CIRCUIT[c];
+  return circuit ? (circuit + ' Judicial Circuit in and for ' + c + ' County, Florida') : '';
+}
 function relText(){const r=val('relationship');return r==='Other'?(val('relOther')||'Other'):r;}
 
 /* ===== chips ===== */
@@ -1921,11 +1958,18 @@ function esignData(){
   return {
     def_name:       val('defName'),
     bond_amount:    bond ? bond.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) : '',
-    /* Court and county are not asked on the intake form — the client
-       usually does not know them. Left blank on purpose rather than
-       guessed, so the agent fills them rather than trusting a wrong one. */
-    court_name:     '',
-    county:         '',
+    /* Court and county are no longer asked, they are DERIVED from the jail.
+       Nobody in a panic knows which court their brother's case is in, but
+       everyone knows which jail he is sitting in - and the jail settles the
+       county, and the county settles the circuit. Leaving these blank meant
+       every packet went out with two empty lines on page 1 for an agent to
+       fill by hand, which is exactly the kind of blank that does not get
+       filled at 3am.
+       Federal and ICE facilities derive nothing: there is no state circuit
+       behind them, and a guessed court on an immigration hold would be
+       worse than the blank it replaced. */
+    court_name:     courtName(),
+    county:         jailCounty(),
     relationship:   relText(),
     indem_name:     full,
     nickname:       val('nickname'),
