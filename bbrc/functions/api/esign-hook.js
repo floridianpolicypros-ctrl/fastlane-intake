@@ -191,6 +191,14 @@ async function deliverSigned(env, documentId, signerEmail, receiptNo) {
        every single bond. The subject now says whose it is and what to do with
        it, so it is findable in a search and actionable from the inbox. */
     const agency = (env.AGENCY_BCC || "bailbondreleasecenter@gmail.com").trim();
+
+    /* Carlos asked for one email that shows the whole file rather than two
+       that each show half. The payment lives on the bond_files row, put
+       there either by the receipt page or by the Clover sweep, and the
+       payer's name on the clover_payments row. If neither is there yet the
+       email says so plainly - a packet that is silent about payment reads
+       as paid, which is the assumption that gets a bond posted for free. */
+    const pay = await paymentFor(env, receiptNo);
     try {
       await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -198,12 +206,18 @@ async function deliverSigned(env, documentId, signerEmail, receiptNo) {
         body: JSON.stringify({
           from: env.FROM_ADDRESS || "Bail Bond Release Center <onboarding@resend.dev>",
           to: [agency],
-          subject: (defName || signerEmail || receiptNo || "Bail bond") + " indemnitor paperwork to print",
+          subject: (defName || signerEmail || receiptNo || "Bail bond") + " indemnitor paperwork to print"
+                   + (pay.paid ? " \u2014 PAID " + pay.amount : " \u2014 PAYMENT NOT CONFIRMED"),
           text: "The signed indemnitor packet is attached, ready to print.\n\n"
               + "Defendant .. " + (defName || "(not on the document title)") + "\n"
               + "Signer ..... " + (signerEmail || "(unknown)") + "\n"
               + "Receipt .... " + (receiptNo || "(none)") + "\n"
-              + "Document ... " + documentId + "\n\n"
+              + "Signed ..... " + stamp(Date.now()) + "\n\n"
+              + "PAYMENT\n" + pay.block + "\n\n"
+              + (pay.paid
+                  ? "Both halves of this file are in. Nothing is outstanding.\n\n"
+                  : "No payment is confirmed against this file. Do not post the bond on signatures alone - check Clover, or the Zelle, Cash App or cash it was written against.\n\n")
+              + "Document ... " + documentId + "\n"
               + "No need to log into BoldSign for this one.",
           attachments: [{ filename: (defName ? defName.replace(/[^A-Za-z0-9]+/g, "-") : "Signed")
               + "-indemnitor-packet" + (receiptNo ? "-" + receiptNo : "") + ".pdf", content: b64 }]
@@ -260,6 +274,30 @@ async function alertAgency(env, eventType, documentId, receiptNo, email, message
     });
   } catch (_) {}
 }
+
+/* What do we know about the money on this file? Returns a block of text
+   for the email and a flag, never throws - a missing table or an
+   unreachable database must not stop the packet being delivered. */
+async function paymentFor(env, receiptNo) {
+  const none = { paid: false, amount: "", block: "  Not confirmed. Nothing has been recorded against this receipt." };
+  if (!env.DB || !receiptNo) return none;
+  try {
+    const f = await env.DB.prepare("SELECT amount_paid, paid_at FROM bond_files WHERE ref=?").bind(receiptNo).first();
+    if (!f || !f.paid_at) return none;
+    const c = await env.DB.prepare(
+      "SELECT payer, last4, card_type, amount_cents FROM clover_payments WHERE ref=? ORDER BY created_at DESC LIMIT 1"
+    ).bind(receiptNo).first().catch(() => null);
+    const amount = money(f.amount_paid);
+    return {
+      paid: true, amount,
+      block: "  Amount ..... " + amount + "\n" +
+             "  Paid by .... " + ((c && c.payer) || "(name not on the transaction)") + "\n" +
+             "  Card ....... " + ((c && c.card_type) ? (c.card_type + " ending " + (c.last4 || "----")) : "(not a card, or not recorded)") + "\n" +
+             "  Taken at ... " + stamp(f.paid_at)
+    };
+  } catch (_) { return none; }
+}
+
 
 /* btoa() on a multi-megabyte string overflows the stack. Chunk it. */
 function toBase64(bytes) {
