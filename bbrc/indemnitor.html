@@ -312,10 +312,11 @@
         <div class="chip" data-v="Divorced" data-i="mDiv">Divorced</div><div class="chip" data-v="Separated" data-i="mSep">Separated</div>
         <div class="chip" data-v="Widowed" data-i="mWid">Widowed</div><div class="chip" data-v="Cohab" data-i="mCoh">Living together</div>
       </div><input type="hidden" name="marital"></div>
-    <div class="field"><label data-i="spn">Spouse / partner name</label><input name="spouseName"></div>
-    <div class="field"><label data-i="spl">How long together?</label><input name="spouseHowLong"></div>
-    <div class="field"><label data-i="spp">Their phone</label><input name="spousePhone" type="tel" inputmode="tel"></div>
-    <div class="field"><label data-i="spe">Their employer</label><input name="spouseEmployer"></div>
+    <div class="full empdoc"><label class="drop" style="padding:14px"><div class="ico">💼</div><div class="t" data-i="empDoc">Business card or SunBiz record</div><div class="hint" data-i="empDocH">Optional. A business card, a pay stub or the SunBiz page for the company — anything that shows the employer is real. This never holds up your application.</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" capture="environment" data-doc="emp_doc"><img class="thumb" data-thumb></label></div>
+    <div class="field spouse"><label data-i="spn">Spouse / partner name</label><input name="spouseName"></div>
+    <div class="field spouse"><label data-i="spl">How long together?</label><input name="spouseHowLong"></div>
+    <div class="field spouse"><label data-i="spp">Their phone</label><input name="spousePhone" type="tel" inputmode="tel"></div>
+    <div class="field spouse"><label data-i="spe">Their employer</label><input name="spouseEmployer"></div>
   </div>
 </section>
 
@@ -1024,6 +1025,22 @@ function syncCond(){
     const fld=el.closest('.field')||el.parentNode;
     if(fld)fld.classList.toggle('hidden',nv);
   });
+  /* Spouse. Single, divorced and widowed have nobody to describe, so the
+     whole block folds away and anything already typed is cleared - a file
+     must not say both that they are single and that their wife works at
+     Publix. Separated still counts: legally there is still a spouse. */
+  const hasPartner = ['Married','Separated','Cohab'].indexOf(val('marital')) > -1;
+  $$('.spouse').forEach(function(fld){
+    fld.classList.toggle('hidden', !hasPartner);
+    if(!hasPartner){ const i=fld.querySelector('input,select'); if(i && i.value) i.value=''; }
+  });
+
+  /* Proof of employment is offered only once an employer is named, and it
+     is never a gate - the point of it is to speed up verification, not to
+     stand between someone and a signature at 3am. */
+  const empDrop = document.querySelector('.empdoc');
+  if(empDrop) empDrop.classList.toggle('hidden', !val('employer'));
+
   const vehDrop=document.querySelector('[data-doc="veh_doc"]');
   if(vehDrop){const lab=vehDrop.closest('label.drop')||vehDrop.parentNode;
     if(lab)lab.classList.toggle('hidden',!vehListed());}
@@ -1124,6 +1141,16 @@ function feeBreak(){return breakText(priceParts(),true);}
 /* Wiring. The count selector and the total box both have to re-run the
    pricing, because either one can change what is owed. Bound once, here,
    rather than inline on the elements so the markup stays readable. */
+(function bindConditionals(){
+  const emp=f.elements['employer'];
+  if(emp)emp.addEventListener('input',function(){try{syncCond();}catch(e){}});
+  const mar=f.elements['marital'];
+  if(mar && mar.parentNode){
+    mar.parentNode.querySelectorAll('.chip[data-v]').forEach(function(c){
+      c.addEventListener('click',function(){ setTimeout(function(){ try{syncCond();}catch(e){} },0); });
+    });
+  }
+})();
 (function bindVehicle(){
   const nv=document.getElementById('noVehicle');
   if(nv)nv.addEventListener('change',function(){try{syncCond();}catch(e){} review();});
