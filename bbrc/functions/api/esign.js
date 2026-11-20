@@ -277,7 +277,7 @@ export async function onRequestPost(context) {
                       value: (typeof v === "string" && v.length > 60) ? "<" + v.length + " bytes>" : v });
       }
     }
-    return j({ ok: true, status: d.status, count: fields.length, fields });
+    return j({ ok: true, status: d.status, pageCount: (d.documentPageDetails && d.documentPageDetails.length) || d.pageCount || null, count: fields.length, fields });
   }
 
   if (action === "signlink") {
