@@ -203,7 +203,7 @@ function buildFields(packet, data, signerName, map) {
         isRequired: !!f.required
       };
       const v = f.fillName ? signerName : (data && data[f.id]);
-      if (!f.type && v !== undefined && v !== null && String(v).trim() !== "") fld.value = String(v);
+      if (!f.type && v !== undefined && v !== null && String(v).trim() !== "") { fld.value = String(v); fld.isReadOnly = true; }
       out.push(fld);
     }
   }
@@ -223,9 +223,9 @@ function buildFields(packet, data, signerName, map) {
       if (f.type === "CheckBox") {
         /* A tick is only ever set by an answer that means yes. Anything
            else is left unticked rather than guessed. */
-        if (v === true || v === "true" || v === "Yes" || v === "yes" || v === "/Yes") fld.isChecked = true;
+        if (v === true || v === "true" || v === "Yes" || v === "yes" || v === "/Yes") { fld.isChecked = true; fld.isReadOnly = true; }
       } else if (f.type === "TextBox") {
-        if (v !== undefined && v !== null && String(v).trim() !== "") fld.value = String(v);
+        if (v !== undefined && v !== null && String(v).trim() !== "") { fld.value = String(v); fld.isReadOnly = true; }
       }
       out.push(fld);
     }
