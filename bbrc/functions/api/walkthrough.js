@@ -46,13 +46,13 @@
    server, where it cannot be edited away.
    ============================================================ */
 
-const TZ         = "America/New_York";
-const WINDOW     = "12:30 PM to 2:30 PM";
-const OFFICE     = "800 S. Congress Ave, West Palm Beach, FL 33406";
+const TZ = "America/New_York";
+const WINDOW = "12:30 PM to 2:30 PM";
+const OFFICE = "800 S. Congress Ave, West Palm Beach, FL 33406";
 const OFFICE_TEL = "(561) 833-4388";
-const MAX_AHEAD  = 60;                    // days; beyond this it is a wish, not a booking
-const MAX_DOC    = 6 * 1024 * 1024;       // per file, before base64 inflation
-const MAX_TOTAL  = 14 * 1024 * 1024;      // Resend rejects oversized payloads outright
+const MAX_AHEAD = 60;                 // days; beyond this it is a wish, not a booking
+const MAX_DOC = 6 * 1024 * 1024;      // per file, before base64 inflation
+const MAX_TOTAL = 14 * 1024 * 1024;   // Resend rejects oversized payloads outright
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -69,12 +69,12 @@ export async function onRequestPost(context) {
   const ref      = clean(b.ref, 40);
   const indem    = clean(b.indemnitorEmail, 160).toLowerCase();
 
-  if (!name)             return j({ ok: false, error: "Please give us your full name." }, 400);
+  if (!name) return j({ ok: false, error: "Please give us your full name." }, 400);
   if (phone.length < 10) return j({ ok: false, error: "Please give us a phone number we can reach you on." }, 400);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date))
-                         return j({ ok: false, error: "Please choose a date." }, 400);
+    return j({ ok: false, error: "Please choose a date." }, 400);
   if (indem && !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(indem))
-                         return j({ ok: false, error: "That co-signer email does not look right." }, 400);
+    return j({ ok: false, error: "That co-signer email does not look right." }, 400);
 
   /* Parsed at noon UTC so a timezone shift can never roll the date onto the
      day before and turn a Monday into a Sunday. */
@@ -84,12 +84,22 @@ export async function onRequestPost(context) {
     return j({ ok: false, error: "We do not do walkthroughs on Sundays. Please choose Monday to Saturday, or call " + OFFICE_TEL + "." }, 400);
 
   const today = new Date(); today.setUTCHours(12, 0, 0, 0);
-  const days  = Math.round((d - today) / 86400000);
-  if (days < 0)         return j({ ok: false, error: "That date has already passed. Please choose another, or call " + OFFICE_TEL + "." }, 400);
+  const days = Math.round((d - today) / 86400000);
+  if (days < 0) return j({ ok: false, error: "That date has already passed. Please choose another, or call " + OFFICE_TEL + "." }, 400);
   if (days > MAX_AHEAD) return j({ ok: false, error: "That is too far out to book. Please choose a date within the next two months, or call " + OFFICE_TEL + "." }, 400);
 
   const pretty = d.toLocaleDateString("en-US",
     { timeZone: "UTC", weekday: "long", month: "long", day: "numeric", year: "numeric" });
+
+  /* THE LINE THAT HAS TO SURVIVE BEING A TEXT MESSAGE.
+
+     A phone shows a sender and a subject and nothing else, so the subject
+     has to carry enough to act on without opening anything: who is coming
+     in, the date of birth that separates them from the other three men
+     with that name, and the number to call if the day has to move. */
+  const id = name
+    + (dobIn ? " DOB " + dobIn    : "")
+    + (phone ? " " + tel(phone)   : " (no phone)");
 
   /* ---- documents ---- */
   const attachments = [];
@@ -111,7 +121,7 @@ export async function onRequestPost(context) {
     "A walkthrough has been booked on the website.\n\n" +
     "Name ........... " + name + "\n" +
     "DOB ............ " + (dobIn || "(not given)") + "\n" +
-    "Phone .......... " + (phone || "(not given)") + "\n" +
+    "Phone .......... " + (tel(phone) || "(not given)") + "\n" +
     "Email .......... " + (email || "(not given)") + "\n" +
     "Case type ...... " + (caseType || "(not given)") + "\n" +
     "Case/citation .. " + (ref || "(not given)") + "\n" +
@@ -126,7 +136,7 @@ export async function onRequestPost(context) {
       : "") +
     "No time was promised \u2014 they were told to arrive inside the window.";
 
-  await push(env, "WALKTHROUGH BOOKED \u2014 " + name + " \u2014 " + pretty, body);
+  await push(env, "WALKTHROUGH BOOKED \u2014 " + id + " \u2014 " + pretty, body);
 
   const ics = buildIcs({ name, phone, email, date, note });
   attachments.push({ filename: "walkthrough-" + date + ".ics", content: b64(ics) });
@@ -278,7 +288,7 @@ function ext(name, type) {
 
 function alertTo(env) {
   /* ALERT_SMS_TO is deliberately NOT here. It is a Zapier inbound address
-     that turns an email subject into a text, and these emails carry signed
+     that turns an email into a text, and these emails carry signed
      packets and client photos - oversized inbound mail bounces there and
      the text never arrives. It gets its own small message instead. */
   return [env.AGENCY_BCC || "bailbondreleasecenter@gmail.com"]
@@ -308,12 +318,12 @@ async function mail(env, m) {
    reads one on a lock screen anyway. The phone gets the headline; the
    email carries the file. */
 async function push(env, subject, text) {
-  await textAlert(env, subject);
+  await textAlert(env, subject, text);
   await telegram(env, subject, text);
 }
 
-/* A text message, by way of a Zapier inbound address that forwards the
-   SUBJECT line to a phone.
+/* A text message, by way of a Zapier inbound address that forwards an
+   email to a phone.
 
    Every text is labelled with the intake it came from, because a phone
    shows a sender and a subject and nothing else - "PAID $500" tells you
@@ -326,14 +336,17 @@ async function push(env, subject, text) {
    text would silently never arrive. That failure mode has already cost
    weeks of submissions on another intake and is not worth repeating.
 
-   Everything that matters therefore has to fit in the subject: carriers
-   truncate around 150 characters, so it is clipped here rather than
-   arriving cut off mid-word.
+   The subject carries the whole answer because the subject-only bridge is
+   all that is guaranteed to arrive; the detail block is passed through as
+   the body as well, so that a Zap mapping the body gets the full picture
+   without this code changing again. Both are clipped - carriers truncate
+   a subject around 150 characters, and a body that runs long is the thing
+   that bounces.
 
    Timed out at three seconds and swallowed on failure: a slow notification
    service must never delay or break the alert it is announcing. */
 const ALERT_SOURCE = "WALKTHROUGH";
-async function textAlert(env, subject) {
+async function textAlert(env, subject, detail) {
   if (!env.ALERT_SMS_TO) return;
   if (!env.RESEND_API_KEY) return;
   try {
@@ -346,7 +359,7 @@ async function textAlert(env, subject) {
         from: env.FROM_ADDRESS || "Bail Bond Release Center <onboarding@resend.dev>",
         to: [String(env.ALERT_SMS_TO).trim()],
         subject: line,
-        text: "Full details are in the matching email."
+        text: String(detail || "Full details are in the matching email.").slice(0, 900)
       }),
       signal: AbortSignal.timeout(3000)
     });
@@ -372,6 +385,16 @@ async function telegram(env, subject, text) {
 const clean  = (v, n) => String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, n);
 const digits = (v, n) => String(v == null ? "" : v).replace(/\D/g, "").slice(0, n);
 const stamp  = t => new Date(Number(t)).toLocaleString("en-US", { timeZone: TZ });
+
+/* A number nobody can dial is not a contact. Ten digits are formatted so
+   the text can be tapped to call; anything else is passed through rather
+   than mangled, because a partial number is still worth seeing. */
+const tel = p => {
+  const d = String(p == null ? "" : p).replace(/\D/g, "");
+  if (d.length === 10) return "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+  if (d.length === 11 && d[0] === "1") return "(" + d.slice(1, 4) + ") " + d.slice(4, 7) + "-" + d.slice(7);
+  return d ? String(p) : "";
+};
 
 const j = (o, s) => new Response(JSON.stringify(o), {
   status: s || 200,

@@ -66,12 +66,24 @@ export async function onRequestPost(context) {
   const who =
     "Name ........... " + firstName + " " + lastName + "\n" +
     "DOB ............ " + (dob || "(not given)") + "\n" +
-    "Phone .......... " + (phone || "(not given)") + "\n" +
+    "Phone .......... " + (tel(phone) || "(not given)") + "\n" +
     "Email .......... " + (email || "(not given)") + "\n" +
     "Situation ...... " + (situation || "(not given)") + "\n" +
     "Case type ...... " + (caseType || "(not given)") + "\n" +
     "Case/citation .. " + (ref || "(not given)") + "\n" +
     "Asked at ....... " + stamp(Date.now());
+
+  /* THE LINE THAT HAS TO SURVIVE BEING A TEXT MESSAGE.
+
+     A phone shows a sender and a subject and nothing else, so the subject
+     has to carry enough to act on without opening anything: who it is,
+     the date of birth that separates them from the other four men with
+     that name, and the number to call back. A subject that says only
+     "CALL REQUIRED — J. Hernandez" is a notification that somebody has
+     to go and look something up; this one is the whole job. */
+  const id = firstName + " " + lastName
+    + (dob   ? " DOB " + dob      : "")
+    + (phone ? " " + tel(phone)   : " (no phone)");
 
   /* A lead with no search behind it. Two routes arrive here: a new charge,
      where nothing exists in the court records for 30 to 60 days and the
@@ -81,8 +93,7 @@ export async function onRequestPost(context) {
   if (b.leadOnly) {
     const isNew = situation === "new";
     await alert(env,
-      "CALL REQUIRED — " + firstName + " " + lastName +
-        (isNew ? " — new charge" : " — staff check"),
+      "CALL REQUIRED — " + id + (isNew ? " — new charge" : " — staff check"),
       (isNew
         ? "A new charge was submitted. Nothing will be in the Clerk's records for 30 to 60 days, so this one needs the warrants department called direct.\n\n"
         : "Somebody asked for a staff check rather than waiting for the live search.\n\n") +
@@ -95,7 +106,7 @@ export async function onRequestPost(context) {
   }
 
   context.waitUntil(alert(env,
-    "WARRANT CHECK STARTED — " + firstName + " " + lastName,
+    "WARRANT CHECK STARTED — " + id,
     "Somebody just ran a warrant check on the website.\n\n" + who + "\n\n" +
     "This is a live lead. The result follows in a second message. If they close " +
     "the page before it lands, you still have their details above."));
@@ -120,7 +131,7 @@ export async function onRequestPost(context) {
   } catch (e) {
     const why = String((e && e.message) || e);
     context.waitUntil(alert(env,
-      "WARRANT CHECK FAILED — " + firstName + " " + lastName,
+      "WARRANT CHECK FAILED — " + id,
       who + "\n\nThe Clerk lookup did not complete: " + why +
       "\n\nCheck eCase yourself and call them back. They were told to text you."));
     return j({
@@ -134,8 +145,7 @@ export async function onRequestPost(context) {
   const found   = matches.length > 0;
 
   context.waitUntil(alert(env,
-    (found ? "WARRANT CHECK — OPEN CASE FOUND — " : "WARRANT CHECK — nothing found — ")
-      + firstName + " " + lastName,
+    (found ? "OPEN CASE FOUND — " : "nothing found — ") + id,
     who + "\n\n" +
     (found
       ? ("The Clerk shows " + matches.length + " open case" + (matches.length === 1 ? "" : "s") + ":\n\n" +
@@ -188,7 +198,7 @@ function summarise(m) {
 
 function alertTo(env) {
   /* ALERT_SMS_TO is deliberately NOT here. It is a Zapier inbound address
-     that turns an email subject into a text, and these emails carry signed
+     that turns an email into a text, and these emails carry signed
      packets and client photos - oversized inbound mail bounces there and
      the text never arrives. It gets its own small message instead. */
   return [env.AGENCY_BCC || "bailbondreleasecenter@gmail.com"]
@@ -212,12 +222,12 @@ async function alert(env, subject, text) {
 }
 
 async function push(env, subject, text) {
-  await textAlert(env, subject);
+  await textAlert(env, subject, text);
   await telegram(env, subject, text);
 }
 
-/* A text message, by way of a Zapier inbound address that forwards the
-   SUBJECT line to a phone.
+/* A text message, by way of a Zapier inbound address that forwards an
+   email to a phone.
 
    Every text is labelled with the intake it came from, because a phone
    shows a sender and a subject and nothing else - "PAID $500" tells you
@@ -230,14 +240,17 @@ async function push(env, subject, text) {
    text would silently never arrive. That failure mode has already cost
    weeks of submissions on another intake and is not worth repeating.
 
-   Everything that matters therefore has to fit in the subject: carriers
-   truncate around 150 characters, so it is clipped here rather than
-   arriving cut off mid-word.
+   The subject carries the whole answer because the subject-only bridge is
+   all that is guaranteed to arrive; the detail block is passed through as
+   the body as well, so that a Zap mapping the body gets the full picture
+   without this code changing again. Both are clipped - carriers truncate
+   a subject around 150 characters, and a body that runs long is the thing
+   that bounces.
 
    Timed out at three seconds and swallowed on failure: a slow notification
    service must never delay or break the alert it is announcing. */
 const ALERT_SOURCE = "WARRANT";
-async function textAlert(env, subject) {
+async function textAlert(env, subject, detail) {
   if (!env.ALERT_SMS_TO) return;
   if (!env.RESEND_API_KEY) return;
   try {
@@ -250,7 +263,7 @@ async function textAlert(env, subject) {
         from: env.FROM_ADDRESS || "Bail Bond Release Center <onboarding@resend.dev>",
         to: [String(env.ALERT_SMS_TO).trim()],
         subject: line,
-        text: "Full details are in the matching email."
+        text: String(detail || "Full details are in the matching email.").slice(0, 900)
       }),
       signal: AbortSignal.timeout(3000)
     });
@@ -276,6 +289,16 @@ async function telegram(env, subject, text) {
 const clean  = (v, n) => String(v == null ? "" : v).replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, n);
 const digits = (v, n) => String(v == null ? "" : v).replace(/\D/g, "").slice(0, n);
 const stamp  = t => new Date(Number(t)).toLocaleString("en-US", { timeZone: "America/New_York" });
+
+/* A number nobody can dial is not a contact. Ten digits are formatted so
+   the text can be tapped to call; anything else is passed through rather
+   than mangled, because a partial number is still worth seeing. */
+const tel = p => {
+  const d = String(p == null ? "" : p).replace(/\D/g, "");
+  if (d.length === 10) return "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+  if (d.length === 11 && d[0] === "1") return "(" + d.slice(1, 4) + ") " + d.slice(4, 7) + "-" + d.slice(7);
+  return d ? String(p) : "";
+};
 
 const j = (o, s) => new Response(JSON.stringify(o), {
   status: s || 200,
