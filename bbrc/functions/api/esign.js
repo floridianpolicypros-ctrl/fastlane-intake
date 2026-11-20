@@ -50,13 +50,13 @@ const API = "https://api.boldsign.com";
 const ADDENDUM = "BBRC-Promissory-Note-Addendum.pdf";
 
 const PACKETS = {
-  standard:        { file: "BBRC-Tagged-standard.pdf",        label: "Bail Bond Packet",
+  standard:        { file: "BBRC-Rebuilt-standard.pdf",        label: "Bail Bond Packet",
                      pages: [4, 5, 6, 7, 8, 9, 10, 11, 12] },
-  collateral:      { file: "BBRC-Tagged-collateral.pdf",      label: "Bail Bond Packet — Collateral",
+  collateral:      { file: "BBRC-Rebuilt-collateral.pdf",      label: "Bail Bond Packet — Collateral",
                      pages: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
-  plan:            { file: "BBRC-Tagged-plan.pdf",            label: "Bail Bond Packet — Payment Plan",
+  plan:            { file: "BBRC-Rebuilt-plan.pdf",            label: "Bail Bond Packet — Payment Plan",
                      pages: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13], addendum: true },
-  collateral_plan: { file: "BBRC-Tagged-collateral_plan.pdf", label: "Bail Bond Packet — Collateral + Payment Plan",
+  collateral_plan: { file: "BBRC-Rebuilt-collateral_plan.pdf", label: "Bail Bond Packet — Collateral + Payment Plan",
                      pages: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], addendum: true },
 
   /* The DEFENDANT application has no tagged packet, because the Sun Surety
@@ -108,24 +108,13 @@ const SIG_UP  = 22;   // signature box top, points above the rule
 /* Keyed by SOURCE page of sunsurety-packet.pdf. Field position is the
    TOP of the box in points from the page top; each box is parked just
    above its printed rule so ink sits on the line. */
-const FIELDS = {
-  4: [
-    { id: "def_name",       x: 40,  ruleTop: 227, w: 430 },
-    { id: "bond_amount",    x: 100, ruleTop: 265, w: 160 },
-    { id: "court_name",     x: 275, ruleTop: 265, w: 260 },
-    { id: "county",         x: 55,  ruleTop: 285, w: 280 },
-    { id: "relationship",   x: 215, ruleTop: 341, w: 300 },
-    { id: "indem_name",     x: 90,  ruleTop: 361, w: 260 },
-    { id: "nickname",       x: 395, ruleTop: 361, w: 165 },
-    { id: "phone_home",     x: 168, ruleTop: 388, w: 110 },
-    { id: "phone_work",     x: 320, ruleTop: 388, w: 110 },
-    { id: "phone_mobile",   x: 480, ruleTop: 388, w: 85  },
-    { id: "email",          x: 84,  ruleTop: 408, w: 300 },
-    { id: "address",        x: 165, ruleTop: 428, w: 350 },
-    { id: "how_long",       x: 528, ruleTop: 428, w: 45  },
-    { id: "landlord",       x: 265, ruleTop: 449, w: 300 },
-    { id: "former_address", x: 170, ruleTop: 469, w: 340 }
-  ],
+/* Signature placement for the two original scanned signature pages.
+   These pages were NOT rebuilt, so their geometry is the hand-measured one
+   that has been landing correctly - left alone deliberately rather than
+   re-derived, because a working signature is not worth risking to tidiness.
+   Every field on the application pages (source 4, 5, 6) now comes from
+   /assets/packets/field-map.json instead. */
+const SIG_FIELDS = {
   8: [
     { id: "indem_sig_1",   x: 145, ruleTop: 624, w: 250, type: "Signature",  required: true },
     { id: "indem_print_1", x: 163, ruleTop: 647, w: 250, fillName: true },
@@ -140,7 +129,23 @@ const FIELDS = {
 
 /* Source page -> 1-based position inside this packet variant. The offset is
    real: the Florida Addendum is source page 8 but page 5 of the no-collateral
-   packet, and hardcoding page numbers would put signatures on Fraud Warnings. */
+   packet, and hardcoding page numbers would put signatures on Fraud Warnings. */};
+
+/* The map is fetched rather than inlined because the same script run that
+   draws the application pages emits it, so the two are produced together
+   and cannot drift. Cached per request by Cloudflare; a failure to load it
+   is fatal on purpose - sending a packet with no application fields is the
+   exact bug this replaces, and it must never happen silently again. */
+let FIELD_MAP = null;
+async function loadFieldMap(request) {
+  if (FIELD_MAP) return FIELD_MAP;
+  const u = new URL("/assets/packets/field-map.json", request.url);
+  const r = await fetch(u.toString());
+  if (!r.ok) throw new Error("Field map not found at " + u.pathname + " (" + r.status + ")");
+  FIELD_MAP = await r.json();
+  return FIELD_MAP;
+}
+
 function pageIn(packet, sourcePage) {
   const i = PACKETS[packet].pages.indexOf(sourcePage);
   return i < 0 ? null : i + 1;
@@ -168,34 +173,67 @@ function buildClientDocFields(sig, signerName) {
   ];
 }
 
-function buildFields(packet, data, signerName) {
+/* Build the BoldSign field list for one packet.
+
+   Two sources, on purpose:
+     - SIG_FIELDS  the two original signature pages, hand-measured and known
+                   to land correctly, expressed as x / ruleTop / w and
+                   converted here exactly as before.
+     - map         the generated application fields, which already carry
+                   final pixel bounds because the script that drew the page
+                   worked them out. Nothing is re-derived from them.
+
+   A signature or date field never carries a value - only the signer can
+   produce those and BoldSign rejects the field if you try. */
+function buildFields(packet, data, signerName, map) {
   const out = [];
-  for (const src of Object.keys(FIELDS)) {
+
+  for (const src of Object.keys(SIG_FIELDS)) {
     const pageNumber = pageIn(packet, Number(src));
     if (!pageNumber) continue;
-    for (const f of FIELDS[src]) {
+    for (const f of SIG_FIELDS[src]) {
       const isSig = f.type === "Signature";
       const h  = isSig ? SIG_H  : TEXT_H;
       const up = isSig ? SIG_UP : TEXT_UP;
       const fld = {
-        id: f.id,
-        name: f.id,
+        id: f.id, name: f.id,
         fieldType: f.type || "TextBox",
         pageNumber,
         bounds: { x: px(f.x), y: px(f.ruleTop - up), width: px(f.w), height: px(h) },
         isRequired: !!f.required
       };
       const v = f.fillName ? signerName : (data && data[f.id]);
-      /* Signature and DateSigned cannot carry a value — only the signer
-         produces those, and BoldSign rejects the field if you try. */
-      if (!f.type && v !== undefined && v !== null && String(v).trim() !== "") {
-        fld.value = String(v);
+      if (!f.type && v !== undefined && v !== null && String(v).trim() !== "") fld.value = String(v);
+      out.push(fld);
+    }
+  }
+
+  for (const src of Object.keys(map || {})) {
+    const pageNumber = pageIn(packet, Number(src));
+    if (!pageNumber) continue;
+    for (const f of map[src]) {
+      const fld = {
+        id: f.id, name: f.id,
+        fieldType: f.type || "TextBox",
+        pageNumber,
+        bounds: { x: f.x, y: f.y, width: f.w, height: f.h },
+        isRequired: false
+      };
+      const v = data && data[f.id];
+      if (f.type === "CheckBox") {
+        /* A tick is only ever set by an answer that means yes. Anything
+           else is left unticked rather than guessed. */
+        if (v === true || v === "true" || v === "Yes" || v === "yes" || v === "/Yes") fld.isChecked = true;
+      } else if (f.type === "TextBox") {
+        if (v !== undefined && v !== null && String(v).trim() !== "") fld.value = String(v);
       }
       out.push(fld);
     }
   }
+
   return out;
 }
+
 
 /* Tag ids baked into the PDFs. Anything not on this list is ignored
    rather than sent to BoldSign, so a stray form key cannot 400 the
@@ -258,7 +296,9 @@ export async function onRequestPost(context) {
       const f = buildClientDocFields(b.sig || { page: 1, top: 600 }, "Preview Name") || [];
       return j({ ok: true, packet, clientDoc: true, pages: null, fieldCount: f.length, fields: f });
     }
-    const f = buildFields(packet, b.data || {}, "Preview Name");
+    /* Preview has to load the map too, or it reports the signature fields
+       only and looks exactly like the bug it is meant to catch. */
+    const f = buildFields(packet, b.data || {}, "Preview Name", await loadFieldMap(request));
     return j({ ok: true, packet, file: PACKETS[packet].file, pages: PACKETS[packet].pages.length,
                fieldCount: f.length, fields: f });
   }
@@ -333,7 +373,7 @@ export async function onRequestPost(context) {
   }
 
   const signer = { name, signerType: "Signer", locale: "EN",
-                   formFields: clientDocFields || buildFields(packet, b.data || {}, name) };
+                   formFields: clientDocFields || buildFields(packet, b.data || {}, name, await loadFieldMap(request)) };
   if (mode === "sms") {
     /* BoldSign sends the text itself — no Twilio account and no A2P 10DLC
        carrier registration, which would otherwise be a multi-week wait. */
