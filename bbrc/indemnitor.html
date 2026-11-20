@@ -2007,8 +2007,97 @@ function esignData(){
     address:        val('address'),
     how_long:       '',
     landlord:       val('landlord'),
-    former_address: val('formerAddress')
+    former_address: val('formerAddress'),
+
+    /* ───── everything the packet asks for, which until now the form
+       collected and then threw away. The names on the left are the packet's;
+       the names on the right are this form's. Keeping the translation in one
+       object rather than renaming either side means neither the form nor the
+       PDF has to be reshaped to suit the other. ───── */
+
+    /* personal description */
+    dob:            val('dob'),
+    ssn:            val('ssn'),
+    dl_number:      val('dl'),
+    dl_state:       val('dlState'),
+    alien_number:   val('alienNumber') || val('aNumber'),
+
+    /* employment */
+    occupation:       val('occupation'),
+    employer:         val('employer'),
+    job_how_long:     val('jobHowLong'),
+    employer_address: val('employerAddress'),
+    supervisor:       val('supervisor'),
+    employer_tel:     val('employerTel'),
+    union:            val('union'),
+    military_branch:  val('military'),
+
+    /* automobile. The form asks for year, make and model as one line because
+       that is how people say it; the packet wants three boxes. Split on the
+       leading four-digit year and put the rest in make, leaving model empty
+       rather than guessing where a make ends and a model begins. */
+    auto_year:     (/^\s*(\d{4})\b/.exec(val('autoYMM'))||[])[1] || '',
+    auto_make:     String(val('autoYMM')||'').replace(/^\s*\d{4}\b\s*/,''),
+    auto_plate:    val('autoPlate'),
+    auto_state:    val('autoState'),
+    auto_owed:     val('autoOwed'),
+
+    /* marital status - the tick boxes, driven by the one chip they chose */
+    m_married:   val('marital')==='Married'   ? 'Yes' : '',
+    m_divorced:  val('marital')==='Divorced'  ? 'Yes' : '',
+    m_separated: val('marital')==='Separated' ? 'Yes' : '',
+    m_widowed:   val('marital')==='Widowed'   ? 'Yes' : '',
+    m_single:    val('marital')==='Single'    ? 'Yes' : '',
+    m_cohab:     val('marital')==='Cohab'     ? 'Yes' : '',
+    spouse_name:      val('spouseName'),
+    spouse_how_long:  val('spouseHowLong'),
+    spouse_tel_cell:  val('spousePhone'),
+    spouse_employer:  val('spouseEmployer'),
+
+    /* references. The form collects one number each; it goes in the cell
+       column because that is what people give. */
+    ref1_name: val('ref1Name'), ref1_relation: val('ref1Relation'),
+    ref1_address: val('ref1Address'), ref1_tel_cell: val('ref1Phone'),
+    ref2_name: val('ref2Name'), ref2_relation: val('ref2Relation'),
+    ref2_address: val('ref2Address'), ref2_tel_cell: val('ref2Phone'),
+    ref3_name: val('ref3Name'), ref3_relation: val('ref3Relation'),
+    ref3_address: val('ref3Address'), ref3_tel_cell: val('ref3Phone'),
+
+    /* financial statement */
+    real_estate_value:    val('realEstateValue'),
+    real_estate_mortgage: val('realEstateMortgage'),
+    title_name:           val('titleName'),
+    monthly_income:       val('monthlyIncome'),
+
+    /* citizenship ticks */
+    citizen_y: val('citizen')==='Yes' ? 'Yes' : '',
+    citizen_n: val('citizen')==='No'  ? 'Yes' : '',
+
+    /* social media ticks, from the chips. "No" is only asserted when they
+       named at least one platform - an untouched question stays untouched
+       rather than being recorded as a denial. */
+    social_fb_y: hasSocial('Facebook'),  social_fb_n: noSocial('Facebook'),
+    social_ig_y: hasSocial('Instagram'), social_ig_n: noSocial('Instagram'),
+    social_sc_y: hasSocial('Snapchat'),  social_sc_n: noSocial('Snapchat'),
+    social_li_y: hasSocial('LinkedIn'),  social_li_n: noSocial('LinkedIn'),
+    social_tw_y: hasSocial('Twitter/X'), social_tw_n: noSocial('Twitter/X'),
+
+    /* page 3 signature block, which had no field on it at all until the
+       packet was rebuilt */
+    indem_print_3: full
   };
+}
+
+/* The chips are a comma-separated list, so a platform is "yes" when named.
+   "No" is only recorded once they have engaged with the question at all,
+   which is why an empty answer produces neither tick. */
+function socialList(){ return String(val('social')||'').split(',').map(function(s){return s.trim();}); }
+function hasSocial(name){ return socialList().indexOf(name)>-1 ? 'Yes' : ''; }
+function noSocial(name){
+  var l = socialList().filter(Boolean);
+  if(!l.length) return '';
+  if(l.indexOf('No social media')>-1) return 'Yes';
+  return l.indexOf(name)>-1 ? '' : 'Yes';
 }
 async function sendForSignature(rcp){
   try{
