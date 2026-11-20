@@ -129,7 +129,7 @@ const SIG_FIELDS = {
 
 /* Source page -> 1-based position inside this packet variant. The offset is
    real: the Florida Addendum is source page 8 but page 5 of the no-collateral
-   packet, and hardcoding page numbers would put signatures on Fraud Warnings. */};
+   packet, and hardcoding page numbers would put signatures on Fraud Warnings. */
 
 /* The map is fetched rather than inlined because the same script run that
    draws the application pages emits it, so the two are produced together
