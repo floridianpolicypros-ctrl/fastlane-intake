@@ -81,7 +81,7 @@ export async function onRequestPost(context) {
   }
 
   if (eventType === "Completed") {
-    context.waitUntil(deliverSigned(env, documentId, signer.signerEmail || "", receiptNo));
+    context.waitUntil(deliverSigned(env, documentId, signer.signerEmail || "", receiptNo, new URL(request.url).origin));
     context.waitUntil(onSigned(env, documentId, receiptNo, signer.signerEmail || "",
                                signer.signerName || ""));
   }
@@ -161,7 +161,16 @@ async function log(env, row) {
 /* The executed packet goes to the client and to the agency automatically.
    This is the Florida requirement — a copy of what they actually signed,
    not a summary of it. */
-async function deliverSigned(env, documentId, signerEmail, receiptNo) {
+async function deliverSigned(env, documentId, signerEmail, receiptNo, origin) {
+  /* Reconcile with Clover first, so the packet email reports the money as it
+     stands right now rather than as it stood whenever something last looked.
+     Clover has no webhooks on this account, so the only way to know a payment
+     happened is to ask - and the moment somebody signs is exactly when the
+     answer matters. Failure is ignored on purpose: a slow or unreachable
+     Clover must never stop the executed packet going out. */
+  if (origin) {
+    try { await fetch(origin + "/api/clover-sweep?hours=24"); } catch (_) {}
+  }
   try {
     const r = await fetch(API + "/v1/document/download?documentId=" + encodeURIComponent(documentId),
       { headers: { "X-API-KEY": env.BOLDSIGN_KEY } });
