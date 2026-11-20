@@ -103,7 +103,11 @@ export async function onRequest(context) {
 /* ============================================================ */
 
 function alertTo(env) {
-  return [env.AGENCY_BCC || "bailbondreleasecenter@gmail.com", env.ALERT_SMS_TO]
+  /* ALERT_SMS_TO is deliberately NOT here. It is a Zapier inbound address
+     that turns an email subject into a text, and these emails carry signed
+     packets and client photos - oversized inbound mail bounces there and
+     the text never arrives. It gets its own small message instead. */
+  return [env.AGENCY_BCC || "bailbondreleasecenter@gmail.com"]
     .filter(Boolean).map(s => String(s).trim())
     .filter((v, i, a) => a.indexOf(v) === i);
 }
@@ -111,6 +115,52 @@ function alertTo(env) {
 /* Telegram. Goes quiet if either variable is unset rather than
    erroring, so a half-finished setup costs nothing. */
 async function push(env, subject, text) {
+  await textAlert(env, subject);
+  await telegram(env, subject, text);
+}
+
+/* A text message, by way of a Zapier inbound address that forwards the
+   SUBJECT line to a phone.
+
+   Every text is labelled with the intake it came from, because a phone
+   shows a sender and a subject and nothing else - "PAID $500" tells you
+   nothing useful at 2am if you cannot tell a bail application from a
+   warrant enquiry.
+
+   It is deliberately its own tiny email rather than a copy of the alert.
+   The alert emails carry signed packets, court forms, licences and selfies
+   - 1.8 MB and up - and oversized inbound mail bounces at Zapier, so the
+   text would silently never arrive. That failure mode has already cost
+   weeks of submissions on another intake and is not worth repeating.
+
+   Everything that matters therefore has to fit in the subject: carriers
+   truncate around 150 characters, so it is clipped here rather than
+   arriving cut off mid-word.
+
+   Timed out at three seconds and swallowed on failure: a slow notification
+   service must never delay or break the alert it is announcing. */
+const ALERT_SOURCE = "UNSIGNED";
+async function textAlert(env, subject) {
+  if (!env.ALERT_SMS_TO) return;
+  if (!env.RESEND_API_KEY) return;
+  try {
+    const line = ("BBRC " + ALERT_SOURCE + ": " + String(subject || "alert"))
+      .replace(/\s+/g, " ").slice(0, 150);
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + env.RESEND_API_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: env.FROM_ADDRESS || "Bail Bond Release Center <onboarding@resend.dev>",
+        to: [String(env.ALERT_SMS_TO).trim()],
+        subject: line,
+        text: "Full details are in the matching email."
+      }),
+      signal: AbortSignal.timeout(3000)
+    });
+  } catch (_) {}
+}
+
+async function telegram(env, subject, text) {
   if (!env.TELEGRAM_BOT_TOKEN) return;
   if (!env.TELEGRAM_CHAT_ID) return;
   try {
