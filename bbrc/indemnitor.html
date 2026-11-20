@@ -313,6 +313,15 @@
         <div class="chip" data-v="Widowed" data-i="mWid">Widowed</div><div class="chip" data-v="Cohab" data-i="mCoh">Living together</div>
       </div><input type="hidden" name="marital"></div>
     <div class="full empdoc"><label class="drop" style="padding:14px"><div class="ico">💼</div><div class="t" data-i="empDoc">Business card or SunBiz record</div><div class="hint" data-i="empDocH">Optional. A business card, a pay stub or the SunBiz page for the company — anything that shows the employer is real. This never holds up your application.</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" capture="environment" data-doc="emp_doc"><img class="thumb" data-thumb></label></div>
+    <div class="full" style="margin-top:10px"><label style="color:var(--brand)" data-i="vehT">Vehicle</label>
+      <div class="hint" data-i="vehH" style="margin-top:4px">Your own car — this is information about you, not collateral. Nothing here is pledged against the bond.</div></div>
+    <div class="full"><label style="font-weight:600;display:block"><input type="checkbox" id="noVehicle" name="noVehicle" style="width:auto;margin-right:9px;transform:translateY(1px)"><span data-i="noVeh">I do not own a vehicle</span></label>
+      <div class="hint" data-i="noVehH" style="margin-top:4px">Tick this and leave the boxes empty. Do not invent one.</div></div>
+    <div class="field"><label data-i="vehYMM">Year, make, model</label><input name="autoYMM" placeholder="2019 Toyota Camry"></div>
+    <div class="field"><label data-i="vehPlate">Plate number</label><input name="autoPlate" placeholder="ABC1234"></div>
+    <div class="field"><label data-i="vehState">Plate state</label><input name="autoState" maxlength="2" placeholder="FL"></div>
+    <div class="field"><label data-i="vehOwed">Amount still owed <span class="opt" data-i="optL">(optional)</span></label><input name="autoOwed" type="number" min="0" step="0.01" inputmode="decimal" placeholder="$0.00" class="money"></div>
+    <div class="full vehreq hidden"><label class="drop" style="padding:14px"><div class="ico">🚗</div><div class="t" data-i="vehDoc">Photo of the tag, registration or insurance card *</div><div class="hint" data-i="vehDocH">Required once you list a vehicle. It shows the VIN and that the car is yours.</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" capture="environment" data-doc="veh_doc"><img class="thumb" data-thumb></label></div>
     <div class="field spouse"><label data-i="spn">Spouse / partner name</label><input name="spouseName"></div>
     <div class="field spouse"><label data-i="spl">How long together?</label><input name="spouseHowLong"></div>
     <div class="field spouse"><label data-i="spp">Their phone</label><input name="spousePhone" type="tel" inputmode="tel"></div>
@@ -1571,7 +1580,9 @@ $('#bNext').addEventListener('click',()=>{
   if(reading>0){ toast(LANG==='es'?'Un momento — estamos leyendo su documento…':'One moment — still reading your document…'); return; }
   /* Vehicle fields live on step 6, not 3. At step 3 vehListed() is always
      false, so this guard never fired and vehicle proof went uncollected. */
-  if(step===6 && vehListed() && !imgs.veh_doc){
+  /* The vehicle boxes are on step 5, so the demand for proof belongs there.
+     Asking on step 6 meant asking for a photo of something a page back. */
+  if(step===5 && vehListed() && !imgs.veh_doc){
     toast(LANG==='es'?'Agregue una foto de la placa, registro o seguro del vehículo'
                      :'Please add a photo of the tag, registration or insurance for the vehicle');
     const t=document.querySelector('.vehreq'); if(t)t.scrollIntoView({behavior:'smooth',block:'center'});
@@ -2044,11 +2055,17 @@ function esignData(){
        that is how people say it; the packet wants three boxes. Split on the
        leading four-digit year and put the rest in make, leaving model empty
        rather than guessing where a make ends and a model begins. */
-    auto_year:     (/^\s*(\d{4})\b/.exec(val('collVehicle'))||[])[1] || '',
-    auto_make:     String(val('collVehicle')||'').replace(/^\s*\d{4}\b\s*/,''),
+    /* Section 4 of the Sun Surety form is the indemnitor's own car, which is
+       a different question from whatever they may have pledged as collateral.
+       It reads the application fields and falls back to the collateral vehicle
+       only when no car was declared, so a file that has one but not the other
+       still prints something true. */
+    auto_year:     (/^\s*(\d{4})\b/.exec(val('autoYMM')||val('collVehicle'))||[])[1] || '',
+    auto_make:     String(val('autoYMM')||val('collVehicle')||'').replace(/^\s*\d{4}\b\s*/,''),
     auto_model:    val('collVIN') ? ('VIN ' + val('collVIN')) : '',
-    auto_plate:    val('collPlate'),
-    auto_owed:     val('collLien'),
+    auto_plate:    val('autoPlate') || val('collPlate'),
+    auto_state:    val('autoState'),
+    auto_owed:     val('autoOwed') || val('collLien'),
 
     /* marital status - the tick boxes, driven by the one chip they chose */
     m_married:   val('marital')==='Married'   ? 'Yes' : '',
