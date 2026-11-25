@@ -594,7 +594,7 @@ links = "\n".join(f"- [{t}]({SITE}{p}): {d}" for p, t, d, pr in PAGES if pr)
 ## Pages
 {links}
 """)
-(OUT / "_headers").write_text("/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Frame-Options: SAMEORIGIN\n/img/*\n  Cache-Control: public, max-age=2592000\n")
+(OUT / "_headers").write_text("https://:project.pages.dev/*\n  X-Robots-Tag: noindex\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Frame-Options: SAMEORIGIN\n/img/*\n  Cache-Control: public, max-age=2592000\n")
 # Old WordPress URLs that should land on the matching new page.
 (OUT / "_redirects").write_text("""/contact /contact-us 301
 /home / 301
