@@ -20,7 +20,12 @@ export async function onRequest(context) {
     url.hostname = CANONICAL_HOST;
     url.protocol = "https:";
     url.port = "";
-    return Response.redirect(url.toString(), 301);
+    // no-store: keep browsers from caching the redirect while hosts are moving,
+    // so a later change can never trap a visitor in a stale redirect.
+    return new Response(null, {
+      status: 301,
+      headers: { Location: url.toString(), "Cache-Control": "no-store" },
+    });
   }
   return context.next();
 }
