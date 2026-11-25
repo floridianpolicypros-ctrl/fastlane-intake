@@ -116,13 +116,13 @@ footer.site ul{list-style:none;padding:0;margin:0}footer.site li{margin:4px 0}
 .callfab{position:fixed;right:14px;bottom:14px;background:var(--gold);color:#1a1400;font-weight:800;text-decoration:none;border-radius:999px;padding:13px 18px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:9}
 .lead{border:1px solid var(--line);border-radius:16px;padding:22px;background:var(--bg);margin:30px 0}
 .lead h2{margin-top:0}.lead form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.lead label{display:flex;flex-direction:column;font-weight:700;font-size:14px;color:var(--navy);gap:5px}
+.lead label{display:flex;flex-direction:column;font-weight:700;font-size:16px;color:var(--navy);gap:5px}
 .lead input,.lead select,.lead textarea{font:inherit;font-weight:400;padding:11px 12px;border:1px solid #c9d4e4;border-radius:10px;background:#fff;color:var(--ink);width:100%}
 .lead .full{grid-column:1/-1}.lead .consent{flex-direction:row;align-items:flex-start;gap:8px;font-weight:400;color:var(--muted);font-size:13px}
 .lead .consent input{width:auto;margin-top:3px}.lead button{font:inherit;font-weight:800;background:var(--gold);color:#1a1400;border:0;border-radius:10px;padding:14px 20px;cursor:pointer;font-size:16px}
 .lead .hp{position:absolute;left:-9999px}.lead .msg{grid-column:1/-1;font-weight:700;margin:0}
 @media(min-width:900px){.callfab{display:none}}
-@media(max-width:700px){nav.main{width:100%;overflow-x:auto;flex-wrap:nowrap}nav.main a{white-space:nowrap}.brand img{height:48px}}
+@media(max-width:700px){nav.main{width:100%;overflow-x:auto;flex-wrap:nowrap}nav.main a{white-space:nowrap}.brand img{height:48px}.bar,nav.main a,.kicker,.trust,.card p,.facts,.note,footer.site,footer.site h4,.legal,.lead .consent{font-size:16px}}
 """
 
 
@@ -289,8 +289,8 @@ HOME_FAQ = [
     ("What areas do you serve?",
      "All of Palm Beach County, including West Palm Beach, Wellington, Royal Palm Beach, Greenacres, Lake Worth Beach, Lantana, Boynton Beach, Delray Beach, Boca Raton, Palm Beach Gardens and Jupiter, plus clients across Florida."),
 ]
-page("/", "West Palm Beach Insurance Agency | Home, Flood & Auto | Floridian Policy Pros",
-     "Independent insurance agency in West Palm Beach. We shop 30+ A-rated carriers for homeowners, flood, auto and business insurance. Se habla español. Call 561-777-0777.",
+page("/", "Insurance Agency West Palm Beach | Floridian Policy Pros",
+     "Independent West Palm Beach insurance agency. We shop 30+ A-rated carriers for home, flood, auto and business. Se habla español. Call 561-777-0777.",
      "West Palm Beach Homeowners & Flood Insurance Agency",
      "Insurance isn't just about policies, it's about peace of mind. Floridian Policy Pros is a local, licensed independent agency that shops 30+ A-rated carriers to find the right coverage at the right price for Palm Beach County homes, cars and businesses.",
      f"""
@@ -341,8 +341,8 @@ HO_FAQ = [
     ("Can I switch from Citizens?",
      "Often, yes. When a private carrier offers comparable coverage we can help you compare it with your Citizens renewal. Ask us for a review before your renewal date."),
 ]
-page("/homeowners-insurance", "Homeowners Insurance West Palm Beach FL | Compare 30+ Carriers",
-     "Homeowners insurance quotes in West Palm Beach and Palm Beach County. Hurricane coverage, wind mitigation discounts, Citizens alternatives. Call 561-777-0777.",
+page("/homeowners-insurance", "Homeowners Insurance West Palm Beach | Floridian Policy Pros",
+     "Homeowners insurance quotes in West Palm Beach. Hurricane coverage, wind mitigation discounts and Citizens alternatives. Call 561-777-0777 today.",
      "Homeowners Insurance in West Palm Beach, Florida",
      "Florida homes need the right hurricane deductible, replacement cost coverage and every discount you qualify for. We compare 30+ A-rated carriers so you don't have to.",
      f"""
@@ -386,8 +386,8 @@ FLOOD_FAQ = [
     ("Can you bind flood insurance the same day?",
      "Same-day binding is available for many flood policies, subject to the insurer's rules and waiting periods."),
 ]
-page("/flood-insurance", "Flood Insurance West Palm Beach FL | NFIP & Private Flood Quotes",
-     "Flood insurance quotes in West Palm Beach and Palm Beach County. NFIP and private flood, LiDAR elevation discounts, high-limit options, same-day binding. Call 561-777-0777.",
+page("/flood-insurance", "Flood Insurance West Palm Beach FL | Floridian Policy Pros",
+     "NFIP and private flood insurance quotes in West Palm Beach. LiDAR elevation discounts, high-limit options, same-day binding. Call 561-777-0777.",
      "Flood Insurance in West Palm Beach & Palm Beach County",
      "Homeowners insurance does not cover flood. We quote NFIP and private flood side by side, look for LiDAR elevation discounts, and can often bind the same day.",
      f"""
@@ -426,8 +426,8 @@ AUTO_FAQ = [
     ("Do you insure motorcycles, boats and RVs?",
      "Yes. We quote motorcycle, boat and RV insurance as well as standard auto."),
 ]
-page("/auto-insurance", "Auto Insurance West Palm Beach FL | Compare Car Insurance Quotes",
-     "Car insurance quotes in West Palm Beach and Palm Beach County from 30+ A-rated carriers. Florida PIP, liability, uninsured motorist, bundles. Call 561-777-0777.",
+page("/auto-insurance", "Auto Insurance West Palm Beach FL | Floridian Policy Pros",
+     "Car insurance quotes in West Palm Beach from 30+ A-rated carriers. Florida PIP, liability, uninsured motorist and bundles. Call 561-777-0777.",
      "Auto Insurance in West Palm Beach, Florida",
      "We compare car insurance from 30+ A-rated carriers so Palm Beach County drivers get the coverage Florida requires, and the protection they actually need, at a better price.",
      f"""
@@ -453,8 +453,8 @@ BIZ_FAQ = [
     ("What does general liability cover?",
      "General liability covers bodily injury and property damage that your business causes to others, plus related legal defense costs, within the policy limits."),
 ]
-page("/business-insurance", "Business Insurance West Palm Beach | General Liability, Commercial Auto",
-     "Business insurance in West Palm Beach: general liability, commercial auto, workers' comp and more for contractors and small businesses. Call 561-777-0777.",
+page("/business-insurance", "Business Insurance West Palm Beach | Floridian Policy Pros",
+     "Business insurance in West Palm Beach: general liability, commercial auto and workers' comp for contractors and small businesses. Call 561-777-0777.",
      "Business Insurance in West Palm Beach, Florida",
      "General liability, commercial auto and workers' compensation for Palm Beach County contractors and small businesses, quoted from multiple A-rated carriers.",
      f"""
@@ -470,7 +470,7 @@ page("/business-insurance", "Business Insurance West Palm Beach | General Liabil
 
 # ---------------------------------------------------------------- Services hub (old WordPress URL)
 page("/our-services", "Insurance Services | Floridian Policy Pros, West Palm Beach",
-     "All the insurance Floridian Policy Pros places in Palm Beach County: home, flood, auto, condo, renters, business, boat, motorcycle, RV and life. Call 561-777-0777.",
+     "Home, flood, auto, condo, renters, business, boat, motorcycle, RV and life insurance in Palm Beach County. Call 561-777-0777 for a free quote.",
      "Our Insurance Services",
      "One local agency for the coverage Palm Beach County families and businesses need, compared across 30+ A-rated carriers.",
      """
@@ -485,8 +485,8 @@ page("/our-services", "Insurance Services | Floridian Policy Pros, West Palm Bea
 """, kicker="Coverage", crumbs=[("/", "Home"), ("/our-services", "Services")], sitemap_priority="0.6")
 
 # ---------------------------------------------------------------- Carriers (old URL, no carrier names)
-page("/insurance-providers", "We Shop 30+ A-Rated Insurance Carriers | Floridian Policy Pros",
-     "Floridian Policy Pros is an independent agency in West Palm Beach that compares 30+ A-rated insurance carriers for home, flood, auto and business coverage.",
+page("/insurance-providers", "We Shop 30+ A-Rated Carriers | Floridian Policy Pros",
+     "An independent West Palm Beach agency comparing 30+ A-rated carriers for home, flood, auto and business coverage. Call 561-777-0777 for a quote.",
      "We Shop 30+ A-Rated Carriers",
      "As an independent Florida agency, we compare coverage from more than 30 A-rated insurance carriers to find the right fit for your home, flood, auto and business needs.",
      f"""
@@ -498,8 +498,8 @@ page("/insurance-providers", "We Shop 30+ A-Rated Insurance Carriers | Floridian
 """, kicker="Our carriers", crumbs=[("/", "Home"), ("/insurance-providers", "Our carriers")], sitemap_priority="0.6")
 
 # ---------------------------------------------------------------- About
-page("/about", "About Floridian Policy Pros | Independent Insurance Agency, West Palm Beach",
-     "Floridian Policy Pros is a licensed independent insurance agency in West Palm Beach, owned by agent Carlos Sevilla. Serving Palm Beach County since 2020. Se habla español.",
+page("/about", "About Floridian Policy Pros | West Palm Beach Agency",
+     "Licensed independent insurance agency in West Palm Beach, owned by agent Carlos Sevilla, serving Palm Beach County since 2020. Call 561-777-0777.",
      "About Floridian Policy Pros",
      "A local, licensed, owner-operated insurance agency in West Palm Beach, serving Palm Beach County since 2020.",
      f"""
@@ -518,7 +518,7 @@ page("/about", "About Floridian Policy Pros | Independent Insurance Agency, West
 """, kicker="About us", crumbs=[("/", "Home"), ("/about", "About")], sitemap_priority="0.7")
 
 # ---------------------------------------------------------------- Contact (old WordPress URL)
-page("/contact-us", "Contact Floridian Policy Pros | West Palm Beach Insurance Agency",
+page("/contact-us", "Contact Us | Floridian Policy Pros, West Palm Beach",
      "Call 561-777-0777 or visit 800 S Congress Ave, West Palm Beach, FL 33406. Open 7 days, 9 AM to 5 PM. Se habla español.",
      "Contact Floridian Policy Pros",
      f"Call <a href=\"{TEL}\" style=\"color:#fff\">{PHONE}</a>, email us, or stop by the office. Open 7 days, 9 AM to 5 PM. Se habla español.",
@@ -536,8 +536,8 @@ page("/contact-us", "Contact Floridian Policy Pros | West Palm Beach Insurance A
 
 # ---------------------------------------------------------------- FAQ hub
 ALL_FAQ = HOME_FAQ[1:] + HO_FAQ[:4] + FLOOD_FAQ[:4] + AUTO_FAQ[:2] + BIZ_FAQ[:1]
-page("/faq", "Florida Insurance FAQ | Home, Flood & Auto | Floridian Policy Pros",
-     "Answers to common Florida insurance questions: hurricane deductibles, wind mitigation, flood waiting periods, NFIP limits, PIP and more, from a West Palm Beach agency.",
+page("/faq", "Florida Insurance FAQ | Floridian Policy Pros",
+     "Florida insurance answers: hurricane deductibles, wind mitigation, flood waiting periods, NFIP limits and PIP. Questions? Call 561-777-0777.",
      "Florida Insurance Questions, Answered",
      "Straight answers from a licensed West Palm Beach agency. Don't see your question? Call 561-777-0777.",
      "", faqs=ALL_FAQ, kicker="FAQ", crumbs=[("/", "Home"), ("/faq", "FAQ")], sitemap_priority="0.7")
@@ -553,8 +553,8 @@ ES_FAQ = [
     ("¿Qué seguro de auto exige Florida?",
      "Florida exige $10,000 de Protección de Lesiones Personales (PIP) y $10,000 de responsabilidad por daños a la propiedad (PDL). Recomendamos más cobertura para proteger su patrimonio."),
 ]
-page("/seguro-en-espanol", "Seguro de Casa, Inundación y Auto en West Palm Beach | Se Habla Español",
-     "Agencia de seguros independiente en West Palm Beach. Comparamos más de 30 aseguradoras con calificación A. Seguro de casa, inundación, auto y negocio. Llame al 561-777-0777.",
+page("/seguro-en-espanol", "Seguros en Español West Palm Beach | Floridian Policy Pros",
+     "Agencia de seguros en West Palm Beach. Comparamos más de 30 aseguradoras para casa, inundación, auto y negocio. Llame al 561-777-0777.",
      "Seguros en West Palm Beach, en Español",
      "Floridian Policy Pros es una agencia de seguros independiente con licencia en Florida. Comparamos más de 30 aseguradoras para encontrar la mejor cobertura al mejor precio. Se habla español.",
      f"""
@@ -570,8 +570,8 @@ page("/seguro-en-espanol", "Seguro de Casa, Inundación y Auto en West Palm Beac
 
 
 # ---------------------------------------------------------------- Spanish service pages
-page("/es/seguro-de-casa", "Seguro de Casa en West Palm Beach | Compare Más de 30 Aseguradoras",
-     "Seguro de casa en West Palm Beach y el condado de Palm Beach. Cobertura de huracán, descuentos por mitigación de viento y alternativas a Citizens. Llame al 561-777-0777.",
+page("/es/seguro-de-casa", "Seguro de Casa West Palm Beach | Floridian Policy Pros",
+     "Seguro de casa en West Palm Beach: cobertura de huracán, descuentos por mitigación de viento y alternativas a Citizens. Llame al 561-777-0777.",
      "Seguro de Casa en West Palm Beach",
      "Comparamos más de 30 aseguradoras con calificación A para encontrar la cobertura correcta contra huracanes al mejor precio. Se habla español.",
      f"""
@@ -600,8 +600,8 @@ page("/es/seguro-de-casa", "Seguro de Casa en West Palm Beach | Compare Más de 
     ("¿Puedo salirme de Citizens?", "Muchas veces sí. Cuando una aseguradora privada ofrece cobertura comparable, le ayudamos a compararla con su renovación de Citizens."),
 ], form="es-casa", lang="es", kicker="Seguro de casa", crumbs=[("/seguro-en-espanol", "Inicio"), ("/es/seguro-de-casa", "Seguro de casa")])
 
-page("/es/seguro-de-inundacion", "Seguro de Inundación en West Palm Beach | NFIP y Privado",
-     "Seguro de inundación en West Palm Beach y el condado de Palm Beach. NFIP y privado, descuentos por elevación LiDAR, límites altos y emisión el mismo día disponible. Llame al 561-777-0777.",
+page("/es/seguro-de-inundacion", "Seguro de Inundación West Palm Beach | Floridian Policy Pros",
+     "Seguro de inundación NFIP y privado en West Palm Beach. Descuentos por elevación LiDAR y límites altos. Llame al 561-777-0777.",
      "Seguro de Inundación en West Palm Beach",
      "El seguro de casa no cubre inundaciones. Cotizamos NFIP e inundación privada lado a lado y buscamos descuentos por elevación.",
      f"""
@@ -621,8 +621,8 @@ page("/es/seguro-de-inundacion", "Seguro de Inundación en West Palm Beach | NFI
     ("¿Qué es LiDAR?", "Son datos de elevación medidos con láser. Algunas aseguradoras de inundación los usan para calificar la elevación de la casa, lo que puede bajar la prima."),
 ], form="es-inundacion", form_default="Flood", lang="es", kicker="Seguro de inundación", crumbs=[("/seguro-en-espanol", "Inicio"), ("/es/seguro-de-inundacion", "Seguro de inundación")])
 
-page("/es/seguro-de-auto", "Seguro de Auto en West Palm Beach | Compare Cotizaciones",
-     "Seguro de auto en West Palm Beach con más de 30 aseguradoras. PIP de Florida, responsabilidad civil, conductor sin seguro y descuentos por paquete. Llame al 561-777-0777.",
+page("/es/seguro-de-auto", "Seguro de Auto West Palm Beach | Floridian Policy Pros",
+     "Seguro de auto en West Palm Beach con más de 30 aseguradoras. PIP, responsabilidad civil y conductor sin seguro. Llame al 561-777-0777.",
      "Seguro de Auto en West Palm Beach",
      "Comparamos seguro de auto con más de 30 aseguradoras para que tenga la cobertura que exige Florida y la protección que realmente necesita.",
      f"""
@@ -639,7 +639,7 @@ page("/es/seguro-de-auto", "Seguro de Auto en West Palm Beach | Compare Cotizaci
     ("¿Puedo combinar seguro de auto y casa?", "Sí. Muchas aseguradoras dan descuento al combinar. Le mostramos el precio combinado y separado para que vea cuál es más barato."),
 ], form="es-auto", form_default="Auto", lang="es", kicker="Seguro de auto", crumbs=[("/seguro-en-espanol", "Inicio"), ("/es/seguro-de-auto", "Seguro de auto")])
 
-page("/es/contacto", "Contacto | Floridian Policy Pros, Agencia de Seguros en West Palm Beach",
+page("/es/contacto", "Contacto | Floridian Policy Pros, West Palm Beach",
      "Llame al 561-777-0777 o visítenos en 800 S Congress Ave, West Palm Beach, FL 33406. Abierto 7 días, 9 AM a 5 PM. Se habla español.",
      "Contacte a Floridian Policy Pros",
      f"Llame al <a href=\"{TEL}\" style=\"color:#fff\">{PHONE}</a>, escríbanos o visite la oficina. Abierto 7 días, de 9 AM a 5 PM. Se habla español.",
@@ -656,8 +656,8 @@ page("/es/contacto", "Contacto | Floridian Policy Pros, Agencia de Seguros en We
 
 # ---------------------------------------------------------------- Blog
 GUIDE_FAQ = FLOOD_FAQ[:4]
-page("/blog/flood-insurance-west-palm-beach-guide", "Flood Insurance in West Palm Beach: 2026 Guide | Floridian Policy Pros",
-     "Do you need flood insurance in West Palm Beach? Flood zones, NFIP vs. private flood, the 30-day wait, the Citizens flood requirement and how to save, explained by a local agent.",
+page("/blog/flood-insurance-west-palm-beach-guide", "Flood Insurance in West Palm Beach: 2026 Local Guide",
+     "Do you need flood insurance in West Palm Beach? Flood zones, NFIP vs. private, the 30-day wait and the Citizens rule. Call 561-777-0777.",
      "Flood Insurance in West Palm Beach: 2026 Guide",
      "Everything Palm Beach County homeowners should know before hurricane season, from a licensed local agent.",
      f"""
@@ -692,8 +692,8 @@ WIND_FAQ = [
     ("How much can a wind mitigation inspection save?",
      "It depends on the home and the carrier. Homes with hip roofs, clips or wraps and full opening protection often see the largest credits on the wind portion of the premium. Send us your report and we'll show the difference across carriers."),
 ]
-page("/blog/wind-mitigation-inspection-florida", "Wind Mitigation Inspection in Florida: What It Checks and How It Saves | Floridian Policy Pros",
-     "What a Florida wind mitigation inspection checks, how long it's valid, who can do it and how it lowers homeowners insurance. From a licensed West Palm Beach agent.",
+page("/blog/wind-mitigation-inspection-florida", "Florida Wind Mitigation Inspection: Checks and Savings",
+     "What a Florida wind mitigation inspection checks, how long it lasts and how it lowers home insurance. Free policy review: 561-777-0777.",
      "Wind Mitigation Inspections in Florida, Explained",
      "The one-page report that can lower your homeowners premium, explained by a licensed Palm Beach County agent.",
      f"""
@@ -730,8 +730,8 @@ ROOF_FAQ = [
     ("What is a roof certification or 4-point inspection?",
      "A 4-point inspection reviews the roof, electrical, plumbing and HVAC, and a roof certification estimates the roof's remaining life. Insurers often ask for one or both on older homes."),
 ]
-page("/blog/roof-age-home-insurance-florida", "Roof Age and Home Insurance in Florida: The 15-Year Rule | Floridian Policy Pros",
-     "Can a Florida insurer drop you for an old roof? The 15-year roof rule, inspections, what carriers prefer and how a new roof lowers premiums, from a licensed local agent.",
+page("/blog/roof-age-home-insurance-florida", "Roof Age and Home Insurance in Florida: The 15-Year Rule",
+     "Can a Florida insurer drop you for an old roof? The 15-year rule, inspections and options for older roofs. Call 561-777-0777 for a quote.",
      "Roof Age and Home Insurance in Florida",
      "Why your roof's age matters so much to Florida insurers, and what you can do about it.",
      f"""
@@ -759,8 +759,8 @@ CIT_FAQ = [
     ("Is it cheaper to leave Citizens?",
      "Sometimes. Private carriers may offer comparable coverage at a competitive price. We compare your Citizens renewal plus a flood policy against private options so you can see the full cost."),
 ]
-page("/blog/citizens-flood-insurance-requirement", "Citizens Flood Insurance Requirement 2027: Deadlines and Options | Floridian Policy Pros",
-     "Citizens Property Insurance now requires flood coverage. Deadlines by home value, the January 1, 2027 final phase, NFIP vs private flood options, from a licensed local agent.",
+page("/blog/citizens-flood-insurance-requirement", "Citizens Flood Insurance Requirement 2027: Deadlines",
+     "Citizens now requires flood coverage. Deadlines by home value, the January 1, 2027 final phase and your options. Call 561-777-0777.",
      "The Citizens Flood Insurance Requirement, Explained",
      "Every Citizens personal residential policy must carry flood coverage by January 1, 2027. Here's what that means for you.",
      f"""
@@ -786,7 +786,7 @@ page("/blog/citizens-flood-insurance-requirement", "Citizens Flood Insurance Req
      crumbs=[("/", "Home"), ("/blog", "Guides"), ("/blog/citizens-flood-insurance-requirement", "Citizens flood requirement")], sitemap_priority="0.8")
 
 page("/blog", "Florida Insurance Guides | Floridian Policy Pros",
-     "Plain-English Florida insurance guides from a licensed West Palm Beach agency: flood, homeowners, hurricane deductibles and more.",
+     "Plain-English Florida insurance guides on flood, homeowners and hurricane deductibles from a West Palm Beach agency. Call 561-777-0777.",
      "Florida Insurance Guides",
      "Plain-English answers from a licensed West Palm Beach agent.",
      """
@@ -852,8 +852,8 @@ for c in CITIES:
         c["extra"],
         ("Do you offer service in Spanish?", "Yes. Se habla español. You can get your quote and service entirely in Spanish."),
     ]
-    page(path, f"Insurance Agency in {n}, FL | Home, Flood & Auto Quotes",
-         f"Local insurance agency serving {n}, FL. We compare 30+ A-rated carriers for homeowners, flood, auto and business insurance. Se habla español. Call 561-777-0777.",
+    page(path, f"{n} Insurance Agency | Floridian Policy Pros",
+         f"Local insurance agency serving {n}, FL. We compare 30+ A-rated carriers for home, flood, auto and business. Call 561-777-0777.",
          f"Insurance Agency Serving {n}, Florida",
          f"Homeowners, flood, auto and business insurance for {n}, compared across 30+ A-rated carriers by a licensed local agent in West Palm Beach.",
          f"""
@@ -885,8 +885,8 @@ for c in CITIES:
                         "areaServed": {"@type": "City", "name": f"{n}, Florida"}}],
          sitemap_priority="0.8")
 
-page("/areas-we-serve", "Areas We Serve | Palm Beach County Insurance Agency | Floridian Policy Pros",
-     "Floridian Policy Pros serves West Palm Beach and all of Palm Beach County: Lake Worth Beach, Boynton Beach, Wellington, Royal Palm Beach, Jupiter, Palm Beach Gardens and more.",
+page("/areas-we-serve", "Areas We Serve in Palm Beach County | Floridian Policy Pros",
+     "Serving West Palm Beach, Lake Worth Beach, Boynton Beach, Wellington, Royal Palm Beach, Jupiter and Palm Beach Gardens. Call 561-777-0777.",
      "Areas We Serve in Palm Beach County",
      "A licensed local agency in West Palm Beach serving homeowners, drivers and businesses across Palm Beach County and Florida.",
      "<div class=\"grid\">" + "".join(f'<a class="card" href="/insurance-agency/{c["slug"]}"><h3>{c["name"]}</h3><p>ZIP {c["zips"].split(",")[0]} and nearby</p></a>' for c in CITIES)
