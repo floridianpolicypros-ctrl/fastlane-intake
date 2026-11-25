@@ -55,6 +55,11 @@ ORG = {
          "Boat, motorcycle and RV insurance", "Life insurance"]]},
 }
 
+ALT = {"/": "/seguro-en-espanol", "/homeowners-insurance": "/es/seguro-de-casa", "/flood-insurance": "/es/seguro-de-inundacion",
+       "/auto-insurance": "/es/seguro-de-auto", "/contact-us": "/es/contacto"}
+ALT.update({v: k for k, v in list(ALT.items())})
+NAV_ES = [("/seguro-en-espanol", "Inicio"), ("/es/seguro-de-casa", "Casa"), ("/es/seguro-de-inundacion", "Inundación"),
+          ("/es/seguro-de-auto", "Auto"), ("/es/contacto", "Contacto"), ("/", "English")]
 NAV = [("/", "Home"), ("/homeowners-insurance", "Homeowners"), ("/flood-insurance", "Flood"),
        ("/auto-insurance", "Auto"), ("/business-insurance", "Business"), ("/faq", "FAQ"),
        ("/about", "About"), ("/contact-us", "Contact"), ("/seguro-en-espanol", "Español")]
@@ -193,7 +198,14 @@ def page(path, title, desc, h1, lead, body, faqs=None, kicker="Floridian Policy 
     if extra_schema:
         graph.extend(extra_schema)
     ld = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":"))
-    nav = "".join(f'<a href="{p}"{" class=on" if p == path else ""}>{n}</a>' for p, n in NAV)
+    nav = "".join(f'<a href="{p}"{" class=on" if p == path else ""}>{n}</a>' for p, n in (NAV_ES if lang == "es" else NAV))
+    if path in ALT:
+        en_p, es_p = (ALT[path], path) if lang == "es" else (path, ALT[path])
+        hreflang = (f'<link rel="alternate" hreflang="en-us" href="{SITE}{en_p}">\n'
+                    f'<link rel="alternate" hreflang="es-us" href="{SITE}{es_p}">\n'
+                    f'<link rel="alternate" hreflang="x-default" href="{SITE}{en_p}">')
+    else:
+        hreflang = ""
     buttons = ""
     if hero_buttons:
         if lang == "es":
@@ -227,8 +239,7 @@ def page(path, title, desc, h1, lead, body, faqs=None, kicker="Floridian Policy 
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="alternate" hreflang="en-us" href="{SITE}/">
-<link rel="alternate" hreflang="es-us" href="{SITE}/seguro-en-espanol">
+{hreflang}
 <style>{CSS}</style>
 <script type="application/ld+json">{ld}</script>
 </head>
@@ -356,6 +367,8 @@ page("/homeowners-insurance", "Homeowners Insurance West Palm Beach FL | Compare
 </ul>
 <h2>Condo, renters and landlord policies</h2>
 <p>We also quote condo unit-owner (HO-6), renters (HO-4) and landlord dwelling policies across Palm Beach County.</p>
+<h2>Guides</h2>
+<p><a href="/blog/wind-mitigation-inspection-florida">Wind mitigation inspections explained</a> · <a href="/blog/roof-age-home-insurance-florida">Roof age and Florida home insurance</a> · <a href="/blog/citizens-flood-insurance-requirement">The Citizens flood requirement</a></p>
 """, faqs=HO_FAQ, form="homeowners", form_default="Homeowners", kicker="Homeowners insurance", crumbs=[("/", "Home"), ("/homeowners-insurance", "Homeowners insurance")])
 
 # ---------------------------------------------------------------- Flood
@@ -399,7 +412,7 @@ page("/flood-insurance", "Flood Insurance West Palm Beach FL | NFIP & Private Fl
 <h2>Citizens policyholders: the flood requirement</h2>
 <p>Florida law requires Citizens Property Insurance policyholders to carry flood insurance on a phased schedule based on the home's replacement value, with every Citizens personal residential policy required to have flood coverage by January 1, 2027. If you're with Citizens, call us before your renewal.</p>
 <h2>Read more</h2>
-<p><a href="/blog/flood-insurance-west-palm-beach-guide">Flood Insurance in West Palm Beach: 2026 Guide</a></p>
+<p><a href="/blog/flood-insurance-west-palm-beach-guide">Flood Insurance in West Palm Beach: 2026 Guide</a> · <a href="/blog/citizens-flood-insurance-requirement">The Citizens flood insurance requirement</a></p>
 """, faqs=FLOOD_FAQ, form="flood", form_default="Flood", kicker="Flood insurance", crumbs=[("/", "Home"), ("/flood-insurance", "Flood insurance")])
 
 # ---------------------------------------------------------------- Auto
@@ -548,12 +561,98 @@ page("/seguro-en-espanol", "Seguro de Casa, Inundación y Auto en West Palm Beac
 <p class="answer"><strong>En resumen:</strong> Floridian Policy Pros está en {ADDRESS}. Cotizamos seguro de casa, inundación, auto y negocio con más de 30 aseguradoras con calificación A. Abierto 7 días, de 9 AM a 5 PM. Llame al {PHONE}.</p>
 <h2>Seguros que ofrecemos</h2>
 <ul class="checks">
-<li><strong>Seguro de casa:</strong> cobertura contra huracanes y descuentos por inspección de mitigación de viento.</li>
-<li><strong>Seguro de inundación:</strong> NFIP y privado, descuentos por elevación con LiDAR, emisión el mismo día disponible.</li>
-<li><strong>Seguro de auto:</strong> PIP, responsabilidad civil, conductor sin seguro, colisión y comprensivo.</li>
+<li><strong><a href="/es/seguro-de-casa">Seguro de casa</a>:</strong> cobertura contra huracanes y descuentos por inspección de mitigación de viento.</li>
+<li><strong><a href="/es/seguro-de-inundacion">Seguro de inundación</a>:</strong> NFIP y privado, descuentos por elevación con LiDAR, emisión el mismo día disponible.</li>
+<li><strong><a href="/es/seguro-de-auto">Seguro de auto</a>:</strong> PIP, responsabilidad civil, conductor sin seguro, colisión y comprensivo.</li>
 <li><strong>Seguro de negocio:</strong> responsabilidad general, auto comercial y compensación de trabajadores.</li>
 </ul>
 """, faqs=ES_FAQ, form="espanol", kicker="Se habla español", crumbs=[("/", "Inicio"), ("/seguro-en-espanol", "Español")], lang="es", sitemap_priority="0.8")
+
+
+# ---------------------------------------------------------------- Spanish service pages
+page("/es/seguro-de-casa", "Seguro de Casa en West Palm Beach | Compare Más de 30 Aseguradoras",
+     "Seguro de casa en West Palm Beach y el condado de Palm Beach. Cobertura de huracán, descuentos por mitigación de viento y alternativas a Citizens. Llame al 561-777-0777.",
+     "Seguro de Casa en West Palm Beach",
+     "Comparamos más de 30 aseguradoras con calificación A para encontrar la cobertura correcta contra huracanes al mejor precio. Se habla español.",
+     f"""
+<p class="answer"><strong>En resumen:</strong> Floridian Policy Pros cotiza seguro de casa en West Palm Beach y todo el condado de Palm Beach con más de 30 aseguradoras. Traiga su página de declaraciones y su inspección de mitigación de viento o de 4 puntos, y le mostramos las opciones lado a lado. Llame al {PHONE}.</p>
+<h2>Qué cubre una póliza de casa en Florida</h2>
+<ul class="checks">
+<li><strong>Vivienda:</strong> la estructura de su casa, idealmente asegurada a costo de reemplazo.</li>
+<li><strong>Otras estructuras:</strong> cercas, cobertizos y garajes separados.</li>
+<li><strong>Bienes personales:</strong> muebles, ropa y electrónicos.</li>
+<li><strong>Pérdida de uso:</strong> gastos de vivienda si una pérdida cubierta le obliga a salir.</li>
+<li><strong>Responsabilidad civil:</strong> si alguien se lesiona en su propiedad.</li>
+<li><strong>Viento y huracán:</strong> normalmente incluido, con un deducible de huracán aparte (a menudo 2%, 5% o 10%).</li>
+</ul>
+<p>La póliza de casa <strong>no</strong> cubre inundaciones. <a href="/es/seguro-de-inundacion">Cotice seguro de inundación</a>.</p>
+<h2>Cómo bajar su prima</h2>
+<ul class="checks">
+<li>Una <strong>inspección de mitigación de viento</strong> actual: las aseguradoras en Florida deben ofrecer descuentos.</li>
+<li>Comparar opciones de <strong>deducible de huracán</strong>.</li>
+<li>Actualizar la edad y el tipo de <strong>techo</strong>.</li>
+<li><strong>Combinar</strong> casa, inundación y auto cuando ahorra dinero.</li>
+</ul>
+""", faqs=[
+    ("¿Cuánto cuesta el seguro de casa en West Palm Beach?", "Depende de la edad de la casa, el techo, la construcción, las características de mitigación de viento, la distancia a la costa, el deducible y el historial de reclamos. Comparamos más de 30 aseguradoras sin costo. Llame al 561-777-0777."),
+    ("¿Qué es un deducible de huracán?", "Es un deducible aparte para daños de huracán, normalmente 2%, 5% o 10% del límite de vivienda. Con un límite de $400,000, un deducible de 2% es $8,000."),
+    ("¿Qué es una inspección de mitigación de viento?", "Documenta las características que ayudan a la casa a resistir el viento, como amarres del techo, forma del techo y protección de aberturas. Las aseguradoras en Florida deben ofrecer descuentos por estas características."),
+    ("¿Puedo salirme de Citizens?", "Muchas veces sí. Cuando una aseguradora privada ofrece cobertura comparable, le ayudamos a compararla con su renovación de Citizens."),
+], form="es-casa", lang="es", kicker="Seguro de casa", crumbs=[("/seguro-en-espanol", "Inicio"), ("/es/seguro-de-casa", "Seguro de casa")])
+
+page("/es/seguro-de-inundacion", "Seguro de Inundación en West Palm Beach | NFIP y Privado",
+     "Seguro de inundación en West Palm Beach y el condado de Palm Beach. NFIP y privado, descuentos por elevación LiDAR, límites altos y emisión el mismo día disponible. Llame al 561-777-0777.",
+     "Seguro de Inundación en West Palm Beach",
+     "El seguro de casa no cubre inundaciones. Cotizamos NFIP e inundación privada lado a lado y buscamos descuentos por elevación.",
+     f"""
+<p class="answer"><strong>En resumen:</strong> Las pólizas de casa en Florida excluyen inundaciones, así que necesita una póliza de inundación aparte. FEMA estima que una pulgada de agua puede causar unos $25,000 en daños. Las pólizas del NFIP normalmente tienen un periodo de espera de 30 días. Llame al {PHONE}.</p>
+<h2>NFIP o inundación privada</h2>
+<table class="facts">
+<tr><th></th><td><strong>NFIP (FEMA)</strong></td><td><strong>Privado</strong></td></tr>
+<tr><th>Límite de vivienda</th><td>Hasta $250,000</td><td>A menudo mayor; opciones de límite alto</td></tr>
+<tr><th>Límite de contenido</th><td>Hasta $100,000</td><td>A menudo mayor</td></tr>
+<tr><th>Periodo de espera</th><td>Normalmente 30 días</td><td>A menudo más corto</td></tr>
+</table>
+<h2>Clientes de Citizens</h2>
+<p>La ley de Florida exige que los asegurados de Citizens tengan seguro de inundación. Para el 1 de enero de 2027, toda póliza residencial personal de Citizens debe tener cobertura de inundación. Si está con Citizens, llámenos antes de su renovación.</p>
+""", faqs=[
+    ("¿Necesito seguro de inundación en West Palm Beach?", "Si su prestamista lo exige, sí. Aun si no, muchos reclamos ocurren fuera de las zonas de alto riesgo y la póliza de casa no cubre inundaciones. Citizens también lo exige a sus asegurados."),
+    ("¿Hay un periodo de espera?", "Las pólizas del NFIP normalmente esperan 30 días antes de empezar, con algunas excepciones. Muchas pólizas privadas tienen esperas más cortas. Compre antes de que haya una tormenta en el pronóstico."),
+    ("¿Qué es LiDAR?", "Son datos de elevación medidos con láser. Algunas aseguradoras de inundación los usan para calificar la elevación de la casa, lo que puede bajar la prima."),
+], form="es-inundacion", form_default="Flood", lang="es", kicker="Seguro de inundación", crumbs=[("/seguro-en-espanol", "Inicio"), ("/es/seguro-de-inundacion", "Seguro de inundación")])
+
+page("/es/seguro-de-auto", "Seguro de Auto en West Palm Beach | Compare Cotizaciones",
+     "Seguro de auto en West Palm Beach con más de 30 aseguradoras. PIP de Florida, responsabilidad civil, conductor sin seguro y descuentos por paquete. Llame al 561-777-0777.",
+     "Seguro de Auto en West Palm Beach",
+     "Comparamos seguro de auto con más de 30 aseguradoras para que tenga la cobertura que exige Florida y la protección que realmente necesita.",
+     f"""
+<p class="answer"><strong>En resumen:</strong> Florida exige $10,000 de Protección de Lesiones Personales (PIP) y $10,000 de responsabilidad por daños a la propiedad (PDL), pero eso rara vez cubre un accidente serio. Comparamos más de 30 aseguradoras. Llame al {PHONE}.</p>
+<h2>Coberturas que recomendamos revisar</h2>
+<ul class="checks">
+<li><strong>Responsabilidad por lesiones corporales:</strong> protege sus ahorros si lesiona a alguien.</li>
+<li><strong>Conductor sin seguro:</strong> le paga cuando el culpable no puede.</li>
+<li><strong>Colisión y comprensivo:</strong> repara su carro tras un choque, robo, inundación o tormenta.</li>
+<li><strong>PIP y daños a la propiedad:</strong> los mínimos de Florida.</li>
+</ul>
+""", faqs=[
+    ("¿Qué seguro de auto exige Florida?", "Florida exige $10,000 de PIP y $10,000 de responsabilidad por daños a la propiedad en vehículos registrados. Recomendamos más cobertura, incluyendo responsabilidad por lesiones y conductor sin seguro."),
+    ("¿Puedo combinar seguro de auto y casa?", "Sí. Muchas aseguradoras dan descuento al combinar. Le mostramos el precio combinado y separado para que vea cuál es más barato."),
+], form="es-auto", form_default="Auto", lang="es", kicker="Seguro de auto", crumbs=[("/seguro-en-espanol", "Inicio"), ("/es/seguro-de-auto", "Seguro de auto")])
+
+page("/es/contacto", "Contacto | Floridian Policy Pros, Agencia de Seguros en West Palm Beach",
+     "Llame al 561-777-0777 o visítenos en 800 S Congress Ave, West Palm Beach, FL 33406. Abierto 7 días, 9 AM a 5 PM. Se habla español.",
+     "Contacte a Floridian Policy Pros",
+     f"Llame al <a href=\"{TEL}\" style=\"color:#fff\">{PHONE}</a>, escríbanos o visite la oficina. Abierto 7 días, de 9 AM a 5 PM. Se habla español.",
+     f"""
+<table class="facts">
+<tr><th>Teléfono</th><td><a href="{TEL}">{PHONE}</a></td></tr>
+<tr><th>Correo</th><td><a href="mailto:{EMAIL}">{EMAIL}</a></td></tr>
+<tr><th>Oficina</th><td>{ADDRESS}</td></tr>
+<tr><th>Horario</th><td>Abierto 7 días, 9 AM a 5 PM</td></tr>
+<tr><th>Idiomas</th><td>Español e inglés</td></tr>
+<tr><th>Clientes actuales</th><td><a href="{LOGIN_URL}" rel="noopener">Acceso clientes</a>: pólizas, tarjetas, cambios y pagos</td></tr>
+</table>
+""", form="es-contacto", lang="es", kicker="Contacto", crumbs=[("/seguro-en-espanol", "Inicio"), ("/es/contacto", "Contacto")], sitemap_priority="0.7")
 
 # ---------------------------------------------------------------- Blog
 GUIDE_FAQ = FLOOD_FAQ[:4]
@@ -579,12 +678,122 @@ page("/blog/flood-insurance-west-palm-beach-guide", "Flood Insurance in West Pal
      crumbs=[("/", "Home"), ("/blog", "Guides"), ("/blog/flood-insurance-west-palm-beach-guide", "Flood insurance guide")],
      hero_buttons=True, sitemap_priority="0.7")
 
+
+# ---------------------------------------------------------------- AI-question guides (GEO)
+WIND_FAQ = [
+    ("What is a wind mitigation inspection in Florida?",
+     "A wind mitigation inspection documents the features of a home that help it resist hurricane winds, recorded on the state's Uniform Mitigation Verification Inspection Form (OIR-B1-1802). Florida law requires insurers to offer premium discounts for qualifying features, so the report can lower the wind portion of a homeowners premium."),
+    ("What does a wind mitigation inspection check?",
+     "It checks the building code the home was built under, roof covering, roof deck attachment, roof-to-wall attachment (toe nails, clips, single or double wraps), roof shape (hip roofs rate best), secondary water resistance, and opening protection such as impact windows or hurricane shutters."),
+    ("How long is a wind mitigation report good for?",
+     "A wind mitigation report is generally accepted for up to five years, as long as nothing on the home has changed. Get a new one after a new roof, new windows or added shutters."),
+    ("Who can do a wind mitigation inspection?",
+     "Florida-licensed professionals such as home inspectors, building code inspectors, general or building contractors, engineers and architects can complete the form."),
+    ("How much can a wind mitigation inspection save?",
+     "It depends on the home and the carrier. Homes with hip roofs, clips or wraps and full opening protection often see the largest credits on the wind portion of the premium. Send us your report and we'll show the difference across carriers."),
+]
+page("/blog/wind-mitigation-inspection-florida", "Wind Mitigation Inspection in Florida: What It Checks and How It Saves | Floridian Policy Pros",
+     "What a Florida wind mitigation inspection checks, how long it's valid, who can do it and how it lowers homeowners insurance. From a licensed West Palm Beach agent.",
+     "Wind Mitigation Inspections in Florida, Explained",
+     "The one-page report that can lower your homeowners premium, explained by a licensed Palm Beach County agent.",
+     f"""
+<p class="answer"><strong>The short answer:</strong> A wind mitigation inspection records your home's hurricane-resistant features on Florida's OIR-B1-1802 form. Florida insurers must offer discounts for qualifying features, the report is generally valid for up to five years, and it often lowers the wind portion of a homeowners premium. Call {PHONE} and we'll price your report across 30+ carriers.</p>
+<h2>What the inspector looks at</h2>
+<table class="facts">
+<tr><th>Building code</th><td>Homes built under the 2001 Florida Building Code or later usually rate best.</td></tr>
+<tr><th>Roof covering</th><td>Whether the roof covering meets current code, with permit dates.</td></tr>
+<tr><th>Roof deck attachment</th><td>How the roof sheathing is nailed to the trusses.</td></tr>
+<tr><th>Roof-to-wall attachment</th><td>Toe nails, clips, single wraps or double wraps. Clips and wraps earn more credit.</td></tr>
+<tr><th>Roof geometry</th><td>Hip roofs resist wind better than gable roofs.</td></tr>
+<tr><th>Secondary water resistance</th><td>A sealed roof deck that keeps water out if shingles blow off.</td></tr>
+<tr><th>Opening protection</th><td>Impact-rated windows and doors or approved hurricane shutters on all openings.</td></tr>
+</table>
+<h2>How to get the most from your report</h2>
+<ul class="checks">
+<li>Get a new inspection after a roof replacement, new windows or new shutters.</li>
+<li>Keep permits and product approvals for windows, doors and shutters. Inspectors need proof.</li>
+<li>Send the report to your agent before renewal so it is applied.</li>
+<li>Compare carriers. Each one prices the same credits differently.</li>
+</ul>
+<p>Related: <a href="/blog/roof-age-home-insurance-florida">Roof age and Florida home insurance</a> and <a href="/homeowners-insurance">homeowners insurance in West Palm Beach</a>.</p>
+<p class="note">Written by Carlos Sevilla, licensed Florida insurance agent, Floridian Policy Pros. Source: Florida Office of Insurance Regulation, Uniform Mitigation Verification Inspection Form OIR-B1-1802; Florida Statutes section 627.0629. Discounts vary by insurer.</p>
+""", faqs=WIND_FAQ, form="guide-wind-mitigation", form_default="Wind mitigation review", kicker="Insurance guide", article="2026-11-25",
+     crumbs=[("/", "Home"), ("/blog", "Guides"), ("/blog/wind-mitigation-inspection-florida", "Wind mitigation")], sitemap_priority="0.7")
+
+ROOF_FAQ = [
+    ("Can a Florida insurer refuse my home because of roof age?",
+     "Under Florida law, an insurer may not refuse to write or renew a homeowners policy solely because of roof age if the roof is less than 15 years old. For a roof 15 years or older, the insurer must let you have an authorized inspection, and may not refuse coverage based on roof age alone if the inspection shows at least five years of remaining useful life."),
+    ("What roof age do Florida home insurers prefer?",
+     "Preferences vary by carrier and roof type. Many carriers price newer shingle roofs most favorably, while tile and metal roofs are often accepted at older ages. Because rules differ so much, comparing several carriers matters most for homes with older roofs."),
+    ("Will a new roof lower my homeowners insurance?",
+     "Usually. A new roof can open up more carriers, improve the price, and qualify for better wind mitigation credits. Get a new wind mitigation inspection after the roof is finished and send it to your agent."),
+    ("What is a roof certification or 4-point inspection?",
+     "A 4-point inspection reviews the roof, electrical, plumbing and HVAC, and a roof certification estimates the roof's remaining life. Insurers often ask for one or both on older homes."),
+]
+page("/blog/roof-age-home-insurance-florida", "Roof Age and Home Insurance in Florida: The 15-Year Rule | Floridian Policy Pros",
+     "Can a Florida insurer drop you for an old roof? The 15-year roof rule, inspections, what carriers prefer and how a new roof lowers premiums, from a licensed local agent.",
+     "Roof Age and Home Insurance in Florida",
+     "Why your roof's age matters so much to Florida insurers, and what you can do about it.",
+     f"""
+<p class="answer"><strong>The short answer:</strong> Florida insurers may not refuse to write or renew a homeowners policy solely because the roof is under 15 years old. For older roofs, you're entitled to an inspection, and a roof with at least five years of remaining useful life can't be refused on age alone. Each carrier still prices roof age differently, so comparing carriers is the best way to save. Call {PHONE}.</p>
+<h2>Why roof age drives Florida home insurance</h2>
+<p>The roof is the first line of defense against hurricane wind and rain, and roof claims are among the most expensive in Florida. That's why carriers ask for the roof's year, material and condition before they quote.</p>
+<h2>What you can do</h2>
+<ul class="checks">
+<li><strong>Know your roof's permit date and material.</strong> Your county permit record is the proof carriers accept.</li>
+<li><strong>Get a roof inspection or certification</strong> if your roof is 15 years or older.</li>
+<li><strong>Get a wind mitigation inspection</strong> after any roof work to capture the credits. <a href="/blog/wind-mitigation-inspection-florida">How wind mitigation works</a>.</li>
+<li><strong>Shop more than one carrier.</strong> We compare 30+ A-rated carriers, which matters most when a roof is older.</li>
+</ul>
+<p class="note">Written by Carlos Sevilla, licensed Florida insurance agent, Floridian Policy Pros. Source: Florida Statutes section 627.7011 (roof age and inspections, 2022). This is general information, not legal advice; coverage depends on your policy and insurer.</p>
+""", faqs=ROOF_FAQ, form="guide-roof-age", form_default="Homeowners", kicker="Insurance guide", article="2026-11-25",
+     crumbs=[("/", "Home"), ("/blog", "Guides"), ("/blog/roof-age-home-insurance-florida", "Roof age")], sitemap_priority="0.7")
+
+CIT_FAQ = [
+    ("Does Citizens require flood insurance?",
+     "Yes. Florida law requires Citizens Property Insurance personal residential policyholders to carry flood insurance on a phased schedule. Properties in a FEMA Special Flood Hazard Area were required first, in 2023. For everyone else the requirement phases in by the home's replacement cost: $600,000 or more by January 1, 2024, $500,000 or more by January 1, 2025, $400,000 or more by January 1, 2026, and all Citizens personal residential policies by January 1, 2027."),
+    ("Can I use private flood insurance to meet the Citizens requirement?",
+     "Flood coverage from the NFIP or a private flood insurer can be used, as long as it meets Citizens' requirements. We quote both and confirm the policy qualifies."),
+    ("What happens if I don't add flood coverage to my Citizens policy?",
+     "Citizens may not renew a policy that is required to have flood coverage and doesn't. Add flood before your renewal date, and remember NFIP policies usually have a 30-day waiting period."),
+    ("Is it cheaper to leave Citizens?",
+     "Sometimes. Private carriers may offer comparable coverage at a competitive price. We compare your Citizens renewal plus a flood policy against private options so you can see the full cost."),
+]
+page("/blog/citizens-flood-insurance-requirement", "Citizens Flood Insurance Requirement 2027: Deadlines and Options | Floridian Policy Pros",
+     "Citizens Property Insurance now requires flood coverage. Deadlines by home value, the January 1, 2027 final phase, NFIP vs private flood options, from a licensed local agent.",
+     "The Citizens Flood Insurance Requirement, Explained",
+     "Every Citizens personal residential policy must carry flood coverage by January 1, 2027. Here's what that means for you.",
+     f"""
+<p class="answer"><strong>The short answer:</strong> If you're insured with Citizens Property Insurance, Florida law requires you to carry flood insurance. The requirement started in 2023 for homes in high-risk flood zones, phased in by home value through 2026, and applies to every Citizens personal residential policy by January 1, 2027. NFIP or qualifying private flood coverage works. Call {PHONE} for a flood quote before your renewal.</p>
+<h2>The Citizens flood deadlines</h2>
+<table class="facts">
+<tr><th>FEMA high-risk flood zone (SFHA)</th><td>New policies from April 1, 2023; renewals from July 1, 2023</td></tr>
+<tr><th>Replacement cost $600,000+</th><td>January 1, 2024</td></tr>
+<tr><th>Replacement cost $500,000+</th><td>January 1, 2025</td></tr>
+<tr><th>Replacement cost $400,000+</th><td>January 1, 2026</td></tr>
+<tr><th>All personal residential policies</th><td>January 1, 2027</td></tr>
+</table>
+<h2>What to do now</h2>
+<ul class="checks">
+<li>Check your renewal date. The requirement applies at your first renewal after the deadline.</li>
+<li>Get a flood quote early. NFIP policies usually take 30 days to start.</li>
+<li>Compare NFIP and private flood. Private flood can be cheaper or offer higher limits.</li>
+<li>Ask us to compare Citizens plus flood against private homeowners carriers.</li>
+</ul>
+<p>Related: <a href="/flood-insurance">flood insurance in West Palm Beach</a> and the <a href="/blog/flood-insurance-west-palm-beach-guide">2026 flood insurance guide</a>.</p>
+<p class="note">Written by Carlos Sevilla, licensed Florida insurance agent, Floridian Policy Pros. Source: Florida Statutes section 627.351(6) and Citizens Property Insurance Corporation flood requirement notices. Confirm your own deadline with your agent.</p>
+""", faqs=CIT_FAQ, form="guide-citizens-flood", form_default="Citizens review", kicker="Insurance guide", article="2026-11-25",
+     crumbs=[("/", "Home"), ("/blog", "Guides"), ("/blog/citizens-flood-insurance-requirement", "Citizens flood requirement")], sitemap_priority="0.8")
+
 page("/blog", "Florida Insurance Guides | Floridian Policy Pros",
      "Plain-English Florida insurance guides from a licensed West Palm Beach agency: flood, homeowners, hurricane deductibles and more.",
      "Florida Insurance Guides",
      "Plain-English answers from a licensed West Palm Beach agent.",
      """
-<div class="grid"><a class="card" href="/blog/flood-insurance-west-palm-beach-guide"><h3>Flood Insurance in West Palm Beach: 2026 Guide</h3><p>Flood zones, NFIP vs. private, the 30-day wait and the Citizens flood requirement.</p></a></div>
+<div class="grid"><a class="card" href="/blog/citizens-flood-insurance-requirement"><h3>The Citizens Flood Insurance Requirement</h3><p>Deadlines by home value and the January 1, 2027 final phase.</p></a>
+<a class="card" href="/blog/wind-mitigation-inspection-florida"><h3>Wind Mitigation Inspections in Florida</h3><p>What the inspector checks and how the report lowers your premium.</p></a>
+<a class="card" href="/blog/roof-age-home-insurance-florida"><h3>Roof Age and Home Insurance in Florida</h3><p>The 15-year roof rule, inspections and what carriers prefer.</p></a>
+<a class="card" href="/blog/flood-insurance-west-palm-beach-guide"><h3>Flood Insurance in West Palm Beach: 2026 Guide</h3><p>Flood zones, NFIP vs. private, the 30-day wait and the Citizens flood requirement.</p></a></div>
 """, kicker="Guides", crumbs=[("/", "Home"), ("/blog", "Guides")], sitemap_priority="0.6")
 
 
