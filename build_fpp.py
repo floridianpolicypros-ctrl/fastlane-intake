@@ -109,6 +109,13 @@ footer.site a{color:#fff}footer.site h4{color:var(--gold);margin:0 0 8px;font-si
 footer.site ul{list-style:none;padding:0;margin:0}footer.site li{margin:4px 0}
 .legal{border-top:1px solid #1f3266;text-align:center;padding:14px 18px;font-size:12.5px;color:#9fb0d0}
 .callfab{position:fixed;right:14px;bottom:14px;background:var(--gold);color:#1a1400;font-weight:800;text-decoration:none;border-radius:999px;padding:13px 18px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:9}
+.lead{border:1px solid var(--line);border-radius:16px;padding:22px;background:var(--bg);margin:30px 0}
+.lead h2{margin-top:0}.lead form{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.lead label{display:flex;flex-direction:column;font-weight:700;font-size:14px;color:var(--navy);gap:5px}
+.lead input,.lead select,.lead textarea{font:inherit;font-weight:400;padding:11px 12px;border:1px solid #c9d4e4;border-radius:10px;background:#fff;color:var(--ink);width:100%}
+.lead .full{grid-column:1/-1}.lead .consent{flex-direction:row;align-items:flex-start;gap:8px;font-weight:400;color:var(--muted);font-size:13px}
+.lead .consent input{width:auto;margin-top:3px}.lead button{font:inherit;font-weight:800;background:var(--gold);color:#1a1400;border:0;border-radius:10px;padding:14px 20px;cursor:pointer;font-size:16px}
+.lead .hp{position:absolute;left:-9999px}.lead .msg{grid-column:1/-1;font-weight:700;margin:0}
 @media(min-width:900px){.callfab{display:none}}
 @media(max-width:700px){nav.main{width:100%;overflow-x:auto;flex-wrap:nowrap}nav.main a{white-space:nowrap}.brand img{height:48px}}
 """
@@ -138,8 +145,35 @@ def cta_block(lang="en"):
             f'<a class="btn gold" href="{TEL}">Call {PHONE}</a><a class="btn white" href="{QUOTE_URL}" rel="noopener">Instant online quote</a></div></section>')
 
 
+def lead_form(source, lang="en", default="Homeowners"):
+    """On-site quote request. Posts to /api/lead, which alerts the agency by email and text."""
+    es = lang == "es"
+    opts = [("Homeowners", "Casa"), ("Flood", "Inundación"), ("Auto", "Auto"), ("Condo or renters", "Condominio o inquilino"),
+            ("Business", "Negocio"), ("Wind mitigation review", "Revisión de mitigación de viento"),
+            ("Citizens review", "Revisión de Citizens"), ("Other", "Otro")]
+    o = "".join(f'<option value="{esc(en)}"{" selected" if en == default else ""}>{esc(sp if es else en)}</option>' for en, sp in opts)
+    t = (lambda en, sp: sp if es else en)
+    return f"""<section class="lead" id="quote"><h2>{t("Request a free quote", "Pida una cotización gratis")}</h2>
+<p>{t("Tell us what you need and a licensed agent will call you back, usually the same day. Prefer to talk now? Call", "Díganos qué necesita y un agente con licencia le llamará, normalmente el mismo día. ¿Prefiere hablar ahora? Llame al")} <a href="{TEL}">{PHONE}</a>.</p>
+<form method="post" action="/api/lead" data-lead>
+<input type="hidden" name="source" value="{esc(source)}"><input type="hidden" name="lang" value="{lang}">
+<label class="hp" aria-hidden="true">Company<input name="company" tabindex="-1" autocomplete="off"></label>
+<label>{t("Full name", "Nombre completo")}<input name="name" required autocomplete="name" maxlength="80"></label>
+<label>{t("Mobile phone", "Teléfono celular")}<input name="phone" type="tel" required autocomplete="tel" maxlength="20" inputmode="tel"></label>
+<label>{t("Email (optional)", "Correo (opcional)")}<input name="email" type="email" autocomplete="email" maxlength="120"></label>
+<label>{t("ZIP code", "Código postal")}<input name="zip" inputmode="numeric" pattern="[0-9]{{5}}" maxlength="5" autocomplete="postal-code"></label>
+<label>{t("Coverage", "Cobertura")}<select name="coverage">{o}</select></label>
+<label>{t("Best time to call", "Mejor hora para llamar")}<select name="time"><option>{t("Any time", "Cualquier hora")}</option><option>{t("Morning", "Mañana")}</option><option>{t("Afternoon", "Tarde")}</option></select></label>
+<label class="full">{t("Anything we should know? (optional)", "¿Algo que debamos saber? (opcional)")}<textarea name="note" rows="3" maxlength="600"></textarea></label>
+<label class="consent full"><input type="checkbox" name="consent" value="yes" required> {t("I agree that Floridian Policy Pros may call, text or email me about my insurance quote. Consent is not a condition of purchase. Message and data rates may apply.", "Acepto que Floridian Policy Pros me llame, envíe mensajes de texto o correos sobre mi cotización. El consentimiento no es condición de compra. Pueden aplicar tarifas de mensajes y datos.")}</label>
+<div class="full"><button type="submit">{t("Request my quote", "Pedir mi cotización")}</button></div>
+<p class="msg" role="status" aria-live="polite"></p>
+</form></section>"""
+
+
 def page(path, title, desc, h1, lead, body, faqs=None, kicker="Floridian Policy Pros", crumbs=None,
-         lang="en", extra_schema=None, article=None, hero_buttons=True, sitemap_priority="0.8"):
+         lang="en", extra_schema=None, article=None, hero_buttons=True, sitemap_priority="0.8",
+         form=None, form_default="Homeowners"):
     url = SITE + (path if path != "/" else "/")
     graph = [ORG, {"@type": "WebSite", "@id": SITE + "/#website", "url": SITE + "/", "name": "Floridian Policy Pros",
                    "publisher": {"@id": ORG_ID}, "inLanguage": ["en-US", "es-US"]},
@@ -168,7 +202,7 @@ def page(path, title, desc, h1, lead, body, faqs=None, kicker="Floridian Policy 
         else:
             buttons = (f'<div class="btns"><a class="btn gold" href="{TEL}">Call {PHONE}</a>'
                        f'<a class="btn white" href="{QUOTE_URL}" rel="noopener">Instant online quote</a>'
-                       f'<a class="btn line" href="/contact-us">Contact us</a></div>')
+                       + (f'<a class="btn line" href="#quote">Request a callback</a></div>' if form else f'<a class="btn line" href="/contact-us">Contact us</a></div>'))
     trust = ("<ul class=trust><li>Agencia con licencia en Florida</li><li>Más de 30 aseguradoras con calificación A</li><li>Agente local</li><li>Abierto 7 días</li></ul>"
              if lang == "es" else
              "<ul class=trust><li>Licensed Florida agency</li><li>30+ A-rated carriers</li><li>Local West Palm Beach agent</li><li>Open 7 days</li><li>Se habla español</li></ul>")
@@ -204,6 +238,7 @@ def page(path, title, desc, h1, lead, body, faqs=None, kicker="Floridian Policy 
 <section class="hero"><div class="in"><p class="kicker">{esc(kicker)}</p><h1>{esc(h1)}</h1><p class="lead">{lead}</p>{buttons}{trust if hero_buttons else ''}</div></section>
 <main><div class="in">
 {body}
+{lead_form(form, lang, form_default) if form else ""}
 {faq_block}
 {cta_block(lang)}
 </div></main>
@@ -211,8 +246,10 @@ def page(path, title, desc, h1, lead, body, faqs=None, kicker="Floridian Policy 
 <div><h4>Floridian Policy Pros</h4><p>Shining light on all your insurance needs.</p><p>{LICENSE}. Licensed agent Carlos Sevilla.</p></div>
 <div><h4>{'Contacto' if lang == 'es' else 'Contact'}</h4><ul><li><a href="{TEL}">{PHONE}</a></li><li><a href="mailto:{EMAIL}">{EMAIL}</a></li><li>{ADDRESS}</li><li>{'Abierto 7 días, 9 AM a 5 PM' if lang == 'es' else HOURS}</li><li>Se habla español</li></ul></div>
 <div><h4>Insurance</h4><ul><li><a href="/homeowners-insurance">Homeowners insurance</a></li><li><a href="/flood-insurance">Flood insurance</a></li><li><a href="/auto-insurance">Auto insurance</a></li><li><a href="/business-insurance">Business insurance</a></li><li><a href="/our-services">All coverage</a></li></ul></div>
+<div><h4>Areas we serve</h4><ul><li><a href="/insurance-agency/lake-worth-beach">Lake Worth Beach</a></li><li><a href="/insurance-agency/boynton-beach">Boynton Beach</a></li><li><a href="/insurance-agency/wellington">Wellington</a></li><li><a href="/insurance-agency/royal-palm-beach">Royal Palm Beach</a></li><li><a href="/insurance-agency/jupiter">Jupiter</a></li><li><a href="/insurance-agency/palm-beach-gardens">Palm Beach Gardens</a></li><li><a href="/areas-we-serve">All areas</a></li></ul></div>
 <div><h4>Company</h4><ul><li><a href="/about">About us</a></li><li><a href="/insurance-providers">Our carriers</a></li><li><a href="/blog">Insurance guides</a></li><li><a href="/faq">FAQ</a></li><li><a href="{LOGIN_URL}" rel="noopener">Client login</a></li><li><a href="/privacy">Privacy policy</a></li></ul></div>
 </div><div class="legal">&copy; {year} Floridian Policy Pros. {LICENSE}. Coverage is subject to the terms, conditions and availability of each insurance company.</div></footer>
+<script>document.querySelectorAll("form[data-lead]").forEach(function(f){{f.addEventListener("submit",function(e){{e.preventDefault();var m=f.querySelector(".msg"),b=f.querySelector("button"),es=f.querySelector("[name=lang]").value=="es";b.disabled=true;m.textContent=es?"Enviando...":"Sending...";var d={{}};new FormData(f).forEach(function(v,k){{d[k]=v}});d.page=location.pathname;d.ref=document.referrer;fetch("/api/lead",{{method:"POST",headers:{{"content-type":"application/json"}},body:JSON.stringify(d)}}).then(function(r){{return r.json()}}).then(function(j){{if(j.ok){{f.reset();m.style.color="#0a7a3d";m.textContent=es?"Recibido. Un agente le llamará pronto. Si es urgente, llame al {PHONE}.":"Got it. A licensed agent will call you shortly. If it's urgent, call {PHONE}.";if(window.gtag)gtag("event","generate_lead",{{source:d.source}})}}else throw 0}}).catch(function(){{m.style.color="#b42318";m.textContent=es?"No se pudo enviar. Por favor llame al {PHONE}.":"That didn't go through. Please call {PHONE}."}}).finally(function(){{b.disabled=false}})}})}})</script>
 <a class="callfab" href="{TEL}">{'Llamar' if lang == 'es' else 'Call'} {PHONE}</a>
 </body>
 </html>
@@ -276,7 +313,7 @@ page("/", "West Palm Beach Insurance Agency | Home, Flood & Auto | Floridian Pol
 </table>
 <h2>Already a client?</h2>
 <p>Log in to your client center to view policies, download ID cards, request changes and certificates, and make payments. <a href="{LOGIN_URL}" rel="noopener">Client login</a>.</p>
-""", faqs=HOME_FAQ, kicker="Shining light on all your insurance needs", sitemap_priority="1.0")
+""", faqs=HOME_FAQ, form="home", form_default="Homeowners", kicker="Shining light on all your insurance needs", sitemap_priority="1.0")
 
 # ---------------------------------------------------------------- Homeowners
 HO_FAQ = [
@@ -319,7 +356,7 @@ page("/homeowners-insurance", "Homeowners Insurance West Palm Beach FL | Compare
 </ul>
 <h2>Condo, renters and landlord policies</h2>
 <p>We also quote condo unit-owner (HO-6), renters (HO-4) and landlord dwelling policies across Palm Beach County.</p>
-""", faqs=HO_FAQ, kicker="Homeowners insurance", crumbs=[("/", "Home"), ("/homeowners-insurance", "Homeowners insurance")])
+""", faqs=HO_FAQ, form="homeowners", form_default="Homeowners", kicker="Homeowners insurance", crumbs=[("/", "Home"), ("/homeowners-insurance", "Homeowners insurance")])
 
 # ---------------------------------------------------------------- Flood
 FLOOD_FAQ = [
@@ -363,7 +400,7 @@ page("/flood-insurance", "Flood Insurance West Palm Beach FL | NFIP & Private Fl
 <p>Florida law requires Citizens Property Insurance policyholders to carry flood insurance on a phased schedule based on the home's replacement value, with every Citizens personal residential policy required to have flood coverage by January 1, 2027. If you're with Citizens, call us before your renewal.</p>
 <h2>Read more</h2>
 <p><a href="/blog/flood-insurance-west-palm-beach-guide">Flood Insurance in West Palm Beach: 2026 Guide</a></p>
-""", faqs=FLOOD_FAQ, kicker="Flood insurance", crumbs=[("/", "Home"), ("/flood-insurance", "Flood insurance")])
+""", faqs=FLOOD_FAQ, form="flood", form_default="Flood", kicker="Flood insurance", crumbs=[("/", "Home"), ("/flood-insurance", "Flood insurance")])
 
 # ---------------------------------------------------------------- Auto
 AUTO_FAQ = [
@@ -392,7 +429,7 @@ page("/auto-insurance", "Auto Insurance West Palm Beach FL | Compare Car Insuran
 </ul>
 <h2>Ways to save</h2>
 <ul class="checks"><li>Bundle with homeowners or renters</li><li>Multi-car and good-driver discounts</li><li>Pay-in-full and paperless discounts where offered</li><li>Shop every renewal; we do it for you</li></ul>
-""", faqs=AUTO_FAQ, kicker="Auto insurance", crumbs=[("/", "Home"), ("/auto-insurance", "Auto insurance")])
+""", faqs=AUTO_FAQ, form="auto", form_default="Auto", kicker="Auto insurance", crumbs=[("/", "Home"), ("/auto-insurance", "Auto insurance")])
 
 # ---------------------------------------------------------------- Business
 BIZ_FAQ = [
@@ -416,7 +453,7 @@ page("/business-insurance", "Business Insurance West Palm Beach | General Liabil
 <div class="card"><h3>Workers' compensation</h3><p>Medical and wage benefits for employees hurt on the job.</p></div>
 <div class="card"><h3>Commercial property</h3><p>Your building, equipment and inventory.</p></div>
 </div>
-""", faqs=BIZ_FAQ, kicker="Business insurance", crumbs=[("/", "Home"), ("/business-insurance", "Business insurance")])
+""", faqs=BIZ_FAQ, form="business", form_default="Business", kicker="Business insurance", crumbs=[("/", "Home"), ("/business-insurance", "Business insurance")])
 
 # ---------------------------------------------------------------- Services hub (old WordPress URL)
 page("/our-services", "Insurance Services | Floridian Policy Pros, West Palm Beach",
@@ -482,7 +519,7 @@ page("/contact-us", "Contact Floridian Policy Pros | West Palm Beach Insurance A
 <tr><th>Online quote</th><td><a href="{QUOTE_URL}" rel="noopener">Instant online quote</a></td></tr>
 <tr><th>Current clients</th><td><a href="{LOGIN_URL}" rel="noopener">Client login</a>: policies, ID cards, changes, certificates and payments</td></tr>
 </table>
-""", kicker="Contact", crumbs=[("/", "Home"), ("/contact-us", "Contact")], sitemap_priority="0.7")
+""", form="contact", form_default="Homeowners", kicker="Contact", crumbs=[("/", "Home"), ("/contact-us", "Contact")], sitemap_priority="0.7")
 
 # ---------------------------------------------------------------- FAQ hub
 ALL_FAQ = HOME_FAQ[1:] + HO_FAQ[:4] + FLOOD_FAQ[:4] + AUTO_FAQ[:2] + BIZ_FAQ[:1]
@@ -516,7 +553,7 @@ page("/seguro-en-espanol", "Seguro de Casa, Inundación y Auto en West Palm Beac
 <li><strong>Seguro de auto:</strong> PIP, responsabilidad civil, conductor sin seguro, colisión y comprensivo.</li>
 <li><strong>Seguro de negocio:</strong> responsabilidad general, auto comercial y compensación de trabajadores.</li>
 </ul>
-""", faqs=ES_FAQ, kicker="Se habla español", crumbs=[("/", "Inicio"), ("/seguro-en-espanol", "Español")], lang="es", sitemap_priority="0.8")
+""", faqs=ES_FAQ, form="espanol", kicker="Se habla español", crumbs=[("/", "Inicio"), ("/seguro-en-espanol", "Español")], lang="es", sitemap_priority="0.8")
 
 # ---------------------------------------------------------------- Blog
 GUIDE_FAQ = FLOOD_FAQ[:4]
@@ -549,6 +586,104 @@ page("/blog", "Florida Insurance Guides | Floridian Policy Pros",
      """
 <div class="grid"><a class="card" href="/blog/flood-insurance-west-palm-beach-guide"><h3>Flood Insurance in West Palm Beach: 2026 Guide</h3><p>Flood zones, NFIP vs. private, the 30-day wait and the Citizens flood requirement.</p></a></div>
 """, kicker="Guides", crumbs=[("/", "Home"), ("/blog", "Guides")], sitemap_priority="0.6")
+
+
+# ---------------------------------------------------------------- City pages (local SEO)
+# Facts here are deliberately general and verifiable: ZIP codes, housing mix, and the coverage
+# questions an agent actually hears from each area. No invented statistics.
+CITIES = [
+    {"slug": "lake-worth-beach", "name": "Lake Worth Beach", "zips": "33460, 33461, 33462",
+     "homes": "older single-family homes and bungalows, many built before modern Florida building codes, plus condos near the coast",
+     "focus": "Older homes often need a 4-point inspection and a roof-age review before a carrier will write them, and a wind mitigation inspection can earn credits for features like hurricane shutters and roof-to-wall straps.",
+     "flood": "Neighborhoods near the Lake Worth Lagoon and low-lying streets can sit in higher-risk flood zones, so we price both NFIP and private flood.",
+     "extra": ("Do older Lake Worth Beach homes have trouble getting insurance?",
+               "Some carriers limit homes with older roofs, older electrical or plumbing. We shop 30+ A-rated carriers, so if one company declines an older home we look for another that will write it, and we tell you which updates would open more options.")},
+    {"slug": "boynton-beach", "name": "Boynton Beach", "zips": "33426, 33435, 33436, 33437, 33472, 33473",
+     "homes": "a mix of coastal condos, 55+ communities and newer single-family homes west of I-95",
+     "focus": "Condo owners need an HO-6 policy that fits the association's master policy, and single-family owners benefit most from a current wind mitigation report and the right hurricane deductible.",
+     "flood": "East Boynton near the Intracoastal and canal-front homes deserve a flood quote even when the lender does not require one.",
+     "extra": ("What condo insurance do I need in Boynton Beach?",
+               "Most condo owners need an HO-6 policy covering interior walls, fixtures, personal property, liability and loss assessment. The right amount depends on your association's master policy, so bring your condo documents and we'll match the coverage.")},
+    {"slug": "wellington", "name": "Wellington", "zips": "33411, 33414, 33449, 33467",
+     "homes": "larger single-family homes, gated communities and equestrian properties",
+     "focus": "Higher-value homes often need replacement-cost coverage set correctly, higher liability limits and an umbrella policy, and equestrian properties may need extra coverage for barns and liability.",
+     "flood": "Inland does not mean flood-free: heavy rain and drainage issues flood streets in western Palm Beach County, and low-risk-zone flood policies are often affordable.",
+     "extra": ("Do I need an umbrella policy in Wellington?",
+               "If your home, savings or business assets exceed your home and auto liability limits, an umbrella policy adds a layer of liability protection, often $1 million or more, at a relatively low cost. We quote it alongside your home and auto.")},
+    {"slug": "royal-palm-beach", "name": "Royal Palm Beach", "zips": "33411, 33412",
+     "homes": "suburban single-family homes and townhomes, many in HOA communities",
+     "focus": "Families here usually save the most by bundling home and auto, getting a current wind mitigation inspection, and comparing hurricane deductible options at every renewal.",
+     "flood": "Lakes and canals run through many neighborhoods, so a flood quote is worth a few minutes even outside a high-risk zone.",
+     "extra": ("Can I bundle home and auto insurance in Royal Palm Beach?",
+               "Yes. Many carriers discount home and auto together. We price the bundle and the separate policies so you can see which is actually cheaper.")},
+    {"slug": "jupiter", "name": "Jupiter", "zips": "33458, 33468, 33469, 33477, 33478",
+     "homes": "waterfront and coastal homes, condos near the beach and inlet, and newer communities to the west",
+     "focus": "Coastal homes face higher wind rates, so roof type, opening protection and the hurricane deductible matter more here. Boat owners can add boat insurance through us too.",
+     "flood": "Waterfront homes along the Loxahatchee River and Intracoastal often need high-limit flood options above the NFIP's $250,000 building limit.",
+     "extra": ("Can I get more than $250,000 of flood coverage in Jupiter?",
+               "Yes. The NFIP caps building coverage at $250,000, but private flood insurers can offer higher limits for waterfront and high-value homes. We quote both side by side.")},
+    {"slug": "palm-beach-gardens", "name": "Palm Beach Gardens", "zips": "33410, 33418",
+     "homes": "golf and country club communities, gated neighborhoods and newer construction",
+     "focus": "Newer homes built to current Florida code often qualify for strong wind mitigation credits, and higher-value homes need replacement cost, scheduled valuables and higher liability limits reviewed.",
+     "flood": "Communities built around lakes and golf course drainage can still flood in heavy rain, so we price flood for every home we quote.",
+     "extra": ("Are newer homes in Palm Beach Gardens cheaper to insure?",
+               "Often, yes. Homes built to current Florida Building Code usually qualify for larger wind mitigation credits and are easier to place with private carriers. A wind mitigation inspection documents those features so you get the credit.")},
+]
+
+for c in CITIES:
+    path = "/insurance-agency/" + c["slug"]
+    n = c["name"]
+    faqs = [
+        (f"Is there a local insurance agency serving {n}?",
+         f"Yes. Floridian Policy Pros is a licensed independent insurance agency at 800 S Congress Ave in West Palm Beach that serves {n} and all of Palm Beach County. We shop 30+ A-rated carriers for home, flood, auto and business insurance. Call 561-777-0777."),
+        (f"How much is homeowners insurance in {n}?",
+         "Price depends on the home's age, roof, construction, wind mitigation features, distance to the coast, deductible and claims history. The fastest way to know is a side-by-side quote from several carriers, which we prepare at no cost."),
+        (f"Do I need flood insurance in {n}?",
+         "Homeowners policies do not cover flood. If your lender requires it you must carry it, and Citizens policyholders must carry flood coverage by January 1, 2027. Even outside high-risk zones, a flood quote is worth getting because many claims come from lower-risk areas."),
+        c["extra"],
+        ("Do you offer service in Spanish?", "Yes. Se habla español. You can get your quote and service entirely in Spanish."),
+    ]
+    page(path, f"Insurance Agency in {n}, FL | Home, Flood & Auto Quotes",
+         f"Local insurance agency serving {n}, FL. We compare 30+ A-rated carriers for homeowners, flood, auto and business insurance. Se habla español. Call 561-777-0777.",
+         f"Insurance Agency Serving {n}, Florida",
+         f"Homeowners, flood, auto and business insurance for {n}, compared across 30+ A-rated carriers by a licensed local agent in West Palm Beach.",
+         f"""
+<p class="answer"><strong>In short:</strong> Floridian Policy Pros is a licensed independent insurance agency that serves {n} from our office at {ADDRESS}. We compare 30+ A-rated carriers for homeowners, flood, auto and business insurance, we're open 7 days, and we speak English and Spanish. Call {PHONE} for a free quote.</p>
+<h2>Insurance for {n} homes, cars and businesses</h2>
+<p>{n} has {c["homes"]}. {c["focus"]}</p>
+<h3>Flood insurance in {n}</h3>
+<p>{c["flood"]} <a href="/flood-insurance">More about flood insurance</a>.</p>
+<div class="grid">
+<a class="card" href="/homeowners-insurance"><h3>Homeowners</h3><p>Hurricane coverage, replacement cost and wind mitigation credits.</p></a>
+<a class="card" href="/flood-insurance"><h3>Flood</h3><p>NFIP and private flood, high-limit options, same-day binding available.</p></a>
+<a class="card" href="/auto-insurance"><h3>Auto</h3><p>Florida PIP plus the liability and uninsured motorist coverage that protects you.</p></a>
+<a class="card" href="/business-insurance"><h3>Business</h3><p>General liability, commercial auto and workers' comp.</p></a>
+</div>
+<h2>{n} quick facts</h2>
+<table class="facts">
+<tr><th>Area served</th><td>{n}, FL (ZIP codes {c["zips"]}) and all of Palm Beach County</td></tr>
+<tr><th>Nearest office</th><td>{ADDRESS}</td></tr>
+<tr><th>Phone</th><td><a href="{TEL}">{PHONE}</a></td></tr>
+<tr><th>Hours</th><td>{HOURS}</td></tr>
+<tr><th>Carriers</th><td>30+ A-rated insurance companies</td></tr>
+<tr><th>Languages</th><td>English, Spanish</td></tr>
+<tr><th>License</th><td>{LICENSE}</td></tr>
+</table>
+""", faqs=faqs, form="city-" + c["slug"], kicker=f"Serving {n}",
+         crumbs=[("/", "Home"), ("/areas-we-serve", "Areas we serve"), (path, n)],
+         extra_schema=[{"@type": "Service", "@id": SITE + path + "#service", "name": f"Insurance agency services in {n}, FL",
+                        "serviceType": "Insurance agency", "provider": {"@id": ORG_ID},
+                        "areaServed": {"@type": "City", "name": f"{n}, Florida"}}],
+         sitemap_priority="0.8")
+
+page("/areas-we-serve", "Areas We Serve | Palm Beach County Insurance Agency | Floridian Policy Pros",
+     "Floridian Policy Pros serves West Palm Beach and all of Palm Beach County: Lake Worth Beach, Boynton Beach, Wellington, Royal Palm Beach, Jupiter, Palm Beach Gardens and more.",
+     "Areas We Serve in Palm Beach County",
+     "A licensed local agency in West Palm Beach serving homeowners, drivers and businesses across Palm Beach County and Florida.",
+     "<div class=\"grid\">" + "".join(f'<a class="card" href="/insurance-agency/{c["slug"]}"><h3>{c["name"]}</h3><p>ZIP {c["zips"].split(",")[0]} and nearby</p></a>' for c in CITIES)
+     + '<a class="card" href="/"><h3>West Palm Beach</h3><p>Our home office at 800 S Congress Ave</p></a></div>'
+     + "<p>We also serve Greenacres, Lantana, Delray Beach, Boca Raton and clients across Florida. Call " + PHONE + ".</p>",
+     form="areas", kicker="Service area", crumbs=[("/", "Home"), ("/areas-we-serve", "Areas we serve")], sitemap_priority="0.7")
 
 # ---------------------------------------------------------------- Privacy
 page("/privacy", "Privacy Policy | Floridian Policy Pros",
@@ -600,7 +735,8 @@ links = "\n".join(f"- [{t}]({SITE}{p}): {d}" for p, t, d, pr in PAGES if pr)
 /home / 301
 /index.php / 301
 /wp-sitemap.xml /sitemap.xml 301
-/request-a-quote /contact-us 301
+/request-a-quote /contact-us#quote 301
+/get-a-quote /contact-us#quote 301
 /terms /privacy 301
 /privacy-policy /privacy 301
 /flood /flood-insurance 301

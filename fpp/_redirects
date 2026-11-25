@@ -2,7 +2,8 @@
 /home / 301
 /index.php / 301
 /wp-sitemap.xml /sitemap.xml 301
-/request-a-quote /contact-us 301
+/request-a-quote /contact-us#quote 301
+/get-a-quote /contact-us#quote 301
 /terms /privacy 301
 /privacy-policy /privacy 301
 /flood /flood-insurance 301
