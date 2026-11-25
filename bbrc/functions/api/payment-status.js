@@ -229,6 +229,7 @@ async function readyCheck(env, ref) {
       "Signed ...... " + stamp(r.signed_at) + "\n\n" +
       "Nothing is outstanding on this one.");
     await env.DB.prepare("UPDATE bond_files SET ready_notified=1 WHERE ref=?").bind(ref).run();
+    await scheduleReviewAsk(env, r);
   } catch (_) {}
 }
 
@@ -319,3 +320,49 @@ const j = (o, s) => new Response(JSON.stringify(o), {
   status: s || 200,
   headers: { "content-type": "application/json", "Access-Control-Allow-Origin": "*" }
 });
+
+/* REVIEW REQUEST
+   Once a file is READY TO POST (paid and signed), schedule one short
+   thank-you email to the co-signer 24 hours later, by which time the
+   release has normally happened. It links straight to the Google review
+   form, which is what moves the Maps ranking.
+
+   Resend holds the email and sends it at scheduled_at, so this needs no
+   cron. It fires once per file because it is only called right after
+   ready_notified is set. Set REVIEW_ASK=off to stop it without a deploy,
+   and GOOGLE_REVIEW_URL to the profile's own "ask for reviews" link.
+   A failure here is swallowed: it must never disturb the bond alerts. */
+async function scheduleReviewAsk(env, r) {
+  try {
+    if (!env.RESEND_API_KEY) return;
+    if (String(env.REVIEW_ASK || "on").toLowerCase() === "off") return;
+    const to = String(r.client_email || "").trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return;
+    const link = env.GOOGLE_REVIEW_URL || "https://www.google.com/maps?cid=12684614689792198908";
+    const first = String(r.client_name || "").trim().split(/\s+/)[0] || "";
+    const when = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + env.RESEND_API_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: env.FROM_ADDRESS || "Bail Bond Release Center <onboarding@resend.dev>",
+        to: [to],
+        reply_to: env.REPLY_TO || undefined,
+        subject: "Thank you from Bail Bond Release Center",
+        scheduled_at: when,
+        text:
+          "Hi" + (first ? " " + first : "") + ",\n\n" +
+          "Thank you for trusting Bail Bond Release Center of the Palm Beaches. " +
+          "We know this was a hard night, and we hope your family is back together.\n\n" +
+          "If we did a good job for you, would you take 30 seconds to leave us a Google review? " +
+          "It helps other families find a licensed agent they can trust when they need one.\n\n" +
+          link + "\n\n" +
+          "If anything was not right, please reply to this email or call 561-833-4388 and tell us directly.\n\n" +
+          "Bail Bond Release Center of the Palm Beaches\n" +
+          "800 S. Congress Ave., West Palm Beach, FL 33406\n" +
+          "561-833-4388 · Florida bail bond license P204302\n\n" +
+          "If you would rather not receive emails like this, reply and let us know."
+      })
+    });
+  } catch (_) { /* never break the alert path */ }
+}
