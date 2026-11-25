@@ -21,4 +21,4 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
-Sitemap: https://floridianpolicypros.com/sitemap.xml
+Sitemap: https://www.floridianpolicypros.com/sitemap.xml

@@ -8,7 +8,7 @@ JavaScript can read everything. Run: python3 build_fpp.py
 import json, html, datetime, pathlib
 
 OUT = pathlib.Path(__file__).parent / "fpp"
-SITE = "https://floridianpolicypros.com"
+SITE = "https://www.floridianpolicypros.com"
 TODAY = datetime.date.today().isoformat()
 PHONE = "561-777-0777"
 TEL = "tel:+15617770777"
