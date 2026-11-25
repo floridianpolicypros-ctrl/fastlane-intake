@@ -168,11 +168,11 @@
        actually received and retake either one. -->
   <div id="idBanner" class="hidden" style="background:#eaf3ff;border:1px solid #cfe0f5;border-radius:11px;padding:11px 13px;margin-bottom:12px;font-weight:700;color:var(--brand)"></div>
   <div class="capttl">Photo 1 of 2 &middot; Licence FRONT</div>
-  <label class="drop"><div class="ico">🪪</div><div class="t">Tap to photograph the FRONT</div>
+  <label class="drop"><div class="t">Tap to photograph the FRONT</div>
     <div class="status" data-status></div>
     <input type="file" accept="image/*" capture="environment" data-doc="id_front"><img class="thumb" data-thumb></label>
   <div class="capttl">Photo 2 of 2 &middot; Licence BACK</div>
-  <label class="drop"><div class="ico">🪪</div><div class="t">Tap to photograph the BACK</div>
+  <label class="drop"><div class="t">Tap to photograph the BACK</div>
     <div class="status" data-status></div>
     <input type="file" accept="image/*" capture="environment" data-doc="id_back"><img class="thumb" data-thumb></label>
   <p class="hint" style="margin-bottom:13px">No licence? Skip these and type your details below.</p>
@@ -401,8 +401,8 @@ async function ingestId(fl,k,box){
     const d=await r.json(); const o=(d&&d.fields)||{};
     let n=0; for(const key of IDFIELDS){ if(setF(key,o[key])) n++; }
     st.textContent=n>0?('✓ filled '+n):'✓';
-    idBanner(n>0?('✅ Filled '+n+' fields from your licence'):'⚠️ Could not read it — please type your details below', n>0);
-  }catch(_){ st.textContent='✓'; idBanner('⚠️ Could not read it — please type your details below'); }
+    idBanner(n>0?('Filled '+n+' fields from your licence'):'Could not read it — please type your details below', n>0);
+  }catch(_){ st.textContent='✓'; idBanner('Could not read it — please type your details below'); }
 }
 $$('input[type=file][data-doc]').forEach(inp=>inp.addEventListener('change',e=>{
   const fl=e.target.files[0]; if(fl) ingestId(fl,inp.dataset.doc,inp.closest('.drop'));
@@ -704,7 +704,7 @@ async function submit(){
       const a=document.createElement('a');
       a.href=es.signLink; a.target='_blank'; a.rel='noopener';
       a.style.cssText='display:block;text-align:center;padding:18px;margin:14px auto 0;max-width:340px;border-radius:12px;background:#ffd600;color:#4a3800;text-decoration:none;font-weight:900;font-size:17px';
-      a.textContent='✍️ Sign your application now';
+      a.textContent='Sign your application now';
       ($('#ok').querySelector('.card')||$('#ok')).appendChild(a);
     } else if(!es.ok && es.error){ $('#okRef').textContent='Signing reference: '+es.error; }
   } else {

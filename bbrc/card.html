@@ -100,11 +100,11 @@
         <div class="field"><label data-i18n="phone">Cardholder phone <span class="req">*</span></label><input name="phone" type="tel" inputmode="tel" required></div>
         <div class="field"><label data-i18n="email">Email for receipt</label><input name="email" type="email" inputmode="email"></div>
       </div>
-      <div class="warn" data-i18n="pciWarn">🔒 For your security we only collect the last 4 digits here. The full card is entered on our secure Clover terminal — never by email or text. This signed form authorizes the charge and protects both of us in a dispute.</div>
+      <div class="warn" data-i18n="pciWarn">For your security we only collect the last 4 digits here. The full card is entered on our secure Clover terminal — never by email or text. This signed form authorizes the charge and protects both of us in a dispute.</div>
     </section>
 
     <section class="card" id="altPaySec" style="display:none">
-      <h2>💵 <span data-i18n="altSec">Prefer to pay another way?</span></h2>
+      <h2><span data-i18n="altSec">Prefer to pay another way?</span></h2>
       <p class="sub" data-i18n="altSub">You can send the premium by Venmo, Zelle, or Cash App. Please still complete and sign this form so we have your authorization on file.</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <a id="payVenmo" class="btn2" target="_blank" rel="noopener" style="display:none;text-decoration:none">Venmo</a>
@@ -117,23 +117,23 @@
       <h2><span class="num">3</span> <span data-i18n="idSec">Photo ID &amp; location</span></h2>
       <p class="sub" data-i18n="idSub">Required to authorize a card-not-present charge. Snap the ID and a selfie.</p>
       <div class="uploads">
-        <label class="drop"><div class="ico">🪪</div><div class="t" data-i18n="idFront">ID — FRONT</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="id_front" capture="environment"><img class="thumb" data-thumb></label>
-        <label class="drop"><div class="ico">🪪</div><div class="t" data-i18n="idBack">ID — BACK</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="id_back" capture="environment"><img class="thumb" data-thumb></label>
-        <label class="drop"><div class="ico">🧾</div><div class="t" data-i18n="blotter">Blotter / bond</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="blotter" capture="environment"><img class="thumb" data-thumb></label>
+        <label class="drop"><div class="t" data-i18n="idFront">ID — FRONT</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="id_front" capture="environment"><img class="thumb" data-thumb></label>
+        <label class="drop"><div class="t" data-i18n="idBack">ID — BACK</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="id_back" capture="environment"><img class="thumb" data-thumb></label>
+        <label class="drop"><div class="t" data-i18n="blotter">Blotter / bond</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="blotter" capture="environment"><img class="thumb" data-thumb></label>
         <div class="drop" id="selfieTile" style="cursor:default">
-          <div class="ico">🤳</div><div class="t" data-i18n="selfie">Live selfie w/ card &amp; ID</div>
+          <div class="t" data-i18n="selfie">Live selfie w/ card &amp; ID</div>
           <div class="d" data-i18n="selfieHint">Camera only — no uploads</div>
           <video id="selfieVideo" playsinline autoplay muted style="display:none;width:100%;max-height:200px;border-radius:8px;margin-top:6px;background:#000"></video>
           <div class="status" data-status></div><img class="thumb" data-thumb>
           <div style="margin-top:6px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
-            <button type="button" class="btn2" id="selfieStart" data-i18n="openCam">📷 Camera</button>
+            <button type="button" class="btn2" id="selfieStart" data-i18n="openCam">Camera</button>
             <button type="button" class="btn2" id="selfieSnap" style="display:none" data-i18n="capture">Capture</button>
             <button type="button" class="btn2 btn-ghost" id="selfieRetake" style="display:none" data-i18n="retake">Retake</button>
           </div>
         </div>
       </div>
       <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button type="button" class="btn2" onclick="captureGeo()" data-i18n="geoBtn">📍 Capture my location</button>
+        <button type="button" class="btn2" onclick="captureGeo()" data-i18n="geoBtn">Capture my location</button>
         <span class="hint" id="geoStatus" data-i18n="geoNone">Not captured yet</span>
       </div>
       <input type="hidden" name="geo">
@@ -150,7 +150,7 @@
       <div class="sigwrap"><canvas id="sigpad"></canvas>
         <div class="sigbar"><span class="hint" data-i18n="sigHint">Sign with finger or mouse</span><button type="button" class="btn2 btn-ghost" onclick="clearSig()" data-i18n="clear">Clear</button></div></div>
       <label style="margin-top:12px"><input type="checkbox" id="agree" style="width:auto;margin-right:8px"> <span data-i18n="agreeBox">I am the authorized cardholder and I authorize the charge described above.</span></label>
-      <div class="warn" style="margin-top:10px" data-i18n="locDisc">🔒 By signing, you consent to us automatically capturing your device's GPS location, IP address, and the date &amp; time to verify this authorization.</div>
+      <div class="warn" style="margin-top:10px" data-i18n="locDisc">By signing, you consent to us automatically capturing your device's GPS location, IP address, and the date &amp; time to verify this authorization.</div>
     </section>
 
     <button type="submit" class="submit" data-i18n="submit">Authorize &amp; sign →</button>
@@ -159,7 +159,7 @@
 </div>
 
 <div class="wrap hidden" id="successScreen"><div class="card success">
-  <div class="big">✅</div>
+  <div class="big">Received</div>
   <h2 data-i18n="doneTitle">Authorization signed!</h2>
   <p data-i18n="doneBody">Your signed PDF downloaded and your email opened — attach the PDF and send. We'll process the charge on our secure terminal.</p>
 </div></div>
@@ -195,13 +195,13 @@ const I18N={en:{},es:{
   premText:"Prima de fianza:", premHint:"10% por fianza, $100 mínimo cada una. No reembolsable una vez publicada.",
   cardSec:"Titular y tarjeta", chName:"Nombre del titular (como en la tarjeta)", billAddr:"Dirección de facturación", city:"Ciudad", stzip:"Estado / Código postal",
   cardType:"Tipo de tarjeta", last4:"Últimos 4 dígitos", exp:"Vencimiento (MM/AA)", phone:"Teléfono del titular", email:"Correo para recibo",
-  pciWarn:"🔒 Por seguridad solo pedimos los últimos 4 dígitos. La tarjeta completa se ingresa en nuestro terminal seguro Clover — nunca por correo o texto. Este formulario firmado autoriza el cargo y nos protege a ambos en una disputa.",
+  pciWarn:"Por seguridad solo pedimos los últimos 4 dígitos. La tarjeta completa se ingresa en nuestro terminal seguro Clover — nunca por correo o texto. Este formulario firmado autoriza el cargo y nos protege a ambos en una disputa.",
   idSec:"ID con foto y ubicación", idSub:"Requerido para autorizar un cargo sin tarjeta presente. Tome foto de la ID y una selfie.",
-  idFront:"ID — FRENTE", idBack:"ID — REVERSO", selfie:"Selfie en vivo con tarjeta e ID", selfieHint:"Solo cámara — sin subir", openCam:"📷 Cámara", capture:"Capturar", retake:"Repetir", geoBtn:"📍 Capturar mi ubicación", geoNone:"Aún no capturada",
+  idFront:"ID — FRENTE", idBack:"ID — REVERSO", selfie:"Selfie en vivo con tarjeta e ID", selfieHint:"Solo cámara — sin subir", openCam:"Cámara", capture:"Capturar", retake:"Repetir", geoBtn:"Capturar mi ubicación", geoNone:"Aún no capturada",
   authSec:"Autorización y firma", typedName:"Escriba el nombre completo del titular", signDate:"Fecha", drawSig:"Firma del titular", sigHint:"Firme con el dedo o el ratón", clear:"Borrar",
   agreeBox:"Soy el titular autorizado y autorizo el cargo descrito arriba.", submit:"Autorizar y firmar →",
   altSec:"¿Prefiere pagar de otra forma?", altSub:"Puede enviar la prima por Venmo, Zelle o Cash App. Complete y firme este formulario de todas formas para tener su autorización en archivo.",
-  locDisc:"🔒 Al firmar, usted consiente que capturemos automáticamente la ubicación GPS de su dispositivo, su dirección IP y la fecha y hora para verificar esta autorización.",
+  locDisc:"Al firmar, usted consiente que capturemos automáticamente la ubicación GPS de su dispositivo, su dirección IP y la fecha y hora para verificar esta autorización.",
   doneTitle:"¡Autorización firmada!", doneBody:"Su PDF firmado se descargó y su correo se abrió — adjunte el PDF y envíelo. Procesaremos el cargo en nuestro terminal seguro."
 }};
 const ACK={
@@ -228,7 +228,7 @@ function calcPremium(){
   return prem;}
 function createBondRow(value){
   const row=document.createElement("div");row.className="bondrow";row.style.cssText="display:flex;gap:8px;align-items:center;margin-bottom:6px";
-  row.innerHTML='<input class="bondAmt" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 1000" style="flex:1"><button type="button" class="btn2 btn-ghost rmBond" title="remove" style="padding:8px 11px">✕</button>';
+  row.innerHTML='<input class="bondAmt" type="number" min="0" step="1" inputmode="numeric" placeholder="e.g. 1000" style="flex:1"><button type="button" class="btn2 btn-ghost rmBond" title="remove" style="padding:8px 11px"></button>';
   if(value!=null&&value!=="")row.querySelector(".bondAmt").value=String(value).replace(/[^0-9.]/g,"");
   row.querySelector(".rmBond").addEventListener("click",()=>{row.remove();syncRmButtons();calcPremium();});
   return row;}
@@ -238,7 +238,7 @@ function populateBonds(list){const c=document.getElementById("bondRows");c.inner
 
 function captureGeo(){const s=$("#geoStatus");if(!navigator.geolocation){s.textContent="Not supported";return;}s.textContent="Locating…";
   navigator.geolocation.getCurrentPosition(pos=>{const{latitude:la,longitude:lo,accuracy:ac}=pos.coords;geoData=la.toFixed(6)+", "+lo.toFixed(6)+" (±"+Math.round(ac)+"m)";form.elements["geo"].value=geoData;
-    s.innerHTML="✅ "+geoData+' · <a href="https://maps.google.com/?q='+la+','+lo+'" target="_blank">map</a>';},err=>{s.textContent="⚠️ "+(err.message||"blocked");},{enableHighAccuracy:true,timeout:10000});}
+    s.innerHTML=""+geoData+' · <a href="https://maps.google.com/?q='+la+','+lo+'" target="_blank">map</a>';},err=>{s.textContent=""+(err.message||"blocked");},{enableHighAccuracy:true,timeout:10000});}
 
 function fileToBase64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(f);});}
 function fileToDataURL(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result));r.onerror=rej;r.readAsDataURL(f);});}
@@ -339,7 +339,7 @@ NOTE: The full card is entered on the Clover terminal — never by email or text
   }
   if(sent){
     if(done)done.textContent=(LANG==="es")?"¡Autorización firmada y enviada por correo a usted y a nuestra oficina! Procesaremos el cargo en el terminal seguro.":"Authorization signed and emailed to you and our office! We'll process the charge on our secure terminal.";
-    toast(LANG==="es"?"Enviado ✅":"Emailed ✅");
+    toast(LANG==="es"?"Enviado ":"Emailed ");
   } else {
     try{ doc&&doc.save(pdfName); }catch(_){}
     if(done)done.textContent=(LANG==="es")?"Su PDF firmado se descargó y su correo se abrió — adjunte el PDF y envíelo.":"Your signed PDF downloaded and your email opened — attach the PDF and send.";
