@@ -117,14 +117,14 @@
       <h2><span class="num">3</span> <span data-i18n="idSec">Photo ID &amp; location</span></h2>
       <p class="sub" data-i18n="idSub">Required to authorize a card-not-present charge. Snap the ID and a selfie.</p>
       <div class="uploads">
-        <label class="drop"><div class="t" data-i18n="idFront">ID — FRONT</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="id_front" capture="environment"><img class="thumb" data-thumb></label>
-        <label class="drop"><div class="t" data-i18n="idBack">ID — BACK</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="id_back" capture="environment"><img class="thumb" data-thumb></label>
-        <label class="drop"><div class="t" data-i18n="blotter">Blotter / bond</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="blotter" capture="environment"><img class="thumb" data-thumb></label>
+        <label class="drop"><div class="t" data-i18n="idFront">ID — FRONT</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="id_front" capture="environment"><img class="thumb" data-thumb alt="Uploaded document preview"></label>
+        <label class="drop"><div class="t" data-i18n="idBack">ID — BACK</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="id_back" capture="environment"><img class="thumb" data-thumb alt="Uploaded document preview"></label>
+        <label class="drop"><div class="t" data-i18n="blotter">Blotter / bond</div><div class="status" data-status></div><input type="file" accept="image/*,.pdf" data-doc="blotter" capture="environment"><img class="thumb" data-thumb alt="Uploaded document preview"></label>
         <div class="drop" id="selfieTile" style="cursor:default">
           <div class="t" data-i18n="selfie">Live selfie w/ card &amp; ID</div>
           <div class="d" data-i18n="selfieHint">Camera only — no uploads</div>
           <video id="selfieVideo" playsinline autoplay muted style="display:none;width:100%;max-height:200px;border-radius:8px;margin-top:6px;background:#000"></video>
-          <div class="status" data-status></div><img class="thumb" data-thumb>
+          <div class="status" data-status></div><img class="thumb" data-thumb alt="Uploaded document preview">
           <div style="margin-top:6px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
             <button type="button" class="btn2" id="selfieStart" data-i18n="openCam">Camera</button>
             <button type="button" class="btn2" id="selfieSnap" style="display:none" data-i18n="capture">Capture</button>
