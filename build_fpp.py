@@ -950,5 +950,7 @@ links = "\n".join(f"- [{t}]({SITE}{p}): {d}" for p, t, d, pr in PAGES if pr)
 /privacy-policy /privacy 301
 /flood /flood-insurance 301
 /auto /auto-insurance 301
+/review https://g.page/r/CQSdbFe48xNYEBM/review 302
+/resena https://g.page/r/CQSdbFe48xNYEBM/review 302
 """)
 print(f"Built {len(PAGES)} pages into {OUT}")
