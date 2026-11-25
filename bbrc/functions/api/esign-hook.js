@@ -544,7 +544,7 @@ async function scheduleReviewAsk(env, r) {
     if (String(env.REVIEW_ASK || "on").toLowerCase() === "off") return;
     const to = String(r.client_email || "").trim();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return;
-    const link = env.GOOGLE_REVIEW_URL || "https://www.google.com/maps?cid=12684614689792198908";
+    const link = env.GOOGLE_REVIEW_URL || "https://g.page/r/CfwIxLnazQiwEBM/review";
     const first = String(r.client_name || "").trim().split(/\s+/)[0] || "";
     const when = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     await fetch("https://api.resend.com/emails", {
