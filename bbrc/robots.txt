@@ -4,5 +4,6 @@ Disallow: /paid
 Disallow: /cancelled
 Disallow: /paperwork
 Disallow: /agent
+Disallow: /api/
 
-Sitemap: https://24hourbailbondsnearme.com/sitemap.xml
+Sitemap: https://www.24hourbailbondsnearme.com/sitemap.xml
