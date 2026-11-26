@@ -12,10 +12,25 @@ const ROOT_EXEMPT = new Set(["/", "/index.html"]);
 const CANONICAL_HOST = "www.24hourbailbondsnearme.com";
 const OLD_HOSTS = new Set(["apply.24hourbailbondsnearme.com"]);
 
+// The domain once ran a hacked WordPress site with ~20,000 spam posts
+// (/?p=123, /?page_id=..). Google still remembers 1,450+ of them. Answer
+// those old WordPress addresses with 410 Gone so Google drops them fast.
+const WP_QUERY_KEYS = ["p", "page_id", "cat", "tag", "attachment_id", "m", "author"];
+function isOldWordPressUrl(url) {
+  if (url.pathname.startsWith("/wp-") || url.pathname === "/xmlrpc.php") return true;
+  return ROOT_EXEMPT.has(url.pathname) && WP_QUERY_KEYS.some((k) => url.searchParams.has(k));
+}
+
 export async function onRequest(context) {
   const { request } = context;
   const url = new URL(request.url);
   const isPageView = request.method === "GET" || request.method === "HEAD";
+  if (isPageView && isOldWordPressUrl(url)) {
+    return new Response("Gone", {
+      status: 410,
+      headers: { "Content-Type": "text/plain", "X-Robots-Tag": "noindex" },
+    });
+  }
   if (OLD_HOSTS.has(url.hostname) && isPageView && !url.pathname.startsWith("/api/") && !ROOT_EXEMPT.has(url.pathname)) {
     url.hostname = CANONICAL_HOST;
     url.protocol = "https:";
