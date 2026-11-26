@@ -371,7 +371,7 @@ page("/homeowners-insurance", "Homeowners Insurance West Palm Beach | Floridian 
 <h2>Condo, renters and landlord policies</h2>
 <p>We also quote condo unit-owner (HO-6), renters (HO-4) and landlord dwelling policies across Palm Beach County.</p>
 <h2>Guides</h2>
-<p><a href="/blog/wind-mitigation-inspection-florida">Wind mitigation inspections explained</a> · <a href="/blog/roof-age-home-insurance-florida">Roof age and Florida home insurance</a> · <a href="/blog/citizens-flood-insurance-requirement">The Citizens flood requirement</a></p>
+<p><a href="/blog/hurricane-deductible-florida">How hurricane deductibles work</a> · <a href="/blog/4-point-inspection-florida">4-point inspections</a> · <a href="/blog/leaving-citizens-insurance-florida">Leaving Citizens</a> · <a href="/blog/wind-mitigation-inspection-florida">Wind mitigation inspections explained</a> · <a href="/blog/roof-age-home-insurance-florida">Roof age and Florida home insurance</a> · <a href="/blog/citizens-flood-insurance-requirement">The Citizens flood requirement</a></p>
 """, faqs=HO_FAQ, form="homeowners", form_default="Homeowners", kicker="Homeowners insurance", crumbs=[("/", "Home"), ("/homeowners-insurance", "Homeowners insurance")])
 
 # ---------------------------------------------------------------- Flood
@@ -789,12 +789,125 @@ page("/blog/citizens-flood-insurance-requirement", "Citizens Flood Insurance Req
 """, faqs=CIT_FAQ, form="guide-citizens-flood", form_default="Citizens review", kicker="Insurance guide", article="2026-11-25",
      crumbs=[("/", "Home"), ("/blog", "Guides"), ("/blog/citizens-flood-insurance-requirement", "Citizens flood requirement")], sitemap_priority="0.8")
 
+FOUR_FAQ = [
+    ("What is a 4-point inspection?",
+     "A 4-point inspection is a short report on the four systems Florida insurers worry about most in older homes: the roof, electrical, plumbing and HVAC. Each system's age, type and condition is documented with photos so the insurer can decide whether to write the policy."),
+    ("When does a Florida home need a 4-point inspection?",
+     "Most carriers ask for one on older homes, commonly around 30 years old or more, and some ask at 25 or 40 years. The trigger varies by carrier, which is one reason comparing carriers matters for older homes."),
+    ("What fails a 4-point inspection?",
+     "Common problems are a roof near the end of its life or with active leaks, Federal Pacific Stab-Lok or Zinsco panels, fuse boxes, knob-and-tube or ungrounded wiring, polybutylene supply pipes, active leaks, and a water heater or HVAC system that is not working. Some carriers accept a home after the item is fixed or updated."),
+    ("Is a 4-point inspection the same as a wind mitigation inspection?",
+     "No. A 4-point inspection tells the insurer whether it will write the home. A wind mitigation inspection documents hurricane-resistant features that earn discounts. Many inspectors do both in one visit."),
+    ("How long is a 4-point inspection good for?",
+     "Many carriers accept a 4-point report for about a year, but each carrier sets its own rule. Ask before you buy a new one."),
+]
+page("/blog/4-point-inspection-florida", "4-Point Inspection in Florida: What Fails and Why It Matters",
+     "What a Florida 4-point inspection checks, what fails it and when insurers require one for older homes. Free quote: 561-777-0777.",
+     "4-Point Inspections in Florida, Explained",
+     "The report most Florida insurers want before they will cover an older home.",
+     f"""
+<p class="answer"><strong>The short answer:</strong> A 4-point inspection documents the age and condition of a home's roof, electrical, plumbing and HVAC. Florida insurers commonly require one for homes around 30 years old or older before they will write a policy. Problems like an old roof, a Federal Pacific or Zinsco panel or polybutylene pipes can limit your options, but carriers differ. Call {PHONE} and we'll find the carriers that accept your home.</p>
+<h2>The four systems on the report</h2>
+<table class="facts">
+<tr><th>Roof</th><td>Material, age, remaining useful life, and any leaks or damage.</td></tr>
+<tr><th>Electrical</th><td>Panel brand and capacity, wiring type, and any hazards such as double taps or exposed wiring.</td></tr>
+<tr><th>Plumbing</th><td>Supply pipe material, water heater age and location, and any active leaks.</td></tr>
+<tr><th>HVAC</th><td>System age and whether heating and cooling work.</td></tr>
+</table>
+<h2>Common reasons a home fails</h2>
+<ul class="checks">
+<li>A roof near the end of its life or with signs of leaks. See <a href="/blog/roof-age-home-insurance-florida">roof age and Florida home insurance</a>.</li>
+<li>Federal Pacific Stab-Lok or Zinsco panels, fuse boxes, knob-and-tube or ungrounded wiring.</li>
+<li>Polybutylene supply pipes or active plumbing leaks.</li>
+<li>An HVAC system or water heater that is not working.</li>
+</ul>
+<h2>How to get through it</h2>
+<ul class="checks">
+<li>Get the 4-point and a wind mitigation inspection in the same visit. The wind report can earn discounts. <a href="/blog/wind-mitigation-inspection-florida">How wind mitigation works</a>.</li>
+<li>Keep permits and receipts for roof, panel, plumbing and HVAC updates. Inspectors and carriers use them to confirm ages.</li>
+<li>If an item fails, ask us which carriers accept the home as is and which accept it after a repair.</li>
+</ul>
+<p>Related: <a href="/homeowners-insurance">homeowners insurance in West Palm Beach</a>.</p>
+<p class="note">Written by Carlos Sevilla, licensed Florida insurance agent, Floridian Policy Pros. Requirements and accepted report ages vary by insurer. This is general information, not a guarantee of coverage.</p>
+""", faqs=FOUR_FAQ, form="guide-4-point", form_default="Homeowners", kicker="Insurance guide", article="2026-11-26",
+     crumbs=[("/", "Home"), ("/blog", "Guides"), ("/blog/4-point-inspection-florida", "4-point inspection")], sitemap_priority="0.7")
+
+HD_FAQ = [
+    ("What is a hurricane deductible in Florida?",
+     "A hurricane deductible is the amount you pay on a claim caused by a hurricane before your homeowners policy pays. In Florida it is usually a percentage of your dwelling coverage (Coverage A), most often 2%, 5% or 10%, though some policies offer a flat $500 option."),
+    ("How do I calculate my hurricane deductible?",
+     "Multiply your dwelling coverage by the percentage. For example, a home insured for $400,000 with a 2% hurricane deductible has an $8,000 hurricane deductible. At 5% it is $20,000."),
+    ("When does the hurricane deductible apply?",
+     "Under Florida law it applies to hurricane losses that occur from the time a hurricane watch or warning is issued for any part of Florida by the National Hurricane Center until 72 hours after the last watch or warning for Florida ends."),
+    ("Do I pay a hurricane deductible for every storm?",
+     "No. In Florida the hurricane deductible applies once per calendar year. If a second hurricane damages your home in the same year after you have met the hurricane deductible, the policy's other-perils deductible applies instead."),
+    ("Should I choose a higher hurricane deductible to save money?",
+     "A higher percentage lowers the premium, but you need to be able to pay that amount after a storm. We show you the premium at each option so you can weigh the savings against the out-of-pocket risk."),
+]
+page("/blog/hurricane-deductible-florida", "Florida Hurricane Deductible: How It Works (With Examples)",
+     "How Florida hurricane deductibles work: 2%, 5% and 10% examples, when they apply and the once-a-year rule. Call 561-777-0777.",
+     "Florida Hurricane Deductibles, Explained",
+     "What you would actually pay after a storm, and how to choose the right percentage.",
+     f"""
+<p class="answer"><strong>The short answer:</strong> A Florida hurricane deductible is usually a percentage of your dwelling coverage, most often 2%, 5% or 10%. On a home insured for $400,000, a 2% deductible means you pay the first $8,000 of hurricane damage. It applies from the time a hurricane watch or warning is issued for Florida until 72 hours after it ends, and only once per calendar year. Call {PHONE} to compare premiums at each deductible.</p>
+<h2>What you would pay</h2>
+<table class="facts">
+<tr><th>Dwelling coverage</th><td>2% / 5% / 10% hurricane deductible</td></tr>
+<tr><th>$300,000</th><td>$6,000 / $15,000 / $30,000</td></tr>
+<tr><th>$400,000</th><td>$8,000 / $20,000 / $40,000</td></tr>
+<tr><th>$500,000</th><td>$10,000 / $25,000 / $50,000</td></tr>
+</table>
+<h2>Rules worth knowing</h2>
+<ul class="checks">
+<li>The hurricane deductible applies only to hurricane losses during the watch or warning window. Other damage uses your all other perils deductible.</li>
+<li>It applies once per calendar year. A second hurricane that year falls under the other-perils deductible once the hurricane deductible is met.</li>
+<li>Flood damage is not covered by homeowners insurance. Flood needs its own policy and deductible. <a href="/flood-insurance">Flood insurance in West Palm Beach</a>.</li>
+<li>Wind mitigation credits can lower the wind portion of your premium at any deductible. <a href="/blog/wind-mitigation-inspection-florida">How wind mitigation works</a>.</li>
+</ul>
+<p>Related: <a href="/homeowners-insurance">homeowners insurance in West Palm Beach</a>.</p>
+<p class="note">Written by Carlos Sevilla, licensed Florida insurance agent, Floridian Policy Pros. Source: Florida Statutes sections 627.701 and 627.4025. Deductible options vary by insurer; check your declarations page.</p>
+""", faqs=HD_FAQ, form="guide-hurricane-deductible", form_default="Homeowners", kicker="Insurance guide", article="2026-11-26",
+     crumbs=[("/", "Home"), ("/blog", "Guides"), ("/blog/hurricane-deductible-florida", "Hurricane deductible")], sitemap_priority="0.7")
+
+LC_FAQ = [
+    ("Can I leave Citizens Property Insurance for a private carrier?",
+     "Yes. You can move to a private carrier at any time. Citizens refunds unearned premium when you cancel. Line up the new policy first so there is no gap in coverage."),
+    ("What is the Citizens 20% rule?",
+     "Under Florida law, a homeowner is not eligible for a Citizens policy if an authorized private insurer offers comparable coverage at a premium no more than 20% higher than the Citizens renewal premium. Citizens checks this through its clearinghouse at new business and renewal."),
+    ("What is a Citizens takeout offer?",
+     "A takeout offer is when a private insurer approved by the Florida Office of Insurance Regulation offers to take over Citizens policies. You receive a notice and can review the new insurer's coverage and price before your policy moves. Read the notice carefully, because the 20% rule can affect whether you can stay with Citizens."),
+    ("Is Citizens cheaper than private insurance?",
+     "Not always. Citizens premiums have risen, and Citizens policyholders must also carry flood insurance on the phased schedule. Compare Citizens plus flood against private homeowners options to see the full cost."),
+]
+page("/blog/leaving-citizens-insurance-florida", "Leaving Citizens Insurance: Takeouts and the 20% Rule",
+     "How to leave Citizens Property Insurance, how takeout offers and the 20% rule work, and what to compare. Free review: 561-777-0777.",
+     "Leaving Citizens Property Insurance",
+     "Takeout offers, the 20% rule and how to switch without a gap in coverage.",
+     f"""
+<p class="answer"><strong>The short answer:</strong> You can leave Citizens Property Insurance for a private carrier at any time, and Citizens refunds the unearned premium. Florida's 20% rule also means that if a private insurer offers comparable coverage within 20% of your Citizens renewal premium, you may no longer be eligible to stay with Citizens. Have us compare private options before your renewal: call {PHONE}.</p>
+<h2>How to switch without a gap</h2>
+<ul class="checks">
+<li>Send us your Citizens declarations page, your roof year and any wind mitigation or 4-point report.</li>
+<li>We compare private carriers against your Citizens renewal, plus the flood policy Citizens requires.</li>
+<li>Bind the new policy first, then cancel Citizens effective the same day. Citizens refunds the unearned premium.</li>
+<li>Update your mortgage company with the new policy so escrow pays the right insurer.</li>
+</ul>
+<h2>Takeout offers and the 20% rule</h2>
+<p>Private insurers approved by the Florida Office of Insurance Regulation can offer to take over Citizens policies. If you get a takeout notice, compare the coverage, deductibles and price line by line. Because of the 20% rule, a comparable private offer can affect whether you are eligible to renew with Citizens, so it pays to have an agent review the notice with you.</p>
+<p>Related: <a href="/blog/citizens-flood-insurance-requirement">the Citizens flood insurance requirement</a>, <a href="/blog/4-point-inspection-florida">4-point inspections</a> and <a href="/homeowners-insurance">homeowners insurance in West Palm Beach</a>.</p>
+<p class="note">Written by Carlos Sevilla, licensed Florida insurance agent, Floridian Policy Pros. Source: Florida Statutes section 627.351(6) and Citizens Property Insurance Corporation eligibility and clearinghouse rules. This is general information; eligibility depends on your policy and offers received.</p>
+""", faqs=LC_FAQ, form="guide-leaving-citizens", form_default="Citizens review", kicker="Insurance guide", article="2026-11-26",
+     crumbs=[("/", "Home"), ("/blog", "Guides"), ("/blog/leaving-citizens-insurance-florida", "Leaving Citizens")], sitemap_priority="0.8")
+
 page("/blog", "Florida Insurance Guides | Floridian Policy Pros",
      "Plain-English Florida insurance guides on flood, homeowners and hurricane deductibles from a West Palm Beach agency. Call 561-777-0777.",
      "Florida Insurance Guides",
      "Plain-English answers from a licensed West Palm Beach agent.",
      """
-<div class="grid"><a class="card" href="/blog/citizens-flood-insurance-requirement"><h3>The Citizens Flood Insurance Requirement</h3><p>Deadlines by home value and the January 1, 2027 final phase.</p></a>
+<div class="grid"><a class="card" href="/blog/leaving-citizens-insurance-florida"><h3>Leaving Citizens Property Insurance</h3><p>Takeout offers, the 20% rule and switching without a gap.</p></a>
+<a class="card" href="/blog/hurricane-deductible-florida"><h3>Florida Hurricane Deductibles</h3><p>2%, 5% and 10% examples, when it applies and the once-a-year rule.</p></a>
+<a class="card" href="/blog/4-point-inspection-florida"><h3>4-Point Inspections in Florida</h3><p>What the report checks, what fails it and when insurers require one.</p></a>
+<a class="card" href="/blog/citizens-flood-insurance-requirement"><h3>The Citizens Flood Insurance Requirement</h3><p>Deadlines by home value and the January 1, 2027 final phase.</p></a>
 <a class="card" href="/blog/wind-mitigation-inspection-florida"><h3>Wind Mitigation Inspections in Florida</h3><p>What the inspector checks and how the report lowers your premium.</p></a>
 <a class="card" href="/blog/roof-age-home-insurance-florida"><h3>Roof Age and Home Insurance in Florida</h3><p>The 15-year roof rule, inspections and what carriers prefer.</p></a>
 <a class="card" href="/blog/flood-insurance-west-palm-beach-guide"><h3>Flood Insurance in West Palm Beach: 2026 Guide</h3><p>Flood zones, NFIP vs. private, the 30-day wait and the Citizens flood requirement.</p></a></div>
