@@ -1,0 +1,55 @@
+name: BBRC IndexNow ping
+on:
+  push:
+    branches: [bbrc-site]
+    paths: ['bbrc/**']
+  workflow_dispatch:
+    inputs:
+      all:
+        description: 'Submit every URL in the sitemap'
+        default: 'true'
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Wait for Cloudflare Pages deploy
+        run: sleep 120
+      - name: Ping IndexNow
+        env:
+          KEY: 17ce2207323d4561bf13b6cbfa443123
+          HOST: www.24hourbailbondsnearme.com
+          ALL: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re, subprocess, urllib.request
+          host, key = os.environ['HOST'], os.environ['KEY']
+          base = f'https://{host}'
+          sitemap = open('bbrc/sitemap.xml').read()
+          listed = re.findall(r'<loc>([^<]+)</loc>', sitemap)
+          if os.environ['ALL'] == 'true':
+              urls = listed
+          else:
+              out = subprocess.run(['git', 'diff', '--name-only', 'HEAD~1', 'HEAD', '--', 'bbrc/'],
+                                   capture_output=True, text=True).stdout.split()
+              urls = []
+              for f in out:
+                  if not f.endswith('.html'):
+                      if f in ('bbrc/sitemap.xml', 'bbrc/llms.txt'):
+                          urls.append(base + '/' + f[5:])
+                      continue
+                  slug = f[5:-5]
+                  u = base + '/' if slug == 'index' else f'{base}/{slug}'
+                  if u in listed or u.rstrip('/') + '/' in listed:
+                      urls.append(u)
+          if not urls:
+              print('No public URLs changed'); raise SystemExit
+          body = json.dumps({'host': host, 'key': key, 'keyLocation': f'{base}/{key}.txt',
+                             'urlList': urls}).encode()
+          req = urllib.request.Request('https://api.indexnow.org/indexnow', data=body,
+                                       headers={'Content-Type': 'application/json; charset=utf-8'})
+          with urllib.request.urlopen(req) as r:
+              print(r.status, len(urls), 'URLs'); print('\n'.join(urls))
+          PY
