@@ -957,4 +957,7 @@ links = "\n".join(f"- [{t}]({SITE}{p}): {d}" for p, t, d, pr in PAGES if pr)
 /review https://g.page/r/CQSdbFe48xNYEBM/review 302
 /resena https://g.page/r/CQSdbFe48xNYEBM/review 302
 """)
+# IndexNow (Bing, Yandex, Seznam, Naver): public key file proves we own the host.
+INDEXNOW_KEY = "2b47ba560a9d2a22c01b2c6bb2f149eb"
+(OUT / f"{INDEXNOW_KEY}.txt").write_text(INDEXNOW_KEY)
 print(f"Built {len(PAGES)} pages into {OUT}")

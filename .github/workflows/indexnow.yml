@@ -1,0 +1,26 @@
+name: IndexNow ping
+# After each publish to the live FPP branch, tell IndexNow (Bing and partners)
+# which pages changed so they recrawl within hours instead of weeks.
+on:
+  push:
+    branches: [fpp-site]
+    paths: ["fpp/**"]
+  workflow_dispatch:
+    inputs:
+      all:
+        description: "Submit every URL in the sitemap"
+        type: boolean
+        default: true
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Wait for Cloudflare Pages to finish deploying
+        run: sleep 120
+      - name: Submit changed URLs
+        env:
+          ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.all }}
+        run: python3 tools/indexnow_ping.py ${{ github.event_name == 'push' && github.event.before || '' }}
