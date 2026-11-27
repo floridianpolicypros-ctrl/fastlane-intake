@@ -15,7 +15,8 @@ TEL = "tel:+15617770777"
 QUOTE_URL = "https://www.agentinsure.com/compare/auto-insurance-home-insurance/floridianpolicypros/quote.aspx"
 LOGIN_URL = "https://customerservice.agentinsure.com/EzlynxCustomerService/floridianpolicypros/Account/LogIn"
 EMAIL = "carlos@floridianpolicypros.com"
-ADDRESS = "800 S Congress Ave, West Palm Beach, FL 33406"
+ADDRESS = "800 S Congress Ave, Suite B, West Palm Beach, FL 33406"
+LEGAL_NAME = "Sevilla Insurance Agency DBA Floridian Policy Pros"
 LICENSE = "Florida agency license L110695"
 HOURS = "Open 7 days, 9 AM to 5 PM"
 
@@ -24,6 +25,8 @@ ORG = {
     "@type": ["InsuranceAgency", "LocalBusiness"],
     "@id": ORG_ID,
     "name": "Floridian Policy Pros",
+    "legalName": "Sevilla Insurance Agency",
+    "alternateName": LEGAL_NAME,
     "slogan": "Shining light on all your insurance needs.",
     "description": "Independent insurance agency in West Palm Beach, Florida. We shop 30+ A-rated carriers for homeowners, flood, auto and business insurance across Palm Beach County. Se habla español.",
     "url": SITE + "/",
@@ -32,7 +35,7 @@ ORG = {
     "telephone": "+1-561-777-0777",
     "email": EMAIL,
     "foundingDate": "2020",
-    "address": {"@type": "PostalAddress", "streetAddress": "800 S Congress Ave", "addressLocality": "West Palm Beach",
+    "address": {"@type": "PostalAddress", "streetAddress": "800 S Congress Ave, Suite B", "addressLocality": "West Palm Beach",
                 "addressRegion": "FL", "postalCode": "33406", "addressCountry": "US"},
     "openingHoursSpecification": [{"@type": "OpeningHoursSpecification",
         "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
@@ -255,11 +258,11 @@ def page(path, title, desc, h1, lead, body, faqs=None, kicker="Floridian Policy 
 </div></main>
 <footer class="site"><div class="in">
 <div><h4>Floridian Policy Pros</h4><p>Shining light on all your insurance needs.</p><p>{LICENSE}. Licensed agent Carlos Sevilla.</p></div>
-<div><h4>{'Contacto' if lang == 'es' else 'Contact'}</h4><ul><li><a href="{TEL}">{PHONE}</a></li><li><a href="mailto:{EMAIL}">{EMAIL}</a></li><li>{ADDRESS}</li><li>{'Abierto 7 días, 9 AM a 5 PM' if lang == 'es' else HOURS}</li><li>Se habla español</li></ul></div>
+<div><h4>{'Contacto' if lang == 'es' else 'Contact'}</h4><ul><li>{LEGAL_NAME}</li><li><a href="{TEL}">{PHONE}</a></li><li><a href="mailto:{EMAIL}">{EMAIL}</a></li><li>{ADDRESS}</li><li>{'Abierto 7 días, 9 AM a 5 PM' if lang == 'es' else HOURS}</li><li>Se habla español</li></ul></div>
 <div><h4>Insurance</h4><ul><li><a href="/homeowners-insurance">Homeowners insurance</a></li><li><a href="/flood-insurance">Flood insurance</a></li><li><a href="/auto-insurance">Auto insurance</a></li><li><a href="/business-insurance">Business insurance</a></li><li><a href="/our-services">All coverage</a></li></ul></div>
 <div><h4>Areas we serve</h4><ul><li><a href="/insurance-agency/lake-worth-beach">Lake Worth Beach</a></li><li><a href="/insurance-agency/boynton-beach">Boynton Beach</a></li><li><a href="/insurance-agency/wellington">Wellington</a></li><li><a href="/insurance-agency/royal-palm-beach">Royal Palm Beach</a></li><li><a href="/insurance-agency/jupiter">Jupiter</a></li><li><a href="/insurance-agency/palm-beach-gardens">Palm Beach Gardens</a></li><li><a href="/areas-we-serve">All areas</a></li></ul></div>
 <div><h4>Company</h4><ul><li><a href="/about">About us</a></li><li><a href="/insurance-providers">Our carriers</a></li><li><a href="/blog">Insurance guides</a></li><li><a href="/faq">FAQ</a></li><li><a href="{LOGIN_URL}" rel="noopener">Client login</a></li><li><a href="/privacy">Privacy policy</a></li></ul></div>
-</div><div class="legal">&copy; {year} Floridian Policy Pros. {LICENSE}. Coverage is subject to the terms, conditions and availability of each insurance company.</div></footer>
+</div><div class="legal">&copy; {year} {LEGAL_NAME}. {LICENSE}. Coverage is subject to the terms, conditions and availability of each insurance company.</div></footer>
 <script>document.querySelectorAll("form[data-lead]").forEach(function(f){{f.addEventListener("submit",function(e){{e.preventDefault();var m=f.querySelector(".msg"),b=f.querySelector("button"),es=f.querySelector("[name=lang]").value=="es";b.disabled=true;m.textContent=es?"Enviando...":"Sending...";var d={{}};new FormData(f).forEach(function(v,k){{d[k]=v}});d.page=location.pathname;d.ref=document.referrer;fetch("/api/lead",{{method:"POST",headers:{{"content-type":"application/json"}},body:JSON.stringify(d)}}).then(function(r){{return r.json()}}).then(function(j){{if(j.ok){{f.reset();m.style.color="#0a7a3d";m.textContent=es?"Recibido. Un agente le llamará pronto. Si es urgente, llame al {PHONE}.":"Got it. A licensed agent will call you shortly. If it's urgent, call {PHONE}.";if(window.gtag)gtag("event","generate_lead",{{source:d.source}})}}else throw 0}}).catch(function(){{m.style.color="#b42318";m.textContent=es?"No se pudo enviar. Por favor llame al {PHONE}.":"That didn't go through. Please call {PHONE}."}}).finally(function(){{b.disabled=false}})}})}})</script>
 <a class="callfab" href="{TEL}">{'Llamar' if lang == 'es' else 'Call'} {PHONE}</a>
 </body>
@@ -294,7 +297,7 @@ page("/", "Insurance Agency West Palm Beach | Floridian Policy Pros",
      "West Palm Beach Homeowners & Flood Insurance Agency",
      "Insurance isn't just about policies, it's about peace of mind. Floridian Policy Pros is a local, licensed independent agency that shops 30+ A-rated carriers to find the right coverage at the right price for Palm Beach County homes, cars and businesses.",
      f"""
-<p class="answer"><strong>In short:</strong> Floridian Policy Pros is an independent insurance agency at 800 S Congress Ave, West Palm Beach, FL 33406. We compare 30+ A-rated insurance companies for homeowners, flood, auto and business coverage, we're open 7 days from 9 AM to 5 PM, and we speak English and Spanish. Call {PHONE} for a free quote.</p>
+<p class="answer"><strong>In short:</strong> Floridian Policy Pros is an independent insurance agency at 800 S Congress Ave, Suite B, West Palm Beach, FL 33406. We compare 30+ A-rated insurance companies for homeowners, flood, auto and business coverage, we're open 7 days from 9 AM to 5 PM, and we speak English and Spanish. Call {PHONE} for a free quote.</p>
 <h2>Insurance we place in Palm Beach County</h2>
 <div class="grid">
 <a class="card" href="/homeowners-insurance"><h3>Homeowners insurance</h3><p>Wind, hurricane and replacement-cost coverage for Florida homes, plus wind mitigation discounts.</p></a>
@@ -519,13 +522,14 @@ page("/about", "About Floridian Policy Pros | West Palm Beach Agency",
 
 # ---------------------------------------------------------------- Contact (old WordPress URL)
 page("/contact-us", "Contact Us | Floridian Policy Pros, West Palm Beach",
-     "Call 561-777-0777 or visit 800 S Congress Ave, West Palm Beach, FL 33406. Open 7 days, 9 AM to 5 PM. Se habla español.",
+     "Call 561-777-0777 or visit 800 S Congress Ave, Suite B, West Palm Beach, FL 33406. Open 7 days, 9 AM to 5 PM. Se habla español.",
      "Contact Floridian Policy Pros",
      f"Call <a href=\"{TEL}\" style=\"color:#fff\">{PHONE}</a>, email us, or stop by the office. Open 7 days, 9 AM to 5 PM. Se habla español.",
      f"""
 <table class="facts">
 <tr><th>Phone</th><td><a href="{TEL}">{PHONE}</a></td></tr>
 <tr><th>Email</th><td><a href="mailto:{EMAIL}">{EMAIL}</a></td></tr>
+<tr><th>Business name</th><td>{LEGAL_NAME}</td></tr>
 <tr><th>Office</th><td>{ADDRESS} (<a href="https://www.google.com/maps/search/?api=1&amp;query=Floridian+Policy+Pros+800+S+Congress+Ave+West+Palm+Beach+FL+33406" rel="noopener">directions</a>)</td></tr>
 <tr><th>Hours</th><td>{HOURS}</td></tr>
 <tr><th>Languages</th><td>English, Spanish</td></tr>
@@ -640,7 +644,7 @@ page("/es/seguro-de-auto", "Seguro de Auto West Palm Beach | Floridian Policy Pr
 ], form="es-auto", form_default="Auto", lang="es", kicker="Seguro de auto", crumbs=[("/seguro-en-espanol", "Inicio"), ("/es/seguro-de-auto", "Seguro de auto")])
 
 page("/es/contacto", "Contacto | Floridian Policy Pros, West Palm Beach",
-     "Llame al 561-777-0777 o visítenos en 800 S Congress Ave, West Palm Beach, FL 33406. Abierto 7 días, 9 AM a 5 PM. Se habla español.",
+     "Llame al 561-777-0777 o visítenos en 800 S Congress Ave, Suite B, West Palm Beach, FL 33406. Abierto 7 días, 9 AM a 5 PM. Se habla español.",
      "Contacte a Floridian Policy Pros",
      f"Llame al <a href=\"{TEL}\" style=\"color:#fff\">{PHONE}</a>, escríbanos o visite la oficina. Abierto 7 días, de 9 AM a 5 PM. Se habla español.",
      f"""
