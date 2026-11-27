@@ -379,6 +379,30 @@ const CONFIG = {
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 const form=$("#quoteForm");
 function val(n){const el=form.elements[n];return el?(el.value||"").trim():"";}
+/* Values for the BoldSign "Fast Lane Student Enrollment Form" template, sent to Zapier.
+   Checkbox values are "on"/"off"; dates are MM/DD/YYYY. */
+function mdy(d){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||"");return m?m[2]+"/"+m[3]+"/"+m[1]:(d||"");}
+function boldsignFields(){
+  const course=val("courseType"), reason=val("reasonAttending"), prior=val("priorBdi");
+  const on=b=>b?"on":"off";
+  const knownCourse=/^BDI|^TLSAE|^8-Hour|^ADI|^Youthful/.test(course);
+  return {
+    middleName:val("middleName"), suffix:val("suffix"),
+    dob:mdy(val("dob")), sex:val("sex"), ssnLast4:val("ssnLast4"),
+    street:val("street"), city:val("city"), state:val("state"), zip:val("zip"),
+    citationDate:mdy(val("violationDate")), caseNumber:val("caseNumber"),
+    courtDueDate:mdy(val("courtDueDate")), priorBdi:prior,
+    bsCourseBdi4:on(/^BDI/.test(course)), bsCourse8hr:on(/^8-Hour/.test(course)),
+    bsCourseAdi12:on(/^ADI/.test(course)), bsCourseYo:on(/^Youthful/.test(course)),
+    bsCourseTlsae:on(/^TLSAE/.test(course)), bsCourseOther:on(!!course && !knownCourse),
+    bsCourseOtherText:(!!course && !knownCourse)?course:"",
+    bsReasonElection:on(/^Election/.test(reason)), bsReasonCourt:on(/^Court ordered/.test(reason)),
+    bsReasonOther:on(!!reason && !/^Election|^Court ordered/.test(reason)),
+    bsPriorBdiYes:on(/within the last 12 months/.test(prior)), bsPriorBdiNo:on(!!prior && !/within the last 12 months|Not sure/.test(prior)),
+    bsSendForSignature: !payload_needsReview() && !!val("email")
+  };
+}
+function payload_needsReview(){const w=$("#eligWarn");return !!(w && !w.classList.contains("hidden"));}
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),3500);}
 
 /* ---------- conditionals ---------- */
@@ -728,7 +752,9 @@ form.addEventListener("submit",async e=>{
       wantsInsurance:!!($("#wantsInsuranceQuote")&&$("#wantsInsuranceQuote").checked),
       promoCode:promoValid()?promoCode():"", paidOnline:!promoValid(),
       needsReview:payload.eligibilityFlag,
-      documents:Object.keys(uploaded).map(k=>DOC_LABELS[k]||k).join(", ")
+      documents:Object.keys(uploaded).map(k=>DOC_LABELS[k]||k).join(", "),
+      // --- Fields for the BoldSign enrollment form (prefilled, student only signs) ---
+      ...boldsignFields()
     };
     try{ fetch(CONFIG.zapierWebhook,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(zap)}); }catch(_){}
   }
